@@ -225,17 +225,58 @@ step_1() {
 
 
 step_2() {
+    # Homebrew cannot be installed as root
+    if [ "$REAL_USER" == "root" ]; then
+        echo -e "${RED}Error: Homebrew cannot be installed as root user.${NC}"
+        echo -e "${YELLOW}Please run this script using sudo from a regular user account.${NC}"
+        return 1
+    fi
+
+    echo "Checking Homebrew installation..."
     # Homebrew default path check
-    if [ ! -d "/home/linuxbrew/.linuxbrew" ]; then
+    if [ ! -d "/home/linuxbrew/.linuxbrew" ] && [ ! -d "$REAL_HOME/.linuxbrew" ]; then
         echo "Installing Homebrew..."
+        # Ensure dependencies are present (mostly done in step_1 but safe to be explicit)
+        apt-get install -y build-essential procps curl file git
+        
+        # Execute installer as the real user
         sudo -u $REAL_USER NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     else
-        echo "Homebrew already installed. Updating..."
-        sudo -u $REAL_USER /home/linuxbrew/.linuxbrew/bin/brew update
+        echo "Homebrew already installed. Checking for updates..."
+        local BREW_EXEC="/home/linuxbrew/.linuxbrew/bin/brew"
+        [ ! -f "$BREW_EXEC" ] && BREW_EXEC="$REAL_HOME/.linuxbrew/bin/brew"
+        
+        if [ -f "$BREW_EXEC" ]; then
+            sudo -u $REAL_USER "$BREW_EXEC" update
+        fi
     fi
-    # Load brew for this script context
+
+    # Load brew for this script context (root)
     if [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
         eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    elif [ -f "$REAL_HOME/.linuxbrew/bin/brew" ]; then
+        eval "$($REAL_HOME/.linuxbrew/bin/brew shellenv)"
+    fi
+
+    # Persistent PATH for Bash transition and persistent login
+    # We add it to .bashrc so even before switching to ZSH or if the user stays in Bash, it works.
+    for CONFIG_FILE in "$REAL_HOME/.bashrc" "$REAL_HOME/.profile"; do
+        if [ -f "$CONFIG_FILE" ]; then
+            if ! grep -q "linuxbrew" "$CONFIG_FILE"; then
+                echo -e "\n# Homebrew Configuration" >> "$CONFIG_FILE"
+                echo 'if [ -d "/home/linuxbrew/.linuxbrew" ]; then eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"; fi' >> "$CONFIG_FILE"
+                echo 'if [ -d "$HOME/.linuxbrew" ]; then eval "$($HOME/.linuxbrew/bin/brew shellenv)"; fi' >> "$CONFIG_FILE"
+                chown $REAL_USER:$REAL_USER "$CONFIG_FILE"
+            fi
+        fi
+    done
+
+    # Verify installation successes
+    if command -v brew &>/dev/null; then
+        echo -e "${GREEN}✔ Homebrew is ready.${NC}"
+    else
+        echo -e "${RED}✘ Homebrew installation failed or brew not found in PATH.${NC}"
+        return 1
     fi
 }
 
@@ -360,11 +401,24 @@ step_7() {
 step_8() {
     echo "Installing Modern Unix Tools via Homebrew..."
     TOOLS="bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow jq tldr"
-    # Explicit Brew path to avoid errors
-    BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
     
-    sudo -u $REAL_USER $BREW_BIN install $TOOLS 2>/dev/null || sudo -u $REAL_USER $BREW_BIN upgrade $TOOLS
-    sudo -u $REAL_USER /home/linuxbrew/.linuxbrew/opt/fzf/install --all --no-bash --no-fish > /dev/null 2>&1
+    # Find brew binary
+    local BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
+    [ ! -f "$BREW_BIN" ] && BREW_BIN="$REAL_HOME/.linuxbrew/bin/brew"
+
+    if [ -f "$BREW_BIN" ]; then
+        sudo -u $REAL_USER "$BREW_BIN" install $TOOLS || sudo -u $REAL_USER "$BREW_BIN" upgrade $TOOLS
+        
+        # FZF install script path
+        local FZF_OPT="/home/linuxbrew/.linuxbrew/opt/fzf"
+        [ ! -d "$FZF_OPT" ] && FZF_OPT="$REAL_HOME/.linuxbrew/opt/fzf"
+        if [ -d "$FZF_OPT" ]; then
+            sudo -u $REAL_USER "$FZF_OPT/install" --all --no-bash --no-fish > /dev/null 2>&1
+        fi
+    else
+        echo -e "${RED}Error: Homebrew binary not found. Skipping modern tools installation.${NC}"
+        return 1
+    fi
 }
 
 
