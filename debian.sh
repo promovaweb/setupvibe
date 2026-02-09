@@ -4,8 +4,8 @@
 # ==============================================================================
 # SETUPVIBE.DEV - ULTIMATE DEV ENVIRONMENT (V2.2 - Starship Preset)
 # ==============================================================================
-# Courtesy of: PromovaWeb.com
-# Contact:     contato@promovaweb.com
+# Courtesy:     promovaweb.com
+# Contact:      contato@promovaweb.com
 # ------------------------------------------------------------------------------
 # Compatibility: Zorin OS 18+, Ubuntu 24.04+, Debian 12+
 # Architectures: x86_64 (amd64) & ARM64 (aarch64)
