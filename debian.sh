@@ -131,7 +131,7 @@ show_roadmap_and_wait() {
 configure_git_interactive() {
     echo ""
     echo -e "${BLUE}=== Checking Git Identity ===${NC}"
-    
+
     CURRENT_NAME=$(sudo -u $REAL_USER git config --global user.name)
     CURRENT_EMAIL=$(sudo -u $REAL_USER git config --global user.email)
 
@@ -141,10 +141,9 @@ configure_git_interactive() {
     else
         echo -e "${YELLOW}⚠ Git not configured. Let's fix that now.${NC}"
         echo ""
-        
+
         GIT_NAME=""
         GIT_EMAIL=""
-
 
         while [[ -z "$GIT_NAME" ]]; do
             echo -ne "Enter your Full Name: "
@@ -157,11 +156,10 @@ configure_git_interactive() {
             read GIT_EMAIL
         done
 
-
         sudo -u $REAL_USER git config --global user.name "$GIT_NAME"
         sudo -u $REAL_USER git config --global user.email "$GIT_EMAIL"
         sudo -u $REAL_USER git config --global init.defaultBranch main
-        
+
         echo -e "${GREEN}✔ Git configured!${NC}"
     fi
     sleep 1
@@ -201,7 +199,7 @@ git_ensure() {
 
 step_0() {
     echo "Architecture detected: $ARCH_RAW"
-    return 0 
+    return 0
 }
 
 
@@ -214,7 +212,7 @@ step_1() {
         libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm \
         libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
         libyaml-dev autoconf bison rustc cargo procps file tmux
-    
+
     # Adding Charmbracelet Repo (needed for Glow)
     mkdir -p -m 755 /etc/apt/keyrings
     curl -fsSL https://repo.charm.sh/apt/gpg.key | gpg --dearmor -o /etc/apt/keyrings/charm.gpg --yes
@@ -238,14 +236,14 @@ step_2() {
         echo "Installing Homebrew..."
         # Ensure dependencies are present (mostly done in step_1 but safe to be explicit)
         apt-get install -y build-essential procps curl file git
-        
+
         # Execute installer as the real user
         sudo -u $REAL_USER NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     else
         echo "Homebrew already installed. Checking for updates..."
         local BREW_EXEC="/home/linuxbrew/.linuxbrew/bin/brew"
         [ ! -f "$BREW_EXEC" ] && BREW_EXEC="$REAL_HOME/.linuxbrew/bin/brew"
-        
+
         if [ -f "$BREW_EXEC" ]; then
             sudo -u $REAL_USER "$BREW_EXEC" update
         fi
