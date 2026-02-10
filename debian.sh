@@ -312,7 +312,7 @@ step_4() {
     echo "Setup Rbenv..."
     git_ensure "https://github.com/rbenv/rbenv.git" "$REAL_HOME/.rbenv"
     git_ensure "https://github.com/rbenv/ruby-build.git" "$REAL_HOME/.rbenv/plugins/ruby-build"
-    
+
     cd "$REAL_HOME/.rbenv" && src/configure && make -C src >/dev/null 2>&1
 
 
@@ -321,7 +321,7 @@ step_4() {
         echo "Compiling Ruby 3.3.0..."
         sudo -u $REAL_USER bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv install 3.3.0 && rbenv global 3.3.0'
     fi
-    
+
     echo "Installing Rails..."
     sudo -u $REAL_USER bash -c 'export PATH="$HOME/.rbenv/bin:$HOME/.rbenv/shims:$PATH"; gem install bundler rails'
 }
@@ -330,7 +330,7 @@ step_4() {
 step_5() {
     echo "Setup Python..."
     apt-get install -y python3 python3-pip python3-venv python-is-python3
-    
+
     echo "Setup uv (Python Package Manager)..."
     if ! sudo -u $REAL_USER bash -c "command -v uv" &> /dev/null; then
          sudo -u $REAL_USER bash -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
@@ -344,7 +344,7 @@ step_5() {
     rm -rf /usr/local/go
     wget -q "https://go.dev/dl/go${GO_VER}.linux-${ARCH_GO}.tar.gz" -O /tmp/go.tar.gz
     tar -C /usr/local -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz
-    
+
     echo "Setup Rust..."
     if ! command -v rustup &> /dev/null; then
          sudo -u $REAL_USER sh -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
@@ -364,7 +364,7 @@ step_6() {
     fi
     apt-get install -y nodejs
     npm install -g pnpm npm@latest
-    
+
     echo "Setup Bun..."
     sudo -u $REAL_USER bash -c "curl -fsSL https://bun.sh/install | bash"
 }
@@ -380,7 +380,7 @@ step_7() {
     fi
     apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
     usermod -aG docker $REAL_USER
-    
+
     # Ansible
     if [[ "$DISTRO_ID" == "ubuntu" ]]; then
         add-apt-repository --yes --update ppa:ansible/ansible
@@ -399,14 +399,14 @@ step_7() {
 step_8() {
     echo "Installing Modern Unix Tools via Homebrew..."
     TOOLS="bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow jq tldr"
-    
+
     # Find brew binary
     local BREW_BIN="/home/linuxbrew/.linuxbrew/bin/brew"
     [ ! -f "$BREW_BIN" ] && BREW_BIN="$REAL_HOME/.linuxbrew/bin/brew"
 
     if [ -f "$BREW_BIN" ]; then
         sudo -u $REAL_USER "$BREW_BIN" install $TOOLS || sudo -u $REAL_USER "$BREW_BIN" upgrade $TOOLS
-        
+
         # FZF install script path
         local FZF_OPT="/home/linuxbrew/.linuxbrew/opt/fzf"
         [ ! -d "$FZF_OPT" ] && FZF_OPT="$REAL_HOME/.linuxbrew/opt/fzf"
@@ -423,7 +423,7 @@ step_8() {
 step_9() {
     echo "Installing Network Tools (APT)..."
     apt-get install -y rsync net-tools dnsutils mtr-tiny nmap tcpdump iftop nload iotop sysstat whois iputils-ping speedtest-cli glances htop btop
-    
+
     echo "Installing Network Tools (Rust)..."
     for tool in bandwhich gping trippy; do
         if ! sudo -u $REAL_USER bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; command -v $tool" &> /dev/null; then
@@ -442,14 +442,14 @@ step_9() {
 
 step_10() {
     apt-get install -y zsh
-    
+
     if [ ! -d "$REAL_HOME/.oh-my-zsh" ]; then
         sudo -u $REAL_USER sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     fi
-    
+
     git_ensure "https://github.com/zsh-users/zsh-autosuggestions" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
     git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
-    
+
     echo "Installing Nerd Fonts (FiraCode)..."
     mkdir -p "$REAL_HOME/.local/share/fonts"
     wget -q --show-progress -O /tmp/FiraCode.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/FiraCode.zip
@@ -461,7 +461,7 @@ step_10() {
     echo "Configuring Starship..."
     curl -sS https://starship.rs/install.sh | sh -s -- -y
     mkdir -p "$REAL_HOME/.config"
-    
+
     # --- APPLYING PRESET (gruvbox-rainbow) ---
     echo "Applying Starship Preset: Gruvbox Rainbow..."
     sudo -u $REAL_USER starship preset gruvbox-rainbow -o "$REAL_HOME/.config/starship.toml"
@@ -524,7 +524,7 @@ alias art="php artisan"
 # 6. SILENT LOAD (No echo messages)
 EOF
     chown $REAL_USER:$REAL_USER "$REAL_HOME/.zshrc"
-    
+
     if [ "$SHELL" != "/bin/zsh" ] && [ "$SHELL" != "/usr/bin/zsh" ]; then
         chsh -s $(which zsh) $REAL_USER
     fi
