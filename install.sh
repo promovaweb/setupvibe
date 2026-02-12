@@ -382,29 +382,39 @@ step_2() {
             fi
         fi
 
-        # Load brew for this script context (root)
-        if [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
-            eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-        elif [ -f "$REAL_HOME/.linuxbrew/bin/brew" ]; then
-            eval "$($REAL_HOME/.linuxbrew/bin/brew shellenv)"
-        fi
-
-        # Persistent PATH for Bash
-        for CONFIG_FILE in "$REAL_HOME/.bashrc" "$REAL_HOME/.profile"; do
-            if [ -f "$CONFIG_FILE" ]; then
-                if ! grep -q "linuxbrew" "$CONFIG_FILE"; then
-                    echo -e "\n# Homebrew Configuration" >> "$CONFIG_FILE"
-                    echo 'if [ -d "/home/linuxbrew/.linuxbrew" ]; then eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"; fi' >> "$CONFIG_FILE"
-                    echo 'if [ -d "$HOME/.linuxbrew" ]; then eval "$($HOME/.linuxbrew/bin/brew shellenv)"; fi' >> "$CONFIG_FILE"
-                    chown $REAL_USER:$REAL_USER "$CONFIG_FILE"
-                fi
+        # Configure Homebrew PATH in shell profiles
+        echo "Configuring Homebrew PATH in shell profiles..."
+        for CONFIG_FILE in "$REAL_HOME/.bashrc" "$REAL_HOME/.profile" "$REAL_HOME/.zshrc"; do
+            # Create config file if it doesn't exist
+            if [ ! -f "$CONFIG_FILE" ]; then
+                sudo -u $REAL_USER touch "$CONFIG_FILE"
+            fi
+            
+            # Add Homebrew configuration if not present
+            if ! grep -q "linuxbrew" "$CONFIG_FILE"; then
+                echo -e "\n# Homebrew Configuration" | sudo -u $REAL_USER tee -a "$CONFIG_FILE" > /dev/null
+                echo 'if [ -d "/home/linuxbrew/.linuxbrew" ]; then eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"; fi' | sudo -u $REAL_USER tee -a "$CONFIG_FILE" > /dev/null
+                echo 'if [ -d "$HOME/.linuxbrew" ]; then eval "$($HOME/.linuxbrew/bin/brew shellenv)"; fi' | sudo -u $REAL_USER tee -a "$CONFIG_FILE" > /dev/null
+                echo -e "${GREEN}✔ Added Homebrew to $CONFIG_FILE${NC}"
             fi
         done
 
+        # Load brew environment for this script session
+        echo "Loading Homebrew environment for current session..."
+        if [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+            eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+            export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
+        elif [ -f "$REAL_HOME/.linuxbrew/bin/brew" ]; then
+            eval "$($REAL_HOME/.linuxbrew/bin/brew shellenv)"
+            export PATH="$REAL_HOME/.linuxbrew/bin:$REAL_HOME/.linuxbrew/sbin:$PATH"
+        fi
+
+        # Verify brew is accessible
         if command -v brew &>/dev/null; then
-            echo -e "${GREEN}✔ Homebrew is ready.${NC}"
+            echo -e "${GREEN}✔ Homebrew is ready and available in PATH.${NC}"
         else
             echo -e "${RED}✘ Homebrew installation failed or brew not found in PATH.${NC}"
+            echo -e "${YELLOW}Please check the error messages above.${NC}"
             return 1
         fi
     fi
@@ -907,4 +917,13 @@ for i in "${!STEPS[@]}"; do
 done
 echo ""
 echo -e "${GREEN}${BOLD}SetupVibe Completed Successfully! 🚀${NC}"
-echo -e "${YELLOW}Please restart your terminal or Logout/Login to apply changes.${NC}"
+echo ""
+if $IS_LINUX; then
+    echo -e "${YELLOW}${BOLD}IMPORTANT - Apply changes to your shell:${NC}"
+    echo -e "${CYAN}For ZSH users:${NC}    source ~/.zshrc"
+    echo -e "${CYAN}For Bash users:${NC}   source ~/.bashrc"
+    echo ""
+    echo -e "${YELLOW}Or restart your terminal/logout and login again.${NC}"
+else
+    echo -e "${YELLOW}Please restart your terminal or logout/login to apply changes.${NC}"
+fi
