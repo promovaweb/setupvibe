@@ -362,6 +362,15 @@ step_2() {
             echo "Installing Homebrew..."
             apt-get install -y build-essential procps curl file git
 
+            # Create /home/linuxbrew directory with proper permissions if it doesn't exist
+            if [ ! -d "/home/linuxbrew" ]; then
+                echo "Creating /home/linuxbrew directory..."
+                mkdir -p /home/linuxbrew
+                chown -R $REAL_USER:$(id -gn $REAL_USER) /home/linuxbrew
+                chmod -R 775 /home/linuxbrew
+            fi
+
+            # Install Homebrew
             sudo -u $REAL_USER NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         else
             echo "Homebrew already installed. Checking for updates..."
