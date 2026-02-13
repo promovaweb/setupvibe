@@ -9,7 +9,6 @@
 # ------------------------------------------------------------------------------
 # Compatibility: macOS 12+, Zorin OS 18+, Ubuntu 24.04+, Debian 12+
 # Architectures: x86_64 (amd64) & ARM64 (aarch64/arm64)
-# Update: Added macOS support with platform-specific implementations
 # ==============================================================================
 
 
@@ -921,7 +920,6 @@ echo ""
 if $IS_LINUX; then
     echo -e "${YELLOW}${BOLD}IMPORTANT - Apply changes to your shell:${NC}"
     echo -e "${CYAN}For ZSH users:${NC}    source ~/.zshrc"
-    echo -e "${CYAN}For Bash users:${NC}   source ~/.bashrc"
     echo ""
     echo -e "${YELLOW}Or restart your terminal/logout and login again.${NC}"
 else
