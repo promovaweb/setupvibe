@@ -35,6 +35,7 @@ STEPS=(
     "DevOps (Docker, Ansible, GH)"
     "Modern Unix Tools (Via Brew)"
     "Network & Monitoring"
+    "SSH Server (Linux Only)"
     "Shell (ZSH & Starship Config)"
     "Finalization & Cleanup"
 )
@@ -702,6 +703,69 @@ step_9() {
 
 step_10() {
     if $IS_MACOS; then
+        echo "SSH Server is not required on macOS (not managed by this script)"
+        return 0
+    fi
+
+    echo "Setting up SSH Server and enabling root remote login..."
+
+    # Install OpenSSH Server
+    if ! command -v sshd &> /dev/null; then
+        echo "Installing OpenSSH Server..."
+        apt-get install -y openssh-server openssh-client
+    fi
+
+    # Enable SSH service
+    echo "Enabling SSH service..."
+    systemctl enable ssh
+    systemctl start ssh
+
+    # Backup original config
+    if [ ! -f /etc/ssh/sshd_config.backup ]; then
+        cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+        echo "Backed up original sshd_config"
+    fi
+
+    # Configure sshd to allow root login
+    echo "Configuring SSH to allow root login..."
+    sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sed -i 's/^PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sed -i 's/^#PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sed -i 's/^PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+    # Allow password authentication
+    echo "Enabling password authentication for SSH..."
+    sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+    # Allow empty passwords if needed (optional - commented by default)
+    # sed -i 's/^#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+
+    # Validate configuration
+    if sshd -t &> /dev/null; then
+        echo "SSH configuration validated successfully"
+        systemctl restart ssh
+        echo -e "${GREEN}✔ SSH Server configured and running${NC}"
+        
+        # Show SSH status
+        echo ""
+        echo "SSH Server Status:"
+        systemctl status ssh --no-pager | grep -E 'Active|Loaded'
+        echo ""
+        echo "Current SSH Configuration:"
+        grep -E '^PermitRootLogin|^PasswordAuthentication' /etc/ssh/sshd_config
+    else
+        echo -e "${RED}Error: SSH configuration failed validation${NC}"
+        echo "Restoring original configuration..."
+        cp /etc/ssh/sshd_config.backup /etc/ssh/sshd_config
+        systemctl restart ssh
+        return 1
+    fi
+}
+
+
+step_11() {
+    if $IS_MACOS; then
         # macOS already has zsh as default
         echo "ZSH is default on macOS"
         
@@ -868,7 +932,7 @@ EOF
 }
 
 
-step_11() {
+step_12() {
     if $IS_MACOS; then
         echo "Cleaning up Homebrew..."
         brew cleanup
@@ -904,6 +968,7 @@ run_section 8 step_8
 run_section 9 step_9
 run_section 10 step_10
 run_section 11 step_11
+run_section 12 step_12
 
 
 # --- FINALIZATION ---
