@@ -23,6 +23,13 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 
+# --- VERSION ---
+VERSION="0.27.1"
+
+echo -e "${CYAN}SetupVibe v${VERSION}${NC}"
+echo ""
+
+
 # --- STEPS CONFIGURATION ---
 STEPS=(
     "SetupVibe: Prerequisites & Arch Check"
