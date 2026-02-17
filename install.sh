@@ -148,7 +148,7 @@ if $IS_MACOS; then
     fi
     # Try to install figlet via brew if available, otherwise skip
     if command -v brew &>/dev/null; then
-        brew install figlet git 2>/dev/null || true
+        brew_cmd install figlet git 2>/dev/null || true
     fi
 else
     apt-get update >/dev/null && apt-get install -y figlet git >/dev/null
@@ -157,6 +157,15 @@ fi
 
 # --- UI & LOGIC FUNCTIONS ---
 
+# Helper function to run brew as regular user (not root)
+brew_cmd() {
+    if $IS_MACOS; then
+        # Run brew as the real user, not root
+        sudo -u $REAL_USER "$BREW_PREFIX/bin/brew" "$@"
+    else
+        "$BREW_PREFIX/bin/brew" "$@"
+    fi
+}
 
 header() {
     clear
@@ -200,8 +209,8 @@ configure_git_interactive() {
     echo -e "${BLUE}=== Checking Git Identity ===${NC}"
 
     if $IS_MACOS; then
-        CURRENT_NAME=$(git config --global user.name)
-        CURRENT_EMAIL=$(git config --global user.email)
+        CURRENT_NAME=$(sudo -u $REAL_USER git config --global user.name)
+        CURRENT_EMAIL=$(sudo -u $REAL_USER git config --global user.email)
     else
         CURRENT_NAME=$(sudo -u $REAL_USER git config --global user.name)
         CURRENT_EMAIL=$(sudo -u $REAL_USER git config --global user.email)
@@ -229,9 +238,9 @@ configure_git_interactive() {
         done
 
         if $IS_MACOS; then
-            git config --global user.name "$GIT_NAME"
-            git config --global user.email "$GIT_EMAIL"
-            git config --global init.defaultBranch main
+            sudo -u $REAL_USER git config --global user.name "$GIT_NAME"
+            sudo -u $REAL_USER git config --global user.email "$GIT_EMAIL"
+            sudo -u $REAL_USER git config --global init.defaultBranch main
         else
             sudo -u $REAL_USER git config --global user.name "$GIT_NAME"
             sudo -u $REAL_USER git config --global user.email "$GIT_EMAIL"
@@ -264,18 +273,10 @@ git_ensure() {
     local dest=$2
     if [ -d "$dest" ]; then
         echo "Updating: $dest..."
-        if $IS_MACOS; then
-            cd "$dest" && git pull --quiet
-        else
-            cd "$dest" && sudo -u $REAL_USER git pull --quiet
-        fi
+        cd "$dest" && sudo -u $REAL_USER git pull --quiet
     else
         echo "Cloning: $repo..."
-        if $IS_MACOS; then
-            git clone "$repo" "$dest" --quiet
-        else
-            sudo -u $REAL_USER git clone "$repo" "$dest" --quiet
-        fi
+        sudo -u $REAL_USER git clone "$repo" "$dest" --quiet
     fi
 }
 
@@ -303,7 +304,7 @@ step_1() {
         
         # Ensure Homebrew is available for basic tools
         if command -v brew &>/dev/null; then
-            brew install wget unzip curl tmux openssl readline sqlite3 xz zlib tcl-tk
+            brew_cmd install wget unzip curl tmux openssl readline sqlite3 xz zlib tcl-tk
         else
             echo "Homebrew not found, will be installed in next step..."
         fi
@@ -339,7 +340,7 @@ step_2() {
             fi
         else
             echo "Homebrew already installed. Updating..."
-            brew update
+            brew_cmd update
         fi
         
         # Verify installation
@@ -424,8 +425,8 @@ step_2() {
 step_3() {
     if $IS_MACOS; then
         echo "Installing PHP 8.4 via Homebrew..."
-        brew install php@8.4
-        brew link php@8.4 --force --overwrite
+        brew_cmd install php@8.4
+        brew_cmd link php@8.4 --force --overwrite
         
         # Install common extensions via PECL
         echo "Installing PHP Extensions..."
@@ -435,7 +436,7 @@ step_3() {
         
         echo "Installing Composer..."
         if [ ! -f "/usr/local/bin/composer" ] && [ ! -f "$BREW_PREFIX/bin/composer" ]; then
-            brew install composer
+            brew_cmd install composer
         else
             composer self-update
         fi
@@ -476,7 +477,7 @@ step_4() {
     echo "Setup Rbenv..."
     if $IS_MACOS; then
         # On macOS, use Homebrew for rbenv
-        brew install rbenv ruby-build
+        brew_cmd install rbenv ruby-build
         
         echo "Checking Ruby 3.3.0..."
         if ! rbenv versions --bare | grep -q "^3.3.0$"; then
@@ -511,7 +512,7 @@ step_4() {
 step_5() {
     if $IS_MACOS; then
         echo "Setup Python..."
-        brew install python@3.12
+        brew_cmd install python@3.12
         
         echo "Setup uv (Python Package Manager)..."
         if ! command -v uv &> /dev/null; then
@@ -522,7 +523,7 @@ step_5() {
         
         GO_VER="1.22.2"
         echo "Setup Go $GO_VER..."
-        brew install go
+        brew_cmd install go
         
         echo "Setup Rust..."
         if ! command -v rustup &> /dev/null; then
@@ -562,8 +563,8 @@ step_5() {
 step_6() {
     if $IS_MACOS; then
         echo "Setup Node.js via Homebrew..."
-        brew install node@20
-        brew link node@20 --force --overwrite
+        brew_cmd install node@20
+        brew_cmd link node@20 --force --overwrite
         
         echo "Installing pnpm..."
         npm install -g pnpm npm@latest
@@ -600,18 +601,18 @@ step_7() {
         if ! command -v docker &>/dev/null; then
             echo -e "${YELLOW}Note: Docker Desktop requires manual installation from docker.com${NC}"
             echo "Attempting to install via Homebrew Cask..."
-            brew install --cask docker || echo -e "${YELLOW}Please download Docker Desktop from https://www.docker.com/products/docker-desktop/${NC}"
+            brew_cmd install --cask docker || echo -e "${YELLOW}Please download Docker Desktop from https://www.docker.com/products/docker-desktop/${NC}"
         else
             echo "Docker is already installed."
         fi
         
         # Ansible
         echo "Installing Ansible..."
-        brew install ansible
+        brew_cmd install ansible
         
         # GitHub CLI
         echo "Installing GitHub CLI..."
-        brew install gh
+        brew_cmd install gh
     else
         # Docker
         if [ ! -f "/etc/apt/sources.list.d/docker.list" ]; then
@@ -644,14 +645,14 @@ step_8() {
     TOOLS="bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow jq tldr fastfetch duf cheat broot dust lsd procs trash doggo gping mtr jq"
 
     if $IS_MACOS; then
-        brew install $TOOLS
+        brew_cmd install $TOOLS
         
         echo "Installing Bruno (API Client)..."
-        brew install --cask bruno
+        brew_cmd install --cask bruno
         
         # FZF keybindings setup
         if [ -d "$BREW_PREFIX/opt/fzf" ]; then
-            "$BREW_PREFIX/opt/fzf/install" --all --no-bash --no-fish 2>/dev/null || true
+            sudo -u $REAL_USER "$BREW_PREFIX/opt/fzf/install" --all --no-bash --no-fish 2>/dev/null || true
         fi
     else
         # Find brew binary
@@ -686,7 +687,7 @@ step_8() {
 step_9() {
     if $IS_MACOS; then
         echo "Installing Network Tools via Homebrew..."
-        brew install wget nmap mtr htop btop glances speedtest-cli
+        brew_cmd install wget nmap mtr htop btop glances speedtest-cli
         
         echo "Installing Network Tools (Rust)..."
         for tool in bandwhich gping trippy rustscan; do
@@ -696,7 +697,7 @@ step_9() {
         done
         
         echo "Installing ctop..."
-        brew install ctop
+        brew_cmd install ctop
     else
         echo "Installing Network Tools (APT)..."
         apt-get install -y rsync net-tools dnsutils mtr-tiny nmap tcpdump iftop nload iotop sysstat whois iputils-ping speedtest-cli glances htop btop
@@ -794,11 +795,11 @@ step_11() {
         git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
 
         echo "Installing Nerd Fonts (FiraCode)..."
-        brew tap homebrew/cask-fonts 2>/dev/null || true
-        brew install --cask font-fira-code-nerd-font 2>/dev/null || true
+        brew_cmd tap homebrew/cask-fonts 2>/dev/null || true
+        brew_cmd install --cask font-fira-code-nerd-font 2>/dev/null || true
 
         echo "Configuring Starship..."
-        brew install starship
+        brew_cmd install starship
         mkdir -p "$REAL_HOME/.config"
 
         echo "Applying Starship Preset: Gruvbox Rainbow..."
