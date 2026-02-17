@@ -568,6 +568,9 @@ step_6() {
         echo "Installing pnpm..."
         npm install -g pnpm npm@latest
         
+        echo "Installing PM2..."
+        npm install -g pm2
+        
         echo "Setup Bun..."
         curl -fsSL https://bun.sh/install | bash
     else
@@ -580,6 +583,9 @@ step_6() {
         fi
         apt-get install -y nodejs
         npm install -g pnpm npm@latest
+
+        echo "Installing PM2..."
+        npm install -g pm2
 
         echo "Setup Bun..."
         sudo -u $REAL_USER bash -c "curl -fsSL https://bun.sh/install | bash"
@@ -942,6 +948,16 @@ step_12() {
         apt-get autoremove -y >/dev/null
         apt-get clean
     fi
+
+    echo "Configuring PM2 for auto-startup..."
+    if $IS_MACOS; then
+        sudo -u $REAL_USER pm2 startup launchd -u $REAL_USER --hp $REAL_HOME
+        sudo -u $REAL_USER pm2 save
+    else
+        sudo -u $REAL_USER pm2 startup systemd -u $REAL_USER --hp $REAL_HOME
+        sudo -u $REAL_USER pm2 save
+    fi
+    echo -e "${GREEN}✔ PM2 configured for auto-startup${NC}"
 }
 
 
