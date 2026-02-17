@@ -641,7 +641,7 @@ step_7() {
 
 step_8() {
     echo "Installing Modern Unix Tools via Homebrew..."
-    TOOLS="bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow jq tldr fastfetch duf"
+    TOOLS="bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow jq tldr fastfetch duf cheat broot dust lsd procs trash doggo gping mtr jq"
 
     if $IS_MACOS; then
         brew install $TOOLS
@@ -689,7 +689,7 @@ step_9() {
         brew install wget nmap mtr htop btop glances speedtest-cli
         
         echo "Installing Network Tools (Rust)..."
-        for tool in bandwhich gping trippy; do
+        for tool in bandwhich gping trippy rustscan; do
             if ! command -v $tool &> /dev/null; then
                 cargo install $tool
             fi
@@ -702,7 +702,7 @@ step_9() {
         apt-get install -y rsync net-tools dnsutils mtr-tiny nmap tcpdump iftop nload iotop sysstat whois iputils-ping speedtest-cli glances htop btop
 
         echo "Installing Network Tools (Rust)..."
-        for tool in bandwhich gping trippy; do
+        for tool in bandwhich gping trippy rustscan; do
             if ! sudo -u $REAL_USER bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; command -v $tool" &> /dev/null; then
                  sudo -u $REAL_USER bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; cargo install $tool"
             fi
