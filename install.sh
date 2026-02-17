@@ -646,6 +646,9 @@ step_8() {
     if $IS_MACOS; then
         brew install $TOOLS
         
+        echo "Installing Bruno (API Client)..."
+        brew install --cask bruno
+        
         # FZF keybindings setup
         if [ -d "$BREW_PREFIX/opt/fzf" ]; then
             "$BREW_PREFIX/opt/fzf/install" --all --no-bash --no-fish 2>/dev/null || true
@@ -667,6 +670,14 @@ step_8() {
         else
             echo -e "${RED}Error: Homebrew binary not found. Skipping modern tools installation.${NC}"
             return 1
+        fi
+
+        echo "Installing Bruno (API Client)..."
+        if command -v snap &> /dev/null; then
+            snap install bruno
+        else
+            echo -e "${YELLOW}⚠ Snap not available. Please install Bruno manually:${NC}"
+            echo "   Visit: https://www.usebruno.com/"
         fi
     fi
 }
