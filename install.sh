@@ -801,9 +801,10 @@ step_11() {
         git_ensure "https://github.com/zsh-users/zsh-autosuggestions" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
         git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
 
-        echo "Installing Nerd Fonts (FiraCode)..."
+        echo "Installing Nerd Fonts (FiraCode & JetBrains Mono)..."
         brew_cmd tap homebrew/cask-fonts 2>/dev/null || true
         brew_cmd install --cask font-fira-code-nerd-font 2>/dev/null || true
+        brew_cmd install --cask font-jetbrains-mono-nerd-font 2>/dev/null || true
 
         echo "Configuring Starship..."
         brew_cmd install starship
@@ -876,10 +877,12 @@ EOF
         git_ensure "https://github.com/zsh-users/zsh-autosuggestions" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
         git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
 
-        echo "Installing Nerd Fonts (FiraCode)..."
+        echo "Installing Nerd Fonts (FiraCode & JetBrains Mono)..."
         mkdir -p "$REAL_HOME/.local/share/fonts"
         wget -q --show-progress -O /tmp/FiraCode.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/FiraCode.zip
         unzip -o -q /tmp/FiraCode.zip -d "$REAL_HOME/.local/share/fonts"
+        wget -q --show-progress -O /tmp/JetBrainsMono.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/JetBrainsMono.zip
+        unzip -o -q /tmp/JetBrainsMono.zip -d "$REAL_HOME/.local/share/fonts"
         chown -R $REAL_USER:$REAL_USER "$REAL_HOME/.local"
         fc-cache -f >/dev/null
 
