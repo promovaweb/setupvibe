@@ -804,6 +804,7 @@ step_11() {
         echo "Installing Nerd Fonts (FiraCode & JetBrains Mono)..."
         brew_cmd tap homebrew/cask-fonts 2>/dev/null || true
         brew_cmd install --cask font-fira-code-nerd-font 2>/dev/null || true
+        brew_cmd install --cask font-jetbrains-mono 2>/dev/null || true
         brew_cmd install --cask font-jetbrains-mono-nerd-font 2>/dev/null || true
 
         echo "Configuring Starship..."
@@ -883,6 +884,7 @@ EOF
         unzip -o -q /tmp/FiraCode.zip -d "$REAL_HOME/.local/share/fonts"
         wget -q --show-progress -O /tmp/JetBrainsMono.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/JetBrainsMono.zip
         unzip -o -q /tmp/JetBrainsMono.zip -d "$REAL_HOME/.local/share/fonts"
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/install_manual.sh)"
         chown -R $REAL_USER:$REAL_USER "$REAL_HOME/.local"
         fc-cache -f >/dev/null
 
