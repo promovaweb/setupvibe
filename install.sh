@@ -649,7 +649,7 @@ step_7() {
 
 step_8() {
     echo "Installing Modern Unix Tools via Homebrew..."
-    TOOLS="bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow jq tldr fastfetch duf cheat broot dust lsd procs trash doggo gping mtr jq"
+    TOOLS="bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow jq tldr fastfetch duf jq"
 
     if $IS_MACOS; then
         brew_cmd install $TOOLS
