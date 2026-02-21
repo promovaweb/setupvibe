@@ -42,7 +42,7 @@ STEPS=(
     "JavaScript (Node, Bun, PNPM)"
     "DevOps (Docker, Ansible, GH)"
     "Modern Unix Tools (Via Brew)"
-    "Network & Monitoring"
+    "Network, Monitoring & Tailscale"
     "SSH Server (Linux Only)"
     "Shell (ZSH & Starship Config)"
     "Finalization & Cleanup"
@@ -702,6 +702,9 @@ step_9() {
         
         echo "Installing ctop..."
         brew_cmd install ctop
+
+        echo "Installing Tailscale..."
+        brew_cmd install --cask tailscale
     else
         echo "Installing Network Tools (APT)..."
         apt-get install -y rsync net-tools dnsutils mtr-tiny nmap tcpdump iftop nload iotop sysstat whois iputils-ping speedtest-cli glances htop btop
@@ -718,6 +721,13 @@ step_9() {
         if [ ! -f "/usr/local/bin/ctop" ]; then
             wget -q "https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-${ARCH_GO}" -O /usr/local/bin/ctop
             chmod +x /usr/local/bin/ctop
+        fi
+
+        echo "Installing Tailscale..."
+        if ! command -v tailscale &>/dev/null; then
+            curl -fsSL https://tailscale.com/install.sh | sh
+        else
+            echo "Tailscale already installed."
         fi
     fi
 }
