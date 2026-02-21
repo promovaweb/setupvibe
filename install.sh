@@ -195,19 +195,16 @@ show_roadmap_and_wait() {
     done
     echo ""
     echo -e "--------------------------------------------------------"
-    echo -e "${YELLOW}  ➜ [ENTER] to start SetupVibe.${NC}"
-    echo -e "${RED}  ➜ [ESC] to cancel.${NC}"
+    echo -e "${YELLOW}  ➜ Press [ENTER] to start SetupVibe.${NC}"
+    echo -e "${RED}  ➜ Type 'q' + ENTER to cancel.${NC}"
     echo -e "--------------------------------------------------------"
 
 
-    while true; do
-        read -r -s -n 1 key
-        if [[ "$key" == "" ]]; then break; fi # Enter
-        if [[ "$key" == $'\e' ]]; then # ESC
-            echo -e "\n${RED}[CANCELLED] See you next time!${NC}"
-            exit 0
-        fi
-    done
+    read -r key < /dev/tty
+    if [[ "$key" == "q" || "$key" == "Q" ]]; then
+        echo -e "\n${RED}[CANCELLED] See you next time!${NC}"
+        exit 0
+    fi
 }
 
 
@@ -235,13 +232,13 @@ configure_git_interactive() {
 
         while [[ -z "$GIT_NAME" ]]; do
             echo -ne "Enter your Full Name: "
-            read GIT_NAME
+            read GIT_NAME < /dev/tty
         done
 
 
         while [[ -z "$GIT_EMAIL" ]]; do
             echo -ne "Enter your Email: "
-            read GIT_EMAIL
+            read GIT_EMAIL < /dev/tty
         done
 
         if $IS_MACOS; then
