@@ -25,6 +25,7 @@ NC='\033[0m' # No Color
 
 # --- VERSION ---
 VERSION="0.27.1"
+INSTALL_URL="https://get.setupvibe.dev/install.sh"
 
 echo -e "${CYAN}SetupVibe v${VERSION}${NC}"
 echo ""
@@ -73,9 +74,8 @@ fi
 # Root/Sudo Check (different handling for macOS vs Linux)
 if $IS_LINUX; then
     if [ "$EUID" -ne 0 ]; then
-        echo -e "${RED}Error: SetupVibe requires root permissions.${NC}"
-        echo "Run: sudo ./setupvibe.sh"
-        exit 1
+        echo -e "${YELLOW}Root required. Re-running with sudo...${NC}"
+        exec sudo bash -c "$(curl -fsSL ${INSTALL_URL})"
     fi
 fi
 
