@@ -2,14 +2,14 @@
 
 
 # ==============================================================================
-# SETUPVIBE.DEV - SERVER ENVIRONMENT
+# SETUPVIBE.DEV - LINUX SERVER EDITION
 # ==============================================================================
-# Courtesy:     promovaweb.com
-# Contact:      contato@promovaweb.com
+# Maintainer:    promovaweb.com
+# Contact:       contact@promovaweb.com
 # ------------------------------------------------------------------------------
 # Compatibility: Zorin OS 18+, Ubuntu 24.04+, Debian 12+
 # Architectures: x86_64 (amd64) & ARM64 (aarch64/arm64)
-# Target:        Linux Servers (no desktop/dev language tools)
+# Target:        Linux servers — no desktop or dev language tools
 # ==============================================================================
 
 
@@ -28,7 +28,7 @@ NC='\033[0m' # No Color
 VERSION="0.27.1"
 INSTALL_URL="https://get.setupvibe.dev/install-server.sh"
 
-echo -e "${CYAN}SetupVibe Server v${VERSION}${NC}"
+echo -e "${CYAN}SetupVibe Server Edition v${VERSION}${NC}"
 echo ""
 
 
@@ -109,8 +109,8 @@ header() {
     echo -e "${MAGENTA}"
     figlet "SETUPVIBE" 2>/dev/null || echo "SETUPVIBE.DEV"
     echo -e "${NC}"
-    echo -e "${CYAN}:: The Pure Server Environment ::${NC}"
-    echo -e "${YELLOW}Courtesy of PromovaWeb.com | Contact: contato@promovaweb.com${NC}"
+    echo -e "${CYAN}:: Linux Server Edition ::${NC}"
+    echo -e "${YELLOW}Maintained by PromovaWeb.com | Contact: contact@promovaweb.com${NC}"
     echo "--------------------------------------------------------"
     echo "OS: $DISTRO_ID $DISTRO_CODENAME | Arch: $ARCH_RAW | User: $REAL_USER"
     echo "--------------------------------------------------------"
@@ -119,13 +119,13 @@ header() {
 
 show_roadmap_and_wait() {
     header
-    echo -e "${BOLD}SetupVibe Server Roadmap:${NC}\n"
+    echo -e "${BOLD}SetupVibe Server - Installation Roadmap:${NC}\n"
     for i in "${!STEPS[@]}"; do
         echo -e "  [$(($i+1))/${#STEPS[@]}] ${STEPS[$i]}"
     done
     echo ""
     echo -e "--------------------------------------------------------"
-    echo -e "${YELLOW}  ➜ Press [ENTER] to start SetupVibe Server.${NC}"
+    echo -e "${YELLOW}  ➜ Press [ENTER] to start SetupVibe Server Edition.${NC}"
     echo -e "${RED}  ➜ Type 'q' + ENTER to cancel.${NC}"
     echo -e "--------------------------------------------------------"
 
@@ -510,7 +510,7 @@ show_roadmap_and_wait
 configure_git_interactive
 
 
-echo -e "\n${GREEN}Starting the transformation of your setup...${NC}"
+echo -e "\n${GREEN}Starting SetupVibe Server installation...${NC}"
 
 
 # Execution Loop
@@ -528,13 +528,13 @@ run_section 8 step_8
 # --- FINALIZATION ---
 echo ""
 echo -e "${BLUE}========================================================${NC}"
-echo -e "${BOLD}           SETUPVIBE SERVER STATUS                      ${NC}"
+echo -e "${BOLD}         SETUPVIBE SERVER - INSTALLATION SUMMARY        ${NC}"
 echo -e "${BLUE}========================================================${NC}"
 for i in "${!STEPS[@]}"; do
     echo -e "  [$(($i+1))] ${STEPS[$i]} ... ${STEP_STATUS[$i]}"
 done
 echo ""
-echo -e "${GREEN}${BOLD}SetupVibe Server Completed Successfully! 🚀${NC}"
+echo -e "${GREEN}${BOLD}SetupVibe Server Edition Completed Successfully! 🚀${NC}"
 echo ""
 echo -e "${YELLOW}${BOLD}IMPORTANT - Apply changes to your shell:${NC}"
 echo -e "${CYAN}For ZSH users:${NC}    source ~/.zshrc"

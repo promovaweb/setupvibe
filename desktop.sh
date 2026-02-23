@@ -2,10 +2,10 @@
 
 
 # ==============================================================================
-# SETUPVIBE.DEV - ULTIMATE DEV ENVIRONMENT (V2.3 - Cross Platform)
+# SETUPVIBE.DEV - DESKTOP DEVELOPER EDITION (V2.3 - Cross Platform)
 # ==============================================================================
-# Courtesy:     promovaweb.com
-# Contact:      contato@promovaweb.com
+# Maintainer:    promovaweb.com
+# Contact:       contact@promovaweb.com
 # ------------------------------------------------------------------------------
 # Compatibility: macOS 12+, Zorin OS 18+, Ubuntu 24.04+, Debian 12+
 # Architectures: x86_64 (amd64) & ARM64 (aarch64/arm64)
@@ -27,7 +27,7 @@ NC='\033[0m' # No Color
 VERSION="0.27.1"
 INSTALL_URL="https://get.setupvibe.dev/install.sh"
 
-echo -e "${CYAN}SetupVibe v${VERSION}${NC}"
+echo -e "${CYAN}SetupVibe Desktop v${VERSION}${NC}"
 echo ""
 
 
@@ -179,8 +179,8 @@ header() {
     echo -e "${MAGENTA}"
     figlet "SETUPVIBE" 2>/dev/null || echo "SETUPVIBE.DEV"
     echo -e "${NC}"
-    echo -e "${CYAN}:: The Pure Developer Environment ::${NC}"
-    echo -e "${YELLOW}Courtesy of PromovaWeb.com | Contact: contato@promovaweb.com${NC}"
+    echo -e "${CYAN}:: Desktop Developer Edition - Cross Platform ::${NC}"
+    echo -e "${YELLOW}Maintained by PromovaWeb.com | Contact: contact@promovaweb.com${NC}"
     echo "--------------------------------------------------------"
     echo "OS: $DISTRO_ID $DISTRO_CODENAME | Arch: $ARCH_RAW | User: $REAL_USER"
     echo "--------------------------------------------------------"
@@ -189,13 +189,13 @@ header() {
 
 show_roadmap_and_wait() {
     header
-    echo -e "${BOLD}SetupVibe Roadmap:${NC}\n"
+    echo -e "${BOLD}SetupVibe Desktop - Installation Roadmap:${NC}\n"
     for i in "${!STEPS[@]}"; do
         echo -e "  [$(($i+1))/${#STEPS[@]}] ${STEPS[$i]}"
     done
     echo ""
     echo -e "--------------------------------------------------------"
-    echo -e "${YELLOW}  ➜ Press [ENTER] to start SetupVibe.${NC}"
+    echo -e "${YELLOW}  ➜ Press [ENTER] to start SetupVibe Desktop.${NC}"
     echo -e "${RED}  ➜ Type 'q' + ENTER to cancel.${NC}"
     echo -e "--------------------------------------------------------"
 
@@ -995,7 +995,7 @@ show_roadmap_and_wait
 configure_git_interactive
 
 
-echo -e "\n${GREEN}Starting the transformation of your setup...${NC}"
+echo -e "\n${GREEN}Starting SetupVibe Desktop installation...${NC}"
 
 
 # Execution Loop
@@ -1017,13 +1017,13 @@ run_section 12 step_12
 # --- FINALIZATION ---
 echo ""
 echo -e "${BLUE}========================================================${NC}"
-echo -e "${BOLD}              SETUPVIBE STATUS                          ${NC}"
+echo -e "${BOLD}        SETUPVIBE DESKTOP - INSTALLATION SUMMARY        ${NC}"
 echo -e "${BLUE}========================================================${NC}"
 for i in "${!STEPS[@]}"; do
     echo -e "  [$(($i+1))] ${STEPS[$i]} ... ${STEP_STATUS[$i]}"
 done
 echo ""
-echo -e "${GREEN}${BOLD}SetupVibe Completed Successfully! 🚀${NC}"
+echo -e "${GREEN}${BOLD}SetupVibe Desktop Completed Successfully! 🚀${NC}"
 echo ""
 if $IS_LINUX; then
     echo -e "${YELLOW}${BOLD}IMPORTANT - Apply changes to your shell:${NC}"
