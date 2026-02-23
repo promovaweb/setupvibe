@@ -304,19 +304,13 @@ step_0() {
 step_1() {
     if $IS_MACOS; then
         echo "macOS build tools are provided by Xcode Command Line Tools (already installed)"
-        echo "Installing additional tools via Homebrew..."
-        
-        # Ensure Homebrew is available for basic tools
-        if command -v brew &>/dev/null; then
-            brew_cmd install wget unzip curl tmux openssl readline sqlite3 xz zlib tcl-tk
-        else
-            echo "Homebrew not found, will be installed in next step..."
-        fi
+        echo "Base tools via Homebrew will be installed after Homebrew is set up (Step 3)..."
     else
         echo "Updating APT..."
         apt-get update -qq
         echo "Installing Build Essentials & Tmux..."
-        apt-get install -y build-essential git wget unzip fontconfig curl software-properties-common \
+        apt-get install -y software-properties-common
+        apt-get install -y build-essential git wget unzip fontconfig curl \
             libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm \
             libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
             libyaml-dev autoconf bison rustc cargo procps file tmux
@@ -337,7 +331,7 @@ step_2() {
         if ! command -v brew &>/dev/null; then
             echo "Installing Homebrew..."
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            
+
             # Setup PATH for current session
             if [[ -f "$BREW_PREFIX/bin/brew" ]]; then
                 eval "$($BREW_PREFIX/bin/brew shellenv)"
@@ -346,10 +340,12 @@ step_2() {
             echo "Homebrew already installed. Updating..."
             brew_cmd update
         fi
-        
+
         # Verify installation
         if command -v brew &>/dev/null; then
             echo -e "${GREEN}✔ Homebrew is ready.${NC}"
+            echo "Installing base tools via Homebrew..."
+            brew_cmd install wget unzip curl tmux openssl readline sqlite3 xz zlib tcl-tk
         else
             echo -e "${RED}✘ Homebrew installation failed.${NC}"
             return 1
