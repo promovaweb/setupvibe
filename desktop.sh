@@ -431,13 +431,14 @@ step_3() {
             php8.4-redis php8.4-mongodb php8.4-yaml php8.4-xdebug
 
 
+        export COMPOSER_ALLOW_SUPERUSER=1
         if [ ! -f "/usr/local/bin/composer" ]; then
             echo "Installing Composer..."
             curl -sS https://getcomposer.org/installer | php
             sudo mv composer.phar /usr/local/bin/composer
             sudo chmod +x /usr/local/bin/composer
         else
-            sudo composer self-update
+            sudo COMPOSER_ALLOW_SUPERUSER=1 composer self-update
         fi
         echo "Setup Laravel Installer..."
         sudo -u $REAL_USER composer global require laravel/installer
@@ -647,7 +648,7 @@ step_8() {
 
         echo "Installing Bruno (API Client)..."
         if command -v snap &> /dev/null; then
-            snap install bruno
+            sudo snap install bruno
         else
             echo -e "${YELLOW}⚠ Snap not available. Please install Bruno manually:${NC}"
             echo "   Visit: https://www.usebruno.com/"
@@ -693,7 +694,7 @@ step_9() {
 
         echo "Installing Tailscale..."
         if ! command -v tailscale &>/dev/null; then
-            curl -fsSL https://tailscale.com/install.sh | sh
+            curl -fsSL https://tailscale.com/install.sh | sudo sh
         else
             echo "Tailscale already installed."
         fi

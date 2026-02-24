@@ -361,7 +361,7 @@ step_5() {
 
     echo "Installing Tailscale..."
     if ! command -v tailscale &>/dev/null; then
-        curl -fsSL https://tailscale.com/install.sh | sh
+        curl -fsSL https://tailscale.com/install.sh | sudo sh
     else
         echo "Tailscale already installed."
     fi
