@@ -82,7 +82,7 @@ BREW_PREFIX="/home/linuxbrew/.linuxbrew"
 
 
 # --- INSTALL FIGLET & GIT ---
-apt-get update >/dev/null && apt-get install -y figlet git lsb-release >/dev/null
+sudo apt-get update >/dev/null && sudo apt-get install -y figlet git lsb-release >/dev/null
 
 
 # --- UI & LOGIC FUNCTIONS ---
@@ -203,11 +203,11 @@ step_0() {
 
 step_1() {
     echo "Updating APT..."
-    apt-get update -qq
+    sudo apt-get update -qq
 
     echo "Installing Build Essentials & Core Server Tools..."
-    apt-get install -y software-properties-common
-    apt-get install -y \
+    sudo apt-get install -y software-properties-common
+    sudo apt-get install -y \
         build-essential git wget unzip fontconfig curl \
         libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
         libncurses5-dev xz-utils libffi-dev liblzma-dev \
@@ -223,11 +223,11 @@ step_1() {
     fi
 
     # Adding Charmbracelet Repo (needed for Glow)
-    mkdir -p -m 755 /etc/apt/keyrings
-    curl -fsSL https://repo.charm.sh/apt/gpg.key | gpg --dearmor -o /etc/apt/keyrings/charm.gpg --yes
-    chmod a+r /etc/apt/keyrings/charm.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | tee /etc/apt/sources.list.d/charm.list
-    apt-get update -qq
+    sudo mkdir -p -m 755 /etc/apt/keyrings
+    curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg --yes
+    sudo chmod a+r /etc/apt/keyrings/charm.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+    sudo apt-get update -qq
 }
 
 
@@ -241,13 +241,13 @@ step_2() {
     echo "Checking Homebrew installation..."
     if [ ! -d "/home/linuxbrew/.linuxbrew" ] && [ ! -d "$REAL_HOME/.linuxbrew" ]; then
         echo "Installing Homebrew..."
-        apt-get install -y build-essential procps curl file git
+        sudo apt-get install -y build-essential procps curl file git
 
         if [ ! -d "/home/linuxbrew" ]; then
             echo "Creating /home/linuxbrew directory..."
-            mkdir -p /home/linuxbrew
-            chown -R $REAL_USER:$(id -gn $REAL_USER) /home/linuxbrew
-            chmod -R 775 /home/linuxbrew
+            sudo mkdir -p /home/linuxbrew
+            sudo chown -R $REAL_USER:$(id -gn $REAL_USER) /home/linuxbrew
+            sudo chmod -R 775 /home/linuxbrew
         fi
 
         sudo -u $REAL_USER NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -299,27 +299,27 @@ step_3() {
     # Docker
     echo "Installing Docker..."
     if [ ! -f "/etc/apt/sources.list.d/docker.list" ]; then
-        curl -fsSL "https://download.docker.com/linux/$DISTRO_ID/gpg" | gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
-        chmod a+r /etc/apt/keyrings/docker.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DISTRO_CODENAME stable" | tee /etc/apt/sources.list.d/docker.list
-        apt-get update -qq
+        curl -fsSL "https://download.docker.com/linux/$DISTRO_ID/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
+        sudo chmod a+r /etc/apt/keyrings/docker.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DISTRO_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list
+        sudo apt-get update -qq
     fi
-    apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-    usermod -aG docker $REAL_USER
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    sudo usermod -aG docker $REAL_USER
 
     # Ansible
     echo "Installing Ansible..."
     if [[ "$DISTRO_ID" == "ubuntu" ]]; then
-        add-apt-repository --yes --update ppa:ansible/ansible
+        sudo add-apt-repository --yes --update ppa:ansible/ansible
     fi
-    apt-get install -y ansible
+    sudo apt-get install -y ansible
 
     # GitHub CLI
     echo "Installing GitHub CLI..."
-    wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
-    chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-    apt-get update -qq && apt-get install -y gh
+    wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+    sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+    sudo apt-get update -qq && sudo apt-get install -y gh
 }
 
 
@@ -348,15 +348,15 @@ step_4() {
 
 step_5() {
     echo "Installing Network & Monitoring Tools (APT)..."
-    apt-get install -y \
+    sudo apt-get install -y \
         rsync net-tools dnsutils mtr-tiny nmap tcpdump \
         iftop nload iotop sysstat whois iputils-ping \
         speedtest-cli glances htop btop
 
     echo "Installing ctop for $ARCH_GO..."
     if [ ! -f "/usr/local/bin/ctop" ]; then
-        wget -q "https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-${ARCH_GO}" -O /usr/local/bin/ctop
-        chmod +x /usr/local/bin/ctop
+        sudo wget -q "https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-${ARCH_GO}" -O /usr/local/bin/ctop
+        sudo chmod +x /usr/local/bin/ctop
     fi
 
     echo "Installing Tailscale..."
@@ -373,49 +373,49 @@ step_6() {
 
     if ! command -v sshd &> /dev/null; then
         echo "Installing OpenSSH Server..."
-        apt-get install -y openssh-server openssh-client
+        sudo apt-get install -y openssh-server openssh-client
     fi
 
     echo "Enabling SSH service..."
-    systemctl enable ssh
-    systemctl start ssh
+    sudo systemctl enable ssh
+    sudo systemctl start ssh
 
     if [ ! -f /etc/ssh/sshd_config.backup ]; then
-        cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+        sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
         echo "Backed up original sshd_config"
     fi
 
     echo "Configuring SSH to allow root login..."
-    sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-    sed -i 's/^PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-    sed -i 's/^#PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
-    sed -i 's/^PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^#PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
 
     echo "Enabling password authentication for SSH..."
-    sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
-    sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
-    if sshd -t &> /dev/null; then
-        systemctl restart ssh
+    if sudo sshd -t &> /dev/null; then
+        sudo systemctl restart ssh
         echo -e "${GREEN}✔ SSH Server configured and running${NC}"
         echo ""
         echo "SSH Server Status:"
-        systemctl status ssh --no-pager | grep -E 'Active|Loaded'
+        sudo systemctl status ssh --no-pager | grep -E 'Active|Loaded'
         echo ""
         echo "Current SSH Configuration:"
         grep -E '^PermitRootLogin|^PasswordAuthentication' /etc/ssh/sshd_config
     else
         echo -e "${RED}Error: SSH configuration failed validation${NC}"
         echo "Restoring original configuration..."
-        cp /etc/ssh/sshd_config.backup /etc/ssh/sshd_config
-        systemctl restart ssh
+        sudo cp /etc/ssh/sshd_config.backup /etc/ssh/sshd_config
+        sudo systemctl restart ssh
         return 1
     fi
 }
 
 
 step_7() {
-    apt-get install -y zsh
+    sudo apt-get install -y zsh
 
     if [ ! -d "$REAL_HOME/.oh-my-zsh" ]; then
         sudo -u $REAL_USER sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
@@ -425,7 +425,7 @@ step_7() {
     git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
 
     echo "Configuring Starship..."
-    curl -sS https://starship.rs/install.sh | sh -s -- -y
+    curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
     mkdir -p "$REAL_HOME/.config"
 
     echo "Applying Starship Preset: Gruvbox Rainbow..."
@@ -475,18 +475,18 @@ alias cpuinfo="lscpu"
 alias wholistening="ss -tulnp"
 EOF
 
-    chown $REAL_USER:$REAL_USER "$REAL_HOME/.zshrc"
+    sudo chown $REAL_USER:$REAL_USER "$REAL_HOME/.zshrc"
 
     if [ "$SHELL" != "/bin/zsh" ] && [ "$SHELL" != "/usr/bin/zsh" ]; then
-        chsh -s $(which zsh) $REAL_USER
+        sudo chsh -s $(which zsh) $REAL_USER
     fi
 }
 
 
 step_8() {
     echo "Cleaning up unnecessary packages..."
-    apt-get autoremove -y >/dev/null
-    apt-get clean
+    sudo apt-get autoremove -y >/dev/null
+    sudo apt-get clean
 }
 
 

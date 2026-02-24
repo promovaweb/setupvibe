@@ -143,7 +143,7 @@ if $IS_MACOS; then
         brew_cmd install figlet git 2>/dev/null || true
     fi
 else
-    apt-get update >/dev/null && apt-get install -y figlet git >/dev/null
+    sudo apt-get update >/dev/null && sudo apt-get install -y figlet git >/dev/null
 fi
 
 
@@ -279,20 +279,20 @@ step_1() {
         echo "Base tools via Homebrew will be installed after Homebrew is set up (Step 3)..."
     else
         echo "Updating APT..."
-        apt-get update -qq
+        sudo apt-get update -qq
         echo "Installing Build Essentials & Tmux..."
-        apt-get install -y software-properties-common
-        apt-get install -y build-essential git wget unzip fontconfig curl \
+        sudo apt-get install -y software-properties-common
+        sudo apt-get install -y build-essential git wget unzip fontconfig curl \
             libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm \
             libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
             libyaml-dev autoconf bison rustc cargo procps file tmux
 
         # Adding Charmbracelet Repo (needed for Glow)
-        mkdir -p -m 755 /etc/apt/keyrings
-        curl -fsSL https://repo.charm.sh/apt/gpg.key | gpg --dearmor -o /etc/apt/keyrings/charm.gpg --yes
-        chmod a+r /etc/apt/keyrings/charm.gpg
-        echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | tee /etc/apt/sources.list.d/charm.list
-        apt-get update -qq
+        sudo mkdir -p -m 755 /etc/apt/keyrings
+        curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg --yes
+        sudo chmod a+r /etc/apt/keyrings/charm.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+        sudo apt-get update -qq
     fi
 }
 
@@ -333,14 +333,14 @@ step_2() {
         echo "Checking Homebrew installation..."
         if [ ! -d "/home/linuxbrew/.linuxbrew" ] && [ ! -d "$REAL_HOME/.linuxbrew" ]; then
             echo "Installing Homebrew..."
-            apt-get install -y build-essential procps curl file git
+            sudo apt-get install -y build-essential procps curl file git
 
             # Create /home/linuxbrew directory with proper permissions if it doesn't exist
             if [ ! -d "/home/linuxbrew" ]; then
                 echo "Creating /home/linuxbrew directory..."
-                mkdir -p /home/linuxbrew
-                chown -R $REAL_USER:$(id -gn $REAL_USER) /home/linuxbrew
-                chmod -R 775 /home/linuxbrew
+                sudo mkdir -p /home/linuxbrew
+                sudo chown -R $REAL_USER:$(id -gn $REAL_USER) /home/linuxbrew
+                sudo chmod -R 775 /home/linuxbrew
             fi
 
             # Install Homebrew
@@ -418,14 +418,14 @@ step_3() {
     else
         echo "Configuring PHP Repository..."
         if [[ "$DISTRO_ID" == "ubuntu" ]]; then
-            add-apt-repository ppa:ondrej/php -y
+            sudo add-apt-repository ppa:ondrej/php -y
         else
-            curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
-            sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+            sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+            sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
         fi
-        apt-get update -qq
+        sudo apt-get update -qq
         echo "Installing PHP 8.4 & Extensions..."
-        apt-get install -y php8.4 php8.4-cli php8.4-common php8.4-dev \
+        sudo apt-get install -y php8.4 php8.4-cli php8.4-common php8.4-dev \
             php8.4-curl php8.4-mbstring php8.4-xml php8.4-zip php8.4-bcmath php8.4-intl \
             php8.4-mysql php8.4-pgsql php8.4-sqlite3 php8.4-gd php8.4-imagick \
             php8.4-redis php8.4-mongodb php8.4-yaml php8.4-xdebug
@@ -434,8 +434,8 @@ step_3() {
         if [ ! -f "/usr/local/bin/composer" ]; then
             echo "Installing Composer..."
             curl -sS https://getcomposer.org/installer | php
-            mv composer.phar /usr/local/bin/composer
-            chmod +x /usr/local/bin/composer
+            sudo mv composer.phar /usr/local/bin/composer
+            sudo chmod +x /usr/local/bin/composer
         else
             sudo composer self-update
         fi
@@ -506,7 +506,7 @@ step_5() {
         fi
     else
         echo "Setup Python..."
-        apt-get install -y python3 python3-pip python3-venv python-is-python3
+        sudo apt-get install -y python3 python3-pip python3-venv python-is-python3
 
         echo "Setup uv (Python Package Manager)..."
         if ! sudo -u $REAL_USER bash -c "command -v uv" &> /dev/null; then
@@ -518,9 +518,9 @@ step_5() {
 
         GO_VER="1.22.2"
         echo "Setup Go $GO_VER ($ARCH_GO)..."
-        rm -rf /usr/local/go
+        sudo rm -rf /usr/local/go
         wget -q "https://go.dev/dl/go${GO_VER}.linux-${ARCH_GO}.tar.gz" -O /tmp/go.tar.gz
-        tar -C /usr/local -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz
+        sudo tar -C /usr/local -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz
 
         echo "Setup Rust..."
         if ! command -v rustup &> /dev/null; then
@@ -549,16 +549,16 @@ step_6() {
     else
         echo "Setup NodeSource..."
         if [ ! -f "/etc/apt/sources.list.d/nodesource.list" ]; then
-            mkdir -p /etc/apt/keyrings
-            curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg --yes
-            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-            apt-get update -qq
+            sudo mkdir -p /etc/apt/keyrings
+            curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg --yes
+            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+            sudo apt-get update -qq
         fi
-        apt-get install -y nodejs
-        npm install -g pnpm npm@latest
+        sudo apt-get install -y nodejs
+        sudo npm install -g pnpm npm@latest
 
         echo "Installing PM2..."
-        npm install -g pm2
+        sudo npm install -g pm2
 
         echo "Setup Bun..."
         sudo -u $REAL_USER bash -c "curl -fsSL https://bun.sh/install | bash"
@@ -588,26 +588,26 @@ step_7() {
     else
         # Docker
         if [ ! -f "/etc/apt/sources.list.d/docker.list" ]; then
-            curl -fsSL "https://download.docker.com/linux/$DISTRO_ID/gpg" | gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
-            chmod a+r /etc/apt/keyrings/docker.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DISTRO_CODENAME stable" | tee /etc/apt/sources.list.d/docker.list
-            apt-get update -qq
+            curl -fsSL "https://download.docker.com/linux/$DISTRO_ID/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
+            sudo chmod a+r /etc/apt/keyrings/docker.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DISTRO_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list
+            sudo apt-get update -qq
         fi
-        apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-        usermod -aG docker $REAL_USER
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+        sudo usermod -aG docker $REAL_USER
 
         # Ansible
         if [[ "$DISTRO_ID" == "ubuntu" ]]; then
-            add-apt-repository --yes --update ppa:ansible/ansible
+            sudo add-apt-repository --yes --update ppa:ansible/ansible
         fi
-        apt-get install -y ansible
+        sudo apt-get install -y ansible
 
 
         # GitHub CLI
-        wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
-        chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-        apt-get update -qq && apt-get install -y gh
+        wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+        sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        sudo apt-get update -qq && sudo apt-get install -y gh
     fi
 }
 
@@ -675,7 +675,7 @@ step_9() {
         brew_cmd install --cask tailscale
     else
         echo "Installing Network Tools (APT)..."
-        apt-get install -y rsync net-tools dnsutils mtr-tiny nmap tcpdump iftop nload iotop sysstat whois iputils-ping speedtest-cli glances htop btop
+        sudo apt-get install -y rsync net-tools dnsutils mtr-tiny nmap tcpdump iftop nload iotop sysstat whois iputils-ping speedtest-cli glances htop btop
 
         echo "Installing Network Tools (Rust)..."
         for tool in bandwhich gping trippy rustscan; do
@@ -687,8 +687,8 @@ step_9() {
 
         echo "Installing ctop for $ARCH_GO..."
         if [ ! -f "/usr/local/bin/ctop" ]; then
-            wget -q "https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-${ARCH_GO}" -O /usr/local/bin/ctop
-            chmod +x /usr/local/bin/ctop
+            sudo wget -q "https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-${ARCH_GO}" -O /usr/local/bin/ctop
+            sudo chmod +x /usr/local/bin/ctop
         fi
 
         echo "Installing Tailscale..."
@@ -712,53 +712,53 @@ step_10() {
     # Install OpenSSH Server
     if ! command -v sshd &> /dev/null; then
         echo "Installing OpenSSH Server..."
-        apt-get install -y openssh-server openssh-client
+        sudo apt-get install -y openssh-server openssh-client
     fi
 
     # Enable SSH service
     echo "Enabling SSH service..."
-    systemctl enable ssh
-    systemctl start ssh
+    sudo systemctl enable ssh
+    sudo systemctl start ssh
 
     # Backup original config
     if [ ! -f /etc/ssh/sshd_config.backup ]; then
-        cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+        sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
         echo "Backed up original sshd_config"
     fi
 
     # Configure sshd to allow root login
     echo "Configuring SSH to allow root login..."
-    sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-    sed -i 's/^PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-    sed -i 's/^#PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
-    sed -i 's/^PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^#PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
 
     # Allow password authentication
     echo "Enabling password authentication for SSH..."
-    sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
-    sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sudo sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
     # Allow empty passwords if needed (optional - commented by default)
-    # sed -i 's/^#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+    # sudo sed -i 's/^#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
 
     # Validate configuration
-    if sshd -t &> /dev/null; then
+    if sudo sshd -t &> /dev/null; then
         echo "SSH configuration validated successfully"
-        systemctl restart ssh
+        sudo systemctl restart ssh
         echo -e "${GREEN}✔ SSH Server configured and running${NC}"
         
         # Show SSH status
         echo ""
         echo "SSH Server Status:"
-        systemctl status ssh --no-pager | grep -E 'Active|Loaded'
+        sudo systemctl status ssh --no-pager | grep -E 'Active|Loaded'
         echo ""
         echo "Current SSH Configuration:"
         grep -E '^PermitRootLogin|^PasswordAuthentication' /etc/ssh/sshd_config
     else
         echo -e "${RED}Error: SSH configuration failed validation${NC}"
         echo "Restoring original configuration..."
-        cp /etc/ssh/sshd_config.backup /etc/ssh/sshd_config
-        systemctl restart ssh
+        sudo cp /etc/ssh/sshd_config.backup /etc/ssh/sshd_config
+        sudo systemctl restart ssh
         return 1
     fi
 }
@@ -844,7 +844,7 @@ alias brewup="brew update && brew upgrade && brew cleanup"
 # 6. SILENT LOAD (No echo messages)
 EOF
     else
-        apt-get install -y zsh
+        sudo apt-get install -y zsh
 
         if [ ! -d "$REAL_HOME/.oh-my-zsh" ]; then
             sudo -u $REAL_USER sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
@@ -860,12 +860,12 @@ EOF
         wget -q --show-progress -O /tmp/JetBrainsMono.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/JetBrainsMono.zip
         unzip -o -q /tmp/JetBrainsMono.zip -d "$REAL_HOME/.local/share/fonts"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/install_manual.sh)"
-        chown -R $REAL_USER:$REAL_USER "$REAL_HOME/.local"
+        sudo chown -R $REAL_USER:$REAL_USER "$REAL_HOME/.local"
         fc-cache -f >/dev/null
 
 
         echo "Configuring Starship..."
-        curl -sS https://starship.rs/install.sh | sh -s -- -y
+        curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
         mkdir -p "$REAL_HOME/.config"
 
         echo "Applying Starship Preset: Gruvbox Rainbow..."
@@ -928,10 +928,10 @@ alias art="php artisan"
 
 # 6. SILENT LOAD (No echo messages)
 EOF
-        chown $REAL_USER:$REAL_USER "$REAL_HOME/.zshrc"
+        sudo chown $REAL_USER:$REAL_USER "$REAL_HOME/.zshrc"
 
         if [ "$SHELL" != "/bin/zsh" ] && [ "$SHELL" != "/usr/bin/zsh" ]; then
-            chsh -s $(which zsh) $REAL_USER
+            sudo chsh -s $(which zsh) $REAL_USER
         fi
     fi
 }
@@ -944,8 +944,8 @@ step_12() {
         brew autoremove
     else
         echo "Cleaning up unnecessary packages..."
-        apt-get autoremove -y >/dev/null
-        apt-get clean
+        sudo apt-get autoremove -y >/dev/null
+        sudo apt-get clean
     fi
 
     echo "Configuring PM2 for auto-startup..."
