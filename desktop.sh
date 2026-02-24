@@ -624,8 +624,11 @@ step_7() {
         # Ansible
         if [[ "$DISTRO_ID" == "ubuntu" ]]; then
             sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt-get install -y ansible
+        else
+            # ansible package was removed from Debian 12+ official repos; ansible-core is the replacement
+            sudo apt-get install -y ansible-core
         fi
-        sudo apt-get install -y ansible
 
 
         # GitHub CLI
