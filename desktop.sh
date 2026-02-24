@@ -143,6 +143,9 @@ if $IS_MACOS; then
         brew_cmd install figlet git 2>/dev/null || true
     fi
 else
+    echo "Cleaning APT lists cache..."
+    sudo rm -rf /var/lib/apt/lists/*
+    sudo apt-get clean
     sudo apt-get update >/dev/null && sudo apt-get install -y figlet git >/dev/null
 fi
 
@@ -431,7 +434,11 @@ step_3() {
             php8.4-redis php8.4-mongodb php8.4-yaml php8.4-xdebug
 
 
+        echo "Persisting COMPOSER_ALLOW_SUPERUSER=1..."
+        echo 'export COMPOSER_ALLOW_SUPERUSER=1' | sudo tee /etc/profile.d/composer.sh > /dev/null
+        sudo chmod +x /etc/profile.d/composer.sh
         export COMPOSER_ALLOW_SUPERUSER=1
+
         if [ ! -f "/usr/local/bin/composer" ]; then
             echo "Installing Composer..."
             curl -sS https://getcomposer.org/installer | php
