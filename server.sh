@@ -82,6 +82,9 @@ BREW_PREFIX="/home/linuxbrew/.linuxbrew"
 
 
 # --- INSTALL FIGLET & GIT ---
+echo "Cleaning APT lists cache..."
+sudo rm -rf /var/lib/apt/lists/*
+sudo apt-get clean
 sudo apt-get update >/dev/null && sudo apt-get install -y figlet git lsb-release >/dev/null
 
 
