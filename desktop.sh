@@ -30,6 +30,10 @@ INSTALL_URL="https://raw.githubusercontent.com/promovaweb/setupvibe/refs/heads/m
 echo -e "${CYAN}SetupVibe Desktop v${VERSION}${NC}"
 echo ""
 
+# --- CLEANUP /tmp ---
+echo -e "${YELLOW}Cleaning /tmp...${NC}"
+sudo rm -rf /tmp/* 2>/dev/null || true
+
 # --- STEPS CONFIGURATION ---
 STEPS=(
     "Base System & Build Tools"

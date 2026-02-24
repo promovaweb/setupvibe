@@ -31,6 +31,10 @@ INSTALL_URL="https://raw.githubusercontent.com/promovaweb/setupvibe/refs/heads/m
 echo -e "${CYAN}SetupVibe Server Edition v${VERSION}${NC}"
 echo ""
 
+# --- CLEANUP /tmp ---
+echo -e "${YELLOW}Cleaning /tmp...${NC}"
+sudo rm -rf /tmp/* 2>/dev/null || true
+
 # --- LINUX ONLY ---
 if [[ "$(uname -s)" != "Linux" ]]; then
     echo -e "${RED}Error: This script is for Linux servers only.${NC}"
