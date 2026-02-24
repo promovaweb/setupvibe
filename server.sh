@@ -302,12 +302,13 @@ step_3() {
     # Docker
     echo "Installing Docker..."
     if [ ! -f "/etc/apt/sources.list.d/docker.list" ]; then
+        sudo mkdir -p /etc/apt/keyrings
         curl -fsSL "https://download.docker.com/linux/$DISTRO_ID/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
         sudo chmod a+r /etc/apt/keyrings/docker.gpg
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DISTRO_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list
-        sudo apt-get update -qq
     fi
-    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    sudo apt-get update -qq
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
     sudo usermod -aG docker $REAL_USER
 
     # Ansible
