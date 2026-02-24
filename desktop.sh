@@ -25,7 +25,7 @@ NC='\033[0m' # No Color
 
 # --- VERSION ---
 VERSION="0.27.1"
-INSTALL_URL="https://get.setupvibe.dev/install.sh"
+INSTALL_URL="https://raw.githubusercontent.com/promovaweb/setupvibe/refs/heads/main/desktop.sh"
 
 echo -e "${CYAN}SetupVibe Desktop v${VERSION}${NC}"
 echo ""
