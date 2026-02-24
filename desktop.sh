@@ -30,23 +30,6 @@ INSTALL_URL="https://raw.githubusercontent.com/promovaweb/setupvibe/refs/heads/m
 echo -e "${CYAN}SetupVibe Desktop v${VERSION}${NC}"
 echo ""
 
-
-# --- ROOT & SUDO CHECK ---
-if [[ "${EUID}" -eq 0 ]]; then
-    echo -e "${RED}Error: Do not run this script as root.${NC}"
-    echo -e "Run as a regular user with sudo privileges."
-    exit 1
-fi
-
-if ! sudo -n true 2>/dev/null; then
-    echo -e "${YELLOW}Sudo access is required. Validating...${NC}"
-    if ! sudo -v; then
-        echo -e "${RED}Error: This script requires sudo privileges.${NC}"
-        exit 1
-    fi
-fi
-
-
 # --- STEPS CONFIGURATION ---
 STEPS=(
     "Base System & Build Tools"
