@@ -52,8 +52,13 @@ SetupVibe (v2.3) sets up a complete development ecosystem with:
 
 Run the following command in your terminal:
 
-
 #### For your Desktop
+
+```bash
+curl -sL https://raw.githubusercontent.com/promovaweb/setupvibe/refs/heads/main/desktop.sh | bash
+```
+
+#### For your Server
 
 ```bash
 curl -sL https://raw.githubusercontent.com/promovaweb/setupvibe/refs/heads/main/server.sh | bash
