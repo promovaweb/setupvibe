@@ -310,9 +310,16 @@ step_2() {
 step_3() {
     # Docker
     echo "Installing Docker..."
+    # Docker does not publish packages for Debian testing/unstable — fall back to latest stable
+    DOCKER_CODENAME="$DISTRO_CODENAME"
+    if [[ "$DISTRO_ID" == "debian" ]]; then
+        case "$DISTRO_CODENAME" in
+            trixie|forky|sid|experimental) DOCKER_CODENAME="bookworm" ;;
+        esac
+    fi
     curl -fsSL "https://download.docker.com/linux/$DISTRO_ID/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
     sudo chmod a+r /etc/apt/keyrings/docker.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DISTRO_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DOCKER_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list
     sudo apt-get update -qq
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
     sudo usermod -aG docker $REAL_USER
