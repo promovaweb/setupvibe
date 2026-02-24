@@ -73,21 +73,9 @@ STEPS=(
 declare -a STEP_STATUS
 
 
-# --- ROOT CHECK ---
-if [ "$EUID" -ne 0 ]; then
-    echo -e "${YELLOW}Root required. Re-running with sudo...${NC}"
-    exec sudo bash -c "$(curl -fsSL ${INSTALL_URL})"
-fi
-
-
 # --- DETECT REAL USER ---
-if [ -z "$SUDO_USER" ]; then
-    REAL_USER="root"
-    REAL_HOME="/root"
-else
-    REAL_USER=$SUDO_USER
-    REAL_HOME=$(getent passwd $REAL_USER | cut -d: -f6)
-fi
+REAL_USER=$(whoami)
+REAL_HOME="$HOME"
 
 
 # --- DETECT DISTRO ---
