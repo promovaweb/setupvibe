@@ -49,7 +49,6 @@ fi
 
 # --- STEPS CONFIGURATION ---
 STEPS=(
-    "SetupVibe: Prerequisites & Arch Check"
     "Base System & Build Tools"
     "Homebrew (Package Manager)"
     "PHP 8.4 Ecosystem (Laravel)"
@@ -87,21 +86,8 @@ fi
 # --- 1. INITIAL PREPARATION ---
 
 
-# Root/Sudo Check (different handling for macOS vs Linux)
-if $IS_LINUX; then
-    if [ "$EUID" -ne 0 ]; then
-        echo -e "${YELLOW}Root required. Re-running with sudo...${NC}"
-        exec sudo bash -c "$(curl -fsSL ${INSTALL_URL})"
-    fi
-fi
-
+# Keep sudo alive during script execution (macOS)
 if $IS_MACOS; then
-    # macOS: Check if user can sudo (will be prompted if needed)
-    if ! sudo -v 2>/dev/null; then
-        echo -e "${RED}Error: SetupVibe requires sudo permissions.${NC}"
-        exit 1
-    fi
-    # Keep sudo alive during script execution
     while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 fi
 
@@ -302,19 +288,6 @@ git_ensure() {
 
 
 # --- INSTALLATION STEPS ---
-
-
-step_0() {
-    echo "Architecture detected: $ARCH_RAW"
-    echo "Operating System: $OS_TYPE"
-    if $IS_MACOS; then
-        echo "macOS Version: $DISTRO_CODENAME"
-        echo "Homebrew prefix: $BREW_PREFIX"
-    else
-        echo "Linux Distribution: $DISTRO_ID $DISTRO_CODENAME"
-    fi
-    return 0
-}
 
 
 step_1() {
@@ -1015,19 +988,18 @@ echo -e "\n${GREEN}Starting SetupVibe Desktop installation...${NC}"
 
 
 # Execution Loop
-run_section 0 step_0
-run_section 1 step_1
-run_section 2 step_2
-run_section 3 step_3
-run_section 4 step_4
-run_section 5 step_5
-run_section 6 step_6
-run_section 7 step_7
-run_section 8 step_8
-run_section 9 step_9
-run_section 10 step_10
-run_section 11 step_11
-run_section 12 step_12
+run_section 0 step_1
+run_section 1 step_2
+run_section 2 step_3
+run_section 3 step_4
+run_section 4 step_5
+run_section 5 step_6
+run_section 6 step_7
+run_section 7 step_8
+run_section 8 step_9
+run_section 9 step_10
+run_section 10 step_11
+run_section 11 step_12
 
 
 # --- FINALIZATION ---
