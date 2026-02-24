@@ -34,6 +34,20 @@ echo ""
 echo -e "${YELLOW}Cleaning /tmp...${NC}"
 sudo rm -rf /tmp/* 2>/dev/null || true
 
+# --- CLEANUP APT KEYRINGS & SOURCES ---
+echo -e "${YELLOW}Cleaning APT keyrings and sources lists...${NC}"
+sudo rm -f /etc/apt/keyrings/charm.gpg \
+           /etc/apt/keyrings/nodesource.gpg \
+           /etc/apt/keyrings/docker.gpg \
+           /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+           /usr/share/keyrings/deb.sury.org-php.gpg
+sudo rm -f /etc/apt/sources.list.d/charm.list \
+           /etc/apt/sources.list.d/nodesource.list \
+           /etc/apt/sources.list.d/docker.list \
+           /etc/apt/sources.list.d/github-cli.list \
+           /etc/apt/sources.list.d/php.list
+sudo mkdir -p -m 755 /etc/apt/keyrings
+
 # --- STEPS CONFIGURATION ---
 STEPS=(
     "Base System & Build Tools"
@@ -547,12 +561,10 @@ step_6() {
         curl -fsSL https://bun.sh/install | bash
     else
         echo "Setup NodeSource..."
-        if [ ! -f "/etc/apt/sources.list.d/nodesource.list" ]; then
-            sudo mkdir -p /etc/apt/keyrings
-            curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg --yes
-            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
-            sudo apt-get update -qq
-        fi
+        sudo mkdir -p /etc/apt/keyrings
+        curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg --yes
+        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+        sudo apt-get update -qq
         sudo apt-get install -y nodejs
         sudo npm install -g pnpm npm@latest
 
@@ -586,12 +598,9 @@ step_7() {
         brew_cmd install gh
     else
         # Docker
-        if [ ! -f "/etc/apt/sources.list.d/docker.list" ]; then
-            sudo mkdir -p /etc/apt/keyrings
-            curl -fsSL "https://download.docker.com/linux/$DISTRO_ID/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
-            sudo chmod a+r /etc/apt/keyrings/docker.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DISTRO_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list
-        fi
+        curl -fsSL "https://download.docker.com/linux/$DISTRO_ID/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
+        sudo chmod a+r /etc/apt/keyrings/docker.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DISTRO_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list
         sudo apt-get update -qq
         sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
         sudo usermod -aG docker $REAL_USER

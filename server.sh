@@ -35,6 +35,16 @@ echo ""
 echo -e "${YELLOW}Cleaning /tmp...${NC}"
 sudo rm -rf /tmp/* 2>/dev/null || true
 
+# --- CLEANUP APT KEYRINGS & SOURCES ---
+echo -e "${YELLOW}Cleaning APT keyrings and sources lists...${NC}"
+sudo rm -f /etc/apt/keyrings/charm.gpg \
+           /etc/apt/keyrings/docker.gpg \
+           /etc/apt/keyrings/githubcli-archive-keyring.gpg
+sudo rm -f /etc/apt/sources.list.d/charm.list \
+           /etc/apt/sources.list.d/docker.list \
+           /etc/apt/sources.list.d/github-cli.list
+sudo mkdir -p -m 755 /etc/apt/keyrings
+
 # --- LINUX ONLY ---
 if [[ "$(uname -s)" != "Linux" ]]; then
     echo -e "${RED}Error: This script is for Linux servers only.${NC}"
@@ -299,12 +309,9 @@ step_2() {
 step_3() {
     # Docker
     echo "Installing Docker..."
-    if [ ! -f "/etc/apt/sources.list.d/docker.list" ]; then
-        sudo mkdir -p /etc/apt/keyrings
-        curl -fsSL "https://download.docker.com/linux/$DISTRO_ID/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
-        sudo chmod a+r /etc/apt/keyrings/docker.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DISTRO_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list
-    fi
+    curl -fsSL "https://download.docker.com/linux/$DISTRO_ID/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DISTRO_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list
     sudo apt-get update -qq
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
     sudo usermod -aG docker $REAL_USER
