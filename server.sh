@@ -235,12 +235,6 @@ step_1() {
 
 
 step_2() {
-    if [ "$REAL_USER" == "root" ]; then
-        echo -e "${RED}Error: Homebrew cannot be installed as root user.${NC}"
-        echo -e "${YELLOW}Please run this script using sudo from a regular user account.${NC}"
-        return 1
-    fi
-
     echo "Checking Homebrew installation..."
     if [ ! -d "/home/linuxbrew/.linuxbrew" ] && [ ! -d "$REAL_HOME/.linuxbrew" ]; then
         echo "Installing Homebrew..."

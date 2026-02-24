@@ -80,14 +80,8 @@ if $IS_MACOS; then
     REAL_USER=$(whoami)
     REAL_HOME="$HOME"
 else
-    # Linux handling
-    if [ -z "$SUDO_USER" ]; then
-        REAL_USER="root"
-        REAL_HOME="/root"
-    else
-        REAL_USER=$SUDO_USER
-        REAL_HOME=$(getent passwd $REAL_USER | cut -d: -f6)
-    fi
+    REAL_USER=$(whoami)
+    REAL_HOME=$(getent passwd $REAL_USER | cut -d: -f6)
 fi
 
 
@@ -326,13 +320,6 @@ step_2() {
             return 1
         fi
     else
-        # Linux: Homebrew cannot be installed as root
-        if [ "$REAL_USER" == "root" ]; then
-            echo -e "${RED}Error: Homebrew cannot be installed as root user.${NC}"
-            echo -e "${YELLOW}Please run this script using sudo from a regular user account.${NC}"
-            return 1
-        fi
-
         echo "Checking Homebrew installation..."
         if [ ! -d "/home/linuxbrew/.linuxbrew" ] && [ ! -d "$REAL_HOME/.linuxbrew" ]; then
             echo "Installing Homebrew..."
