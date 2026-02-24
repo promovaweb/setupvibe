@@ -40,6 +40,8 @@ if [[ "$(uname -s)" == "Linux" ]]; then
     # Remove all third-party keyrings
     sudo rm -rf /etc/apt/keyrings/
     sudo mkdir -p -m 755 /etc/apt/keyrings
+    # Remove legacy sury key from old path
+    sudo rm -f /usr/share/keyrings/deb.sury.org-php.gpg 2>/dev/null || true
     # Remove all .list files referencing third-party repos
     sudo grep -rl 'docker\|nodesource\|charm\.sh\|cli\.github\|sury\|ondrej\|ansible' \
         /etc/apt/sources.list.d/ 2>/dev/null | xargs sudo rm -f 2>/dev/null || true
@@ -157,7 +159,7 @@ if $IS_MACOS; then
 else
     echo "Cleaning APT lists cache..."
     sudo apt-get update -qq 2>/dev/null || true
-    sudo apt-get install -y figlet git >/dev/null 2>&1 || sudo apt-get install -y --fix-missing figlet git >/dev/null
+    sudo apt-get install -y figlet git lsb-release >/dev/null 2>&1 || sudo apt-get install -y --fix-missing figlet git lsb-release >/dev/null
 fi
 
 
@@ -300,7 +302,7 @@ step_1() {
         sudo apt-get install -y build-essential git wget unzip fontconfig curl \
             libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm \
             libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
-            libyaml-dev autoconf bison rustc cargo procps file tmux
+            libyaml-dev autoconf bison procps file tmux
 
         # Adding Charmbracelet Repo (needed for Glow)
         sudo mkdir -p -m 755 /etc/apt/keyrings
@@ -428,8 +430,14 @@ step_3() {
         if [[ "$DISTRO_ID" == "ubuntu" ]]; then
             sudo add-apt-repository ppa:ondrej/php -y
         else
-            sudo curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
-            sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+            # Sury repo supports Debian stable releases; fall back to bookworm for unsupported codenames
+            PHP_CODENAME="$DISTRO_CODENAME"
+            case "$DISTRO_CODENAME" in
+                forky|sid|experimental) PHP_CODENAME="trixie" ;;
+            esac
+            curl -fsSL https://packages.sury.org/php/apt.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/php.gpg --yes
+            sudo chmod a+r /etc/apt/keyrings/php.gpg
+            echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ $PHP_CODENAME main" | sudo tee /etc/apt/sources.list.d/php.list
         fi
         sudo apt-get update -qq
         echo "Installing PHP 8.4 & Extensions..."
