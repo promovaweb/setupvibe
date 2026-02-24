@@ -35,18 +35,18 @@ echo -e "${YELLOW}Cleaning /tmp...${NC}"
 sudo rm -rf /tmp/* 2>/dev/null || true
 
 # --- CLEANUP APT KEYRINGS & SOURCES ---
-echo -e "${YELLOW}Cleaning APT keyrings and sources lists...${NC}"
-sudo rm -f /etc/apt/keyrings/charm.gpg \
-           /etc/apt/keyrings/nodesource.gpg \
-           /etc/apt/keyrings/docker.gpg \
-           /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-           /usr/share/keyrings/deb.sury.org-php.gpg
-sudo rm -f /etc/apt/sources.list.d/charm.list \
-           /etc/apt/sources.list.d/nodesource.list \
-           /etc/apt/sources.list.d/docker.list \
-           /etc/apt/sources.list.d/github-cli.list \
-           /etc/apt/sources.list.d/php.list
-sudo mkdir -p -m 755 /etc/apt/keyrings
+if [[ "$(uname -s)" == "Linux" ]]; then
+    echo -e "${YELLOW}Cleaning APT keyrings and sources lists...${NC}"
+    # Remove all third-party keyrings
+    sudo rm -rf /etc/apt/keyrings/
+    sudo mkdir -p -m 755 /etc/apt/keyrings
+    # Remove all .list files referencing third-party repos
+    sudo grep -rl 'docker\|nodesource\|charm\.sh\|cli\.github\|sury\|ondrej\|ansible' \
+        /etc/apt/sources.list.d/ 2>/dev/null | xargs sudo rm -f 2>/dev/null || true
+    # Clean APT cache and stale lists
+    sudo rm -rf /var/lib/apt/lists/*
+    sudo apt-get clean -qq
+fi
 
 # --- STEPS CONFIGURATION ---
 STEPS=(
@@ -156,9 +156,8 @@ if $IS_MACOS; then
     fi
 else
     echo "Cleaning APT lists cache..."
-    sudo rm -rf /var/lib/apt/lists/*
-    sudo apt-get clean
-    sudo apt-get update >/dev/null && sudo apt-get install -y figlet git >/dev/null
+    sudo apt-get update -qq 2>/dev/null || true
+    sudo apt-get install -y figlet git >/dev/null 2>&1 || sudo apt-get install -y --fix-missing figlet git >/dev/null
 fi
 
 
