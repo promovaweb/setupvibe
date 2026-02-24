@@ -281,6 +281,7 @@ git_ensure() {
         echo "Cloning: $repo..."
         sudo -u $REAL_USER git clone "$repo" "$dest" --quiet
     fi
+    sudo chown -R $REAL_USER:$(id -gn $REAL_USER) "$dest" 2>/dev/null || true
 }
 
 
@@ -479,7 +480,8 @@ step_4() {
         git_ensure "https://github.com/rbenv/rbenv.git" "$REAL_HOME/.rbenv"
         git_ensure "https://github.com/rbenv/ruby-build.git" "$REAL_HOME/.rbenv/plugins/ruby-build"
 
-        cd "$REAL_HOME/.rbenv" && src/configure && make -C src >/dev/null 2>&1
+        sudo chown -R $REAL_USER:$(id -gn $REAL_USER) "$REAL_HOME/.rbenv"
+        sudo -u $REAL_USER bash -c "cd '$REAL_HOME/.rbenv' && src/configure && make -C src" >/dev/null 2>&1
 
         echo "Checking Ruby 3.3.0..."
         if ! sudo -u $REAL_USER bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv versions --bare | grep -q "^3.3.0$"'; then

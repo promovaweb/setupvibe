@@ -202,6 +202,7 @@ git_ensure() {
         echo "Cloning: $repo..."
         sudo -u $REAL_USER git clone "$repo" "$dest" --quiet
     fi
+    sudo chown -R $REAL_USER:$(id -gn $REAL_USER) "$dest" 2>/dev/null || true
 }
 
 
