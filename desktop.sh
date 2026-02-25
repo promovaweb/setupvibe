@@ -27,6 +27,20 @@ NC='\033[0m' # No Color
 VERSION="0.27.1"
 INSTALL_URL="https://raw.githubusercontent.com/promovaweb/setupvibe/refs/heads/main/desktop.sh"
 
+# --- DEFAULT LANGUAGE VERSIONS ---
+DEFAULT_PHP_VER="8.4"
+DEFAULT_RUBY_VER="3.3.0"
+DEFAULT_GO_VER="1.22.2"
+DEFAULT_NODE_MAJOR="24"
+DEFAULT_PYTHON_VER="3.12"
+
+# --- SELECTED LANGUAGE VERSIONS (overridden interactively) ---
+PHP_VER="$DEFAULT_PHP_VER"
+RUBY_VER="$DEFAULT_RUBY_VER"
+GO_VER="$DEFAULT_GO_VER"
+NODE_MAJOR="$DEFAULT_NODE_MAJOR"
+PYTHON_VER="$DEFAULT_PYTHON_VER"
+
 echo -e "${CYAN}SetupVibe Desktop v${VERSION}${NC}"
 echo ""
 
@@ -54,7 +68,7 @@ fi
 STEPS=(
     "Base System & Build Tools"
     "Homebrew (Package Manager)"
-    "PHP 8.4 Ecosystem (Laravel)"
+    "PHP ${PHP_VER} Ecosystem (Laravel)"
     "Ruby Ecosystem (Rails)"
     "Languages (Go, Rust, Python + uv)"
     "JavaScript (Node, Bun, PNPM)"
@@ -258,6 +272,51 @@ configure_git_interactive() {
 }
 
 
+configure_versions_interactive() {
+    echo ""
+    echo -e "${BLUE}=== Programming Language Versions ===${NC}"
+    echo -e "${CYAN}Press [ENTER] to accept the default (shown in brackets).${NC}"
+    echo ""
+
+    local input
+
+    echo -ne "  PHP version    [${GREEN}${DEFAULT_PHP_VER}${NC}]: "
+    read input < /dev/tty
+    [[ -n "$input" ]] && PHP_VER="$input"
+
+    echo -ne "  Ruby version   [${GREEN}${DEFAULT_RUBY_VER}${NC}]: "
+    read input < /dev/tty
+    [[ -n "$input" ]] && RUBY_VER="$input"
+
+    echo -ne "  Go version     [${GREEN}${DEFAULT_GO_VER}${NC}]: "
+    read input < /dev/tty
+    [[ -n "$input" ]] && GO_VER="$input"
+
+    echo -ne "  Node.js major  [${GREEN}${DEFAULT_NODE_MAJOR}${NC}]: "
+    read input < /dev/tty
+    [[ -n "$input" ]] && NODE_MAJOR="$input"
+
+    echo -ne "  Python version [${GREEN}${DEFAULT_PYTHON_VER}${NC}]: "
+    read input < /dev/tty
+    [[ -n "$input" ]] && PYTHON_VER="$input"
+
+    # Update STEPS array labels now that versions are confirmed
+    STEPS[2]="PHP ${PHP_VER} Ecosystem (Laravel)"
+    STEPS[3]="Ruby ${RUBY_VER} Ecosystem (Rails)"
+    STEPS[4]="Languages (Go ${GO_VER}, Rust, Python ${PYTHON_VER} + uv)"
+    STEPS[5]="JavaScript (Node ${NODE_MAJOR}.x, Bun, PNPM)"
+
+    echo ""
+    echo -e "${GREEN}✔ Versions confirmed:${NC}"
+    echo -e "  PHP    → ${BOLD}${PHP_VER}${NC}"
+    echo -e "  Ruby   → ${BOLD}${RUBY_VER}${NC}"
+    echo -e "  Go     → ${BOLD}${GO_VER}${NC}"
+    echo -e "  Node   → ${BOLD}${NODE_MAJOR}.x${NC}"
+    echo -e "  Python → ${BOLD}${PYTHON_VER}${NC}"
+    sleep 2
+}
+
+
 run_section() {
     local index=$1
     local title="${STEPS[$index]}"
@@ -406,9 +465,9 @@ step_2() {
 
 step_3() {
     if $IS_MACOS; then
-        echo "Installing PHP 8.4 via Homebrew..."
-        brew_cmd install php@8.4
-        brew_cmd link php@8.4 --force --overwrite
+        echo "Installing PHP ${PHP_VER} via Homebrew..."
+        brew_cmd install php@${PHP_VER}
+        brew_cmd link php@${PHP_VER} --force --overwrite
         
         # Install common extensions via PECL
         echo "Installing PHP Extensions..."
@@ -426,7 +485,7 @@ step_3() {
         echo "Setup Laravel Installer..."
         composer global require laravel/installer
     else
-        echo "Configuring PHP Repository..."
+        echo "Configuring PHP ${PHP_VER} Repository..."
         if [[ "$DISTRO_ID" == "ubuntu" ]]; then
             sudo add-apt-repository ppa:ondrej/php -y
         else
@@ -440,12 +499,13 @@ step_3() {
             echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ $PHP_CODENAME main" | sudo tee /etc/apt/sources.list.d/php.list
         fi
         sudo apt-get update -qq
-        echo "Installing PHP 8.4 & Extensions..."
-        sudo apt-get install -y php8.4 php8.4-cli php8.4-common php8.4-dev \
-            php8.4-curl php8.4-mbstring php8.4-xml php8.4-zip php8.4-bcmath php8.4-intl \
-            php8.4-mysql php8.4-pgsql php8.4-sqlite3 php8.4-gd php8.4-imagick \
-            php8.4-redis php8.4-mongodb php8.4-yaml php8.4-xdebug
-
+        echo "Installing PHP ${PHP_VER} & Extensions..."
+        sudo apt-get install -y \
+            php${PHP_VER} php${PHP_VER}-cli php${PHP_VER}-common php${PHP_VER}-dev \
+            php${PHP_VER}-curl php${PHP_VER}-mbstring php${PHP_VER}-xml php${PHP_VER}-zip \
+            php${PHP_VER}-bcmath php${PHP_VER}-intl php${PHP_VER}-mysql php${PHP_VER}-pgsql \
+            php${PHP_VER}-sqlite3 php${PHP_VER}-gd php${PHP_VER}-imagick \
+            php${PHP_VER}-redis php${PHP_VER}-mongodb php${PHP_VER}-yaml php${PHP_VER}-xdebug
 
         echo "Persisting COMPOSER_ALLOW_SUPERUSER=1..."
         echo 'export COMPOSER_ALLOW_SUPERUSER=1' | sudo tee /etc/profile.d/composer.sh > /dev/null
@@ -472,11 +532,11 @@ step_4() {
         # On macOS, use Homebrew for rbenv
         brew_cmd install rbenv ruby-build
         
-        echo "Checking Ruby 3.3.0..."
-        if ! rbenv versions --bare | grep -q "^3.3.0$"; then
-            echo "Compiling Ruby 3.3.0..."
-            rbenv install 3.3.0
-            rbenv global 3.3.0
+        echo "Checking Ruby ${RUBY_VER}..."
+        if ! rbenv versions --bare | grep -q "^${RUBY_VER}$"; then
+            echo "Compiling Ruby ${RUBY_VER}..."
+            rbenv install ${RUBY_VER}
+            rbenv global ${RUBY_VER}
         fi
         
         # Initialize rbenv for current session
@@ -491,10 +551,10 @@ step_4() {
         sudo chown -R $REAL_USER:$(id -gn $REAL_USER) "$REAL_HOME/.rbenv"
         sudo -u $REAL_USER bash -c "cd '$REAL_HOME/.rbenv' && src/configure && make -C src" >/dev/null 2>&1
 
-        echo "Checking Ruby 3.3.0..."
-        if ! sudo -u $REAL_USER bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv versions --bare | grep -q "^3.3.0$"'; then
-            echo "Compiling Ruby 3.3.0..."
-            sudo -u $REAL_USER bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv install 3.3.0 && rbenv global 3.3.0'
+        echo "Checking Ruby ${RUBY_VER}..."
+        if ! sudo -u $REAL_USER bash -c "export PATH=\"\$HOME/.rbenv/bin:\$PATH\"; eval \"\$(rbenv init -)\"; rbenv versions --bare | grep -q \"^${RUBY_VER}$\""; then
+            echo "Compiling Ruby ${RUBY_VER}..."
+            sudo -u $REAL_USER bash -c "export PATH=\"\$HOME/.rbenv/bin:\$PATH\"; eval \"\$(rbenv init -)\"; rbenv install ${RUBY_VER} && rbenv global ${RUBY_VER}"
         fi
 
         echo "Installing Rails..."
@@ -505,8 +565,8 @@ step_4() {
 
 step_5() {
     if $IS_MACOS; then
-        echo "Setup Python..."
-        brew_cmd install python@3.12
+        echo "Setup Python ${PYTHON_VER}..."
+        brew_cmd install python@${PYTHON_VER}
         
         echo "Setup uv (Python Package Manager)..."
         if ! command -v uv &> /dev/null; then
@@ -515,8 +575,7 @@ step_5() {
             uv self update
         fi
         
-        GO_VER="1.22.2"
-        echo "Setup Go $GO_VER..."
+        echo "Setup Go ${GO_VER}..."
         brew_cmd install go
         
         echo "Setup Rust..."
@@ -537,9 +596,7 @@ step_5() {
              sudo -u $REAL_USER bash -c "uv self update"
         fi
 
-
-        GO_VER="1.22.2"
-        echo "Setup Go $GO_VER ($ARCH_GO)..."
+        echo "Setup Go ${GO_VER} (${ARCH_GO})..."
         sudo rm -rf /usr/local/go
         wget -q "https://go.dev/dl/go${GO_VER}.linux-${ARCH_GO}.tar.gz" -O /tmp/go.tar.gz
         sudo tar -C /usr/local -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz
@@ -556,9 +613,9 @@ step_5() {
 
 step_6() {
     if $IS_MACOS; then
-        echo "Setup Node.js via Homebrew..."
-        brew_cmd install node@24
-        brew_cmd link node@24 --force --overwrite
+        echo "Setup Node.js ${NODE_MAJOR}.x via Homebrew..."
+        brew_cmd install node@${NODE_MAJOR}
+        brew_cmd link node@${NODE_MAJOR} --force --overwrite
         
         echo "Installing pnpm..."
         npm install -g pnpm npm@latest
@@ -569,10 +626,10 @@ step_6() {
         echo "Setup Bun..."
         curl -fsSL https://bun.sh/install | bash
     else
-        echo "Setup NodeSource..."
+        echo "Setup NodeSource (Node.js ${NODE_MAJOR}.x)..."
         sudo mkdir -p /etc/apt/keyrings
         curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg --yes
-        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
         sudo apt-get update -qq
         sudo apt-get install -y nodejs
         sudo npm install -g pnpm npm@latest
@@ -765,9 +822,6 @@ step_10() {
     echo "Enabling password authentication for SSH..."
     sudo sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
     sudo sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-
-    # Allow empty passwords if needed (optional - commented by default)
-    # sudo sed -i 's/^#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
 
     # Validate configuration
     if sudo sshd -t &> /dev/null; then
@@ -993,6 +1047,7 @@ step_12() {
 
 show_roadmap_and_wait
 configure_git_interactive
+configure_versions_interactive
 
 
 echo -e "\n${GREEN}Starting SetupVibe Desktop installation...${NC}"
