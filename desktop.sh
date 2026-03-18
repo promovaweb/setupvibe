@@ -83,6 +83,7 @@ STEPS=(
     "Network, Monitoring & Tailscale"
     "SSH Server (Linux Only)"
     "Shell (ZSH & Starship Config)"
+    "Tmux & Plugins"
     "AI CLI Tools"
     "Finalization & Cleanup"
 )
@@ -902,15 +903,6 @@ step_11() {
 
         git_ensure "https://github.com/zsh-users/zsh-autosuggestions" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
         git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
-        git_ensure "https://github.com/tmux-plugins/tpm" "$REAL_HOME/.tmux/plugins/tpm"
-
-        safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/tmux.conf "$REAL_HOME/.tmux.conf"
-        if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then
-            mkdir -p /root/.tmux/plugins
-            cp "$REAL_HOME/.tmux.conf" /root/.tmux.conf
-            [[ -d "$REAL_HOME/.tmux/plugins/tpm" ]] && \
-                ln -sfn "$REAL_HOME/.tmux/plugins/tpm" /root/.tmux/plugins/tpm 2>/dev/null || true
-        fi
 
         echo "Installing Nerd Fonts (FiraCode & JetBrains Mono)..."
         brew_cmd tap homebrew/cask-fonts 2>/dev/null || true
@@ -936,15 +928,6 @@ step_11() {
 
         git_ensure "https://github.com/zsh-users/zsh-autosuggestions" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
         git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
-        git_ensure "https://github.com/tmux-plugins/tpm" "$REAL_HOME/.tmux/plugins/tpm"
-
-        safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/tmux.conf "$REAL_HOME/.tmux.conf"
-        if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then
-            mkdir -p /root/.tmux/plugins
-            cp "$REAL_HOME/.tmux.conf" /root/.tmux.conf
-            [[ -d "$REAL_HOME/.tmux/plugins/tpm" ]] && \
-                ln -sfn "$REAL_HOME/.tmux/plugins/tpm" /root/.tmux/plugins/tpm 2>/dev/null || true
-        fi
 
         echo "Installing Nerd Fonts (FiraCode & JetBrains Mono)..."
         mkdir -p "$REAL_HOME/.local/share/fonts"
@@ -977,6 +960,26 @@ step_11() {
 
 
 step_12() {
+    echo "Installing TPM (Tmux Plugin Manager)..."
+    git_ensure "https://github.com/tmux-plugins/tpm" "$REAL_HOME/.tmux/plugins/tpm"
+
+    echo "Downloading tmux.conf..."
+    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/tmux.conf "$REAL_HOME/.tmux.conf"
+
+    # Also install to /root if running as root with a different REAL_HOME
+    if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then
+        mkdir -p /root/.tmux/plugins
+        cp "$REAL_HOME/.tmux.conf" /root/.tmux.conf
+        [[ -d "$REAL_HOME/.tmux/plugins/tpm" ]] && \
+            ln -sfn "$REAL_HOME/.tmux/plugins/tpm" /root/.tmux/plugins/tpm 2>/dev/null || true
+    fi
+
+    sudo chown -R $REAL_USER:$(id -gn $REAL_USER) "$REAL_HOME/.tmux" 2>/dev/null || true
+    sudo chown $REAL_USER:$(id -gn $REAL_USER) "$REAL_HOME/.tmux.conf" 2>/dev/null || true
+}
+
+
+step_13() {
     AI_TOOLS=(
         "@anthropic-ai/claude-code"
         "@google/gemini-cli"
@@ -995,7 +998,7 @@ step_12() {
 }
 
 
-step_13() {
+step_14() {
     if $IS_MACOS; then
         echo "Cleaning up Homebrew..."
         brew_cmd cleanup --prune=all
@@ -1064,6 +1067,7 @@ run_section 9 step_10
 run_section 10 step_11
 run_section 11 step_12
 run_section 12 step_13
+run_section 13 step_14
 
 
 # --- FINALIZATION ---

@@ -83,6 +83,7 @@ STEPS=(
     "Network, Monitoring & Tailscale"
     "SSH Server"
     "Shell (ZSH & Starship Config)"
+    "Tmux & Plugins"
     "AI CLI Tools"
     "Finalization & Cleanup"
 )
@@ -531,16 +532,6 @@ step_7() {
 
     git_ensure "https://github.com/zsh-users/zsh-autosuggestions" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
     git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
-    git_ensure "https://github.com/tmux-plugins/tpm" "$REAL_HOME/.tmux/plugins/tpm"
-
-    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/tmux.conf "$REAL_HOME/.tmux.conf"
-    # Also install to /root if running as root with a different REAL_HOME
-    if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then
-        mkdir -p /root/.tmux/plugins
-        cp "$REAL_HOME/.tmux.conf" /root/.tmux.conf
-        [[ -d "$REAL_HOME/.tmux/plugins/tpm" ]] && \
-            ln -sfn "$REAL_HOME/.tmux/plugins/tpm" /root/.tmux/plugins/tpm 2>/dev/null || true
-    fi
 
     echo "Configuring Starship..."
     curl -sS https://starship.rs/install.sh | sudo sh -s -- -y
@@ -560,6 +551,26 @@ step_7() {
 
 
 step_8() {
+    echo "Installing TPM (Tmux Plugin Manager)..."
+    git_ensure "https://github.com/tmux-plugins/tpm" "$REAL_HOME/.tmux/plugins/tpm"
+
+    echo "Downloading tmux.conf..."
+    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/tmux.conf "$REAL_HOME/.tmux.conf"
+
+    # Also install to /root if running as root with a different REAL_HOME
+    if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then
+        mkdir -p /root/.tmux/plugins
+        cp "$REAL_HOME/.tmux.conf" /root/.tmux.conf
+        [[ -d "$REAL_HOME/.tmux/plugins/tpm" ]] && \
+            ln -sfn "$REAL_HOME/.tmux/plugins/tpm" /root/.tmux/plugins/tpm 2>/dev/null || true
+    fi
+
+    sudo chown -R $REAL_USER:$(id -gn $REAL_USER) "$REAL_HOME/.tmux" 2>/dev/null || true
+    sudo chown $REAL_USER:$(id -gn $REAL_USER) "$REAL_HOME/.tmux.conf" 2>/dev/null || true
+}
+
+
+step_9() {
     local NPM_BIN
     NPM_BIN=$(command -v npm 2>/dev/null || echo "$BREW_PREFIX/bin/npm")
 
