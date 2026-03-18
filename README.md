@@ -1,6 +1,6 @@
 # SetupVibe
 
-> The ultimate cross-platform development environment setup script — v0.29.1
+> The ultimate cross-platform development environment setup script — v0.30.0
 
 ## Overview
 
