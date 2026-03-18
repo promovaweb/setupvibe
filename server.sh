@@ -594,7 +594,7 @@ step_9() {
 }
 
 
-step_9() {
+step_10() {
     echo "Cleaning APT cache and orphaned packages..."
     sudo apt-get autoremove -y -qq
     sudo apt-get autoclean -qq
@@ -637,6 +637,7 @@ run_section 6 step_6
 run_section 7 step_7
 run_section 8 step_8
 run_section 9 step_9
+run_section 10 step_10
 
 
 # --- FINALIZATION ---
