@@ -518,13 +518,16 @@ step_4() {
         eval "$(rbenv init -)"
         
         echo "Installing Rails..."
-        gem install bundler rails
+        gem install bundler rails --no-document
     else
         git_ensure "https://github.com/rbenv/rbenv.git" "$REAL_HOME/.rbenv"
         git_ensure "https://github.com/rbenv/ruby-build.git" "$REAL_HOME/.rbenv/plugins/ruby-build"
 
         sudo chown -R $REAL_USER:$(id -gn $REAL_USER) "$REAL_HOME/.rbenv"
         sudo -u $REAL_USER bash -c "cd '$REAL_HOME/.rbenv' && src/configure && make -C src" >/dev/null 2>&1
+
+        # Write gemrc to suppress documentation generation for all future gem installs
+        sudo -u $REAL_USER bash -c 'echo "gem: --no-document" > "$HOME/.gemrc"'
 
         echo "Checking Ruby 3.3.0..."
         if ! sudo -u $REAL_USER bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv versions --bare | grep -q "^3.3.0$"'; then
@@ -533,7 +536,7 @@ step_4() {
         fi
 
         echo "Installing Rails..."
-        sudo -u $REAL_USER bash -c 'export PATH="$HOME/.rbenv/bin:$HOME/.rbenv/shims:$PATH"; gem install bundler rails'
+        sudo -u $REAL_USER bash -c 'export PATH="$HOME/.rbenv/bin:$HOME/.rbenv/shims:$PATH"; gem install bundler rails --no-document'
     fi
 }
 
