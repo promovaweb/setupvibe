@@ -905,6 +905,12 @@ step_11() {
         git_ensure "https://github.com/tmux-plugins/tpm" "$REAL_HOME/.tmux/plugins/tpm"
 
         safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/tmux.conf "$REAL_HOME/.tmux.conf"
+        if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then
+            mkdir -p /root/.tmux/plugins
+            cp "$REAL_HOME/.tmux.conf" /root/.tmux.conf
+            [[ -d "$REAL_HOME/.tmux/plugins/tpm" ]] && \
+                ln -sfn "$REAL_HOME/.tmux/plugins/tpm" /root/.tmux/plugins/tpm 2>/dev/null || true
+        fi
 
         echo "Installing Nerd Fonts (FiraCode & JetBrains Mono)..."
         brew_cmd tap homebrew/cask-fonts 2>/dev/null || true
@@ -933,6 +939,12 @@ step_11() {
         git_ensure "https://github.com/tmux-plugins/tpm" "$REAL_HOME/.tmux/plugins/tpm"
 
         safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/tmux.conf "$REAL_HOME/.tmux.conf"
+        if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then
+            mkdir -p /root/.tmux/plugins
+            cp "$REAL_HOME/.tmux.conf" /root/.tmux.conf
+            [[ -d "$REAL_HOME/.tmux/plugins/tpm" ]] && \
+                ln -sfn "$REAL_HOME/.tmux/plugins/tpm" /root/.tmux/plugins/tpm 2>/dev/null || true
+        fi
 
         echo "Installing Nerd Fonts (FiraCode & JetBrains Mono)..."
         mkdir -p "$REAL_HOME/.local/share/fonts"
