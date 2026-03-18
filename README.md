@@ -1,6 +1,6 @@
 # SetupVibe
 
-> The ultimate cross-platform development environment setup script — v0.31.0
+> The ultimate cross-platform development environment setup script — v0.32.0
 
 ## Overview
 
@@ -101,7 +101,7 @@ All configs include:
 
 ## Tmux Configuration
 
-A shared [`tmux.conf`](tmux.conf) is downloaded and applied on both setups.
+A shared [`tmux.conf`](tmux.conf) is downloaded and applied on both setups. For full documentation, keybinding reference, and plugin guide see **[tmux.md](tmux.md)**.
 
 ### Plugins
 
