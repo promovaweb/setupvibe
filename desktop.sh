@@ -83,6 +83,7 @@ STEPS=(
     "Network, Monitoring & Tailscale"
     "SSH Server (Linux Only)"
     "Shell (ZSH & Starship Config)"
+    "AI CLI Tools"
     "Finalization & Cleanup"
 )
 
@@ -595,25 +596,27 @@ step_5() {
         sudo apt-get install -y python3 python3-pip python3-venv python-is-python3
 
         echo "Setup uv (Python Package Manager)..."
-        if ! sudo -u $REAL_USER bash -c "command -v uv" &> /dev/null; then
-             sudo -u $REAL_USER bash -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
+        if ! sudo -u $REAL_USER bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v uv" &> /dev/null; then
+            sudo -u $REAL_USER bash -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
         else
-             sudo -u $REAL_USER bash -c "uv self update"
+            sudo -u $REAL_USER bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv self update"
         fi
-
+        export PATH="$REAL_HOME/.local/bin:$PATH"
 
         GO_VER="1.22.2"
         echo "Setup Go $GO_VER ($ARCH_GO)..."
         sudo rm -rf /usr/local/go
         wget -q "https://go.dev/dl/go${GO_VER}.linux-${ARCH_GO}.tar.gz" -O /tmp/go.tar.gz
         sudo tar -C /usr/local -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz
+        export PATH="/usr/local/go/bin:$PATH"
 
         echo "Setup Rust..."
-        if ! command -v rustup &> /dev/null; then
-             sudo -u $REAL_USER sh -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+        if [ ! -f "$REAL_HOME/.cargo/bin/rustup" ]; then
+            sudo -u $REAL_USER sh -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
         else
-             sudo -u $REAL_USER rustup update
+            sudo -u $REAL_USER bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; rustup update"
         fi
+        export PATH="$REAL_HOME/.cargo/bin:$PATH"
     fi
 }
 
@@ -629,7 +632,7 @@ step_6() {
         
         echo "Installing PM2..."
         npm install -g pm2
-        
+
         echo "Setup Bun..."
         curl -fsSL https://bun.sh/install | bash
     else
@@ -1027,6 +1030,25 @@ EOF
 
 
 step_12() {
+    AI_TOOLS=(
+        "@anthropic-ai/claude-code"
+        "@google/gemini-cli"
+        "@openai/codex"
+        "@githubnext/github-copilot-cli"
+    )
+
+    for pkg in "${AI_TOOLS[@]}"; do
+        echo "Installing $pkg..."
+        if $IS_MACOS; then
+            npm install -g "$pkg" 2>/dev/null || echo -e "${YELLOW}⚠ Failed to install $pkg${NC}"
+        else
+            sudo npm install -g "$pkg" 2>/dev/null || echo -e "${YELLOW}⚠ Failed to install $pkg${NC}"
+        fi
+    done
+}
+
+
+step_13() {
     if $IS_MACOS; then
         echo "Cleaning up Homebrew..."
         brew_cmd cleanup --prune=all
@@ -1094,6 +1116,7 @@ run_section 8 step_9
 run_section 9 step_10
 run_section 10 step_11
 run_section 11 step_12
+run_section 12 step_13
 
 
 # --- FINALIZATION ---

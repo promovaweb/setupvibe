@@ -83,6 +83,7 @@ STEPS=(
     "Network, Monitoring & Tailscale"
     "SSH Server"
     "Shell (ZSH & Starship Config)"
+    "AI CLI Tools"
     "Finalization & Cleanup"
 )
 
@@ -286,11 +287,12 @@ step_1() {
         cron logrotate rsyslog
 
     echo "Setup uv (Python Package Manager)..."
-    if ! sudo -u $REAL_USER bash -c "command -v uv" &> /dev/null; then
+    if ! sudo -u $REAL_USER bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v uv" &> /dev/null; then
         sudo -u $REAL_USER bash -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
     else
-        sudo -u $REAL_USER bash -c "uv self update"
+        sudo -u $REAL_USER bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv self update"
     fi
+    export PATH="$REAL_HOME/.local/bin:$PATH"
 
     # Adding Charmbracelet Repo (needed for Glow)
     sudo mkdir -p -m 755 /etc/apt/keyrings
@@ -397,7 +399,7 @@ step_3() {
 
 step_4() {
     echo "Installing Modern Unix Tools via Homebrew..."
-    TOOLS="bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow jq tldr fastfetch duf bandwhich gping trippy"
+    TOOLS="bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow jq tldr fastfetch duf bandwhich gping trippy node@24"
 
     if ! command -v brew &>/dev/null; then
         echo -e "${RED}Error: Homebrew binary not found. Skipping modern tools installation.${NC}"
@@ -405,6 +407,7 @@ step_4() {
     fi
 
     brew_cmd install $TOOLS || brew_cmd upgrade $TOOLS
+    brew_cmd link node@24 --force --overwrite 2>/dev/null || true
 
     # FZF keybindings
     local FZF_OPT="/home/linuxbrew/.linuxbrew/opt/fzf"
@@ -554,6 +557,30 @@ EOF
 
 
 step_8() {
+    local NPM_BIN
+    NPM_BIN=$(command -v npm 2>/dev/null || echo "$BREW_PREFIX/bin/npm")
+
+    if [ ! -f "$NPM_BIN" ]; then
+        echo -e "${YELLOW}⚠ npm not found — skipping AI CLI Tools.${NC}"
+        return 1
+    fi
+
+    AI_TOOLS=(
+        "@anthropic-ai/claude-code"
+        "@google/gemini-cli"
+        "@openai/codex"
+        "@githubnext/github-copilot-cli"
+    )
+
+    for pkg in "${AI_TOOLS[@]}"; do
+        echo "Installing $pkg..."
+        ( cd "$REAL_HOME" && runuser -u "$REAL_USER" -- env HOME="$REAL_HOME" "$NPM_BIN" install -g "$pkg" ) \
+            2>/dev/null || echo -e "${YELLOW}⚠ Failed to install $pkg${NC}"
+    done
+}
+
+
+step_9() {
     echo "Cleaning APT cache and orphaned packages..."
     sudo apt-get autoremove -y -qq
     sudo apt-get autoclean -qq
@@ -595,6 +622,7 @@ run_section 5 step_5
 run_section 6 step_6
 run_section 7 step_7
 run_section 8 step_8
+run_section 9 step_9
 
 
 # --- FINALIZATION ---
