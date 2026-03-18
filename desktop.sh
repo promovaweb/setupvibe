@@ -360,7 +360,7 @@ step_1() {
         sudo apt-get update -qq
         echo "Installing Build Essentials & Tmux..."
         sudo apt-get install -y software-properties-common
-        sudo apt-get install -y build-essential git wget unzip fontconfig curl \
+        sudo apt-get install -y build-essential git wget unzip fontconfig curl sshpass \
             libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm \
             libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
             libyaml-dev autoconf bison procps file tmux
@@ -395,7 +395,7 @@ step_2() {
         if command -v brew &>/dev/null; then
             echo -e "${GREEN}✔ Homebrew is ready.${NC}"
             echo "Installing base tools via Homebrew..."
-            brew_cmd install wget unzip curl tmux openssl readline sqlite3 xz zlib tcl-tk
+            brew_cmd install wget unzip curl tmux sshpass openssl readline sqlite3 xz zlib tcl-tk
         else
             echo -e "${RED}✘ Homebrew installation failed.${NC}"
             return 1
