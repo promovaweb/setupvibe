@@ -867,6 +867,9 @@ step_11() {
 
         git_ensure "https://github.com/zsh-users/zsh-autosuggestions" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
         git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+        git_ensure "https://github.com/tmux-plugins/tpm" "$REAL_HOME/.tmux/plugins/tpm"
+
+        curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/tmux.conf -o "$REAL_HOME/.tmux.conf"
 
         echo "Installing Nerd Fonts (FiraCode & JetBrains Mono)..."
         brew_cmd tap homebrew/cask-fonts 2>/dev/null || true
@@ -944,6 +947,9 @@ EOF
 
         git_ensure "https://github.com/zsh-users/zsh-autosuggestions" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
         git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+        git_ensure "https://github.com/tmux-plugins/tpm" "$REAL_HOME/.tmux/plugins/tpm"
+
+        curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/tmux.conf -o "$REAL_HOME/.tmux.conf"
 
         echo "Installing Nerd Fonts (FiraCode & JetBrains Mono)..."
         mkdir -p "$REAL_HOME/.local/share/fonts"
