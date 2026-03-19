@@ -440,16 +440,34 @@ step_2() {
             echo "Installing Homebrew..."
             sudo apt-get install -y build-essential procps curl file git
 
-            # Create /home/linuxbrew directory with proper permissions if it doesn't exist
-            if [ ! -d "/home/linuxbrew" ]; then
-                echo "Creating /home/linuxbrew directory..."
-                sudo mkdir -p /home/linuxbrew
-                sudo chown -R $REAL_USER:$(id -gn $REAL_USER) /home/linuxbrew
-                sudo chmod -R 775 /home/linuxbrew
+            # Ensure /home/linuxbrew directory exists with proper permissions
+            echo "Ensuring /home/linuxbrew permissions..."
+            sudo mkdir -p /home/linuxbrew
+            sudo chown -R "$REAL_USER" /home/linuxbrew 2>/dev/null || true
+            sudo chmod -R 775 /home/linuxbrew 2>/dev/null || true
+            
+            # Pre-create .linuxbrew to help the installer
+            sudo mkdir -p /home/linuxbrew/.linuxbrew
+            sudo chown -R "$REAL_USER" /home/linuxbrew/.linuxbrew 2>/dev/null || true
+
+            # Temporarily allow REAL_USER to use sudo without password for Homebrew installation
+            # This is required because the installer checks for sudo even in non-interactive mode
+            if [[ "$REAL_USER" != "root" ]]; then
+                echo "Temporarily allowing $REAL_USER to use sudo without password for Homebrew installation..."
+                echo "$REAL_USER ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/setupvibe-brew > /dev/null
+                sudo chmod 440 /etc/sudoers.d/setupvibe-brew
             fi
 
             # Install Homebrew
-            sudo -u $REAL_USER NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            if [[ "$REAL_USER" == "root" ]]; then
+                echo -e "${RED}✘ Homebrew cannot be installed as root. Skipping.${NC}"
+            else
+                # Run installer as REAL_USER
+                sudo -u "$REAL_USER" NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            fi
+
+            # Cleanup temporary sudoers rule
+            sudo rm -f /etc/sudoers.d/setupvibe-brew
         else
             echo "Homebrew already installed. Checking for updates..."
             local BREW_EXEC="/home/linuxbrew/.linuxbrew/bin/brew"
