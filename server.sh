@@ -25,11 +25,14 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.32.0"
+VERSION="0.32.1"
 INSTALL_URL="https://raw.githubusercontent.com/promovaweb/setupvibe/refs/heads/main/server.sh"
 
 echo -e "${CYAN}SetupVibe Server Edition v${VERSION}${NC}"
 echo ""
+
+# --- ENVIRONMENT ---
+export COMPOSER_ALLOW_SUPERUSER=1
 
 # --- CLEANUP /tmp ---
 echo -e "${YELLOW}Cleaning /tmp...${NC}"
@@ -65,6 +68,11 @@ if sudo fuser /var/lib/apt/lists/lock /var/lib/dpkg/lock-frontend /var/lib/dpkg/
     sudo systemctl stop packagekit 2>/dev/null || true
     sleep 2
 fi
+
+# --- ENSURE BASE TOOLS FOR REPO MANAGEMENT ---
+echo -e "${YELLOW}Installing base tools (gnupg, curl, ca-certificates)...${NC}"
+sudo apt-get update -qq
+sudo apt-get install -y -qq gnupg curl ca-certificates lsb-release software-properties-common
 
 # --- LINUX ONLY ---
 if [[ "$(uname -s)" != "Linux" ]]; then
@@ -148,8 +156,7 @@ BREW_PREFIX="/home/linuxbrew/.linuxbrew"
 
 
 # --- INSTALL FIGLET & GIT ---
-sudo apt-get update -qq 2>/dev/null || true
-sudo apt-get install -y figlet git lsb-release >/dev/null 2>&1 || sudo apt-get install -y --fix-missing figlet git lsb-release >/dev/null
+sudo apt-get install -y figlet git >/dev/null 2>&1 || sudo apt-get install -y --fix-missing figlet git >/dev/null
 
 
 # --- UI & LOGIC FUNCTIONS ---
@@ -313,7 +320,6 @@ step_1() {
     sudo apt-get update -qq
 
     echo "Installing Build Essentials & Core Server Tools..."
-    sudo apt-get install -y software-properties-common
     sudo apt-get install -y \
         build-essential git wget unzip fontconfig curl sshpass \
         libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
@@ -583,6 +589,7 @@ step_9() {
     fi
 
     AI_TOOLS=(
+        "pm2"
         "@anthropic-ai/claude-code"
         "@google/gemini-cli"
         "@openai/codex"
@@ -616,6 +623,51 @@ step_10() {
     rm -rf "$REAL_HOME/.cache/composer" 2>/dev/null || true
     rm -rf "$REAL_HOME/.npm/_npx" 2>/dev/null || true
     rm -rf "$REAL_HOME/.bundle/cache" 2>/dev/null || true
+
+    echo "Configuring PM2 for auto-startup..."
+    if command -v pm2 &>/dev/null; then
+        sudo -u $REAL_USER pm2 startup systemd -u $REAL_USER --hp $REAL_HOME
+        sudo -u $REAL_USER pm2 save
+        echo -e "${GREEN}✔ PM2 configured for auto-startup${NC}"
+
+        echo "Configuring PM2 defaults..."
+        sudo -u $REAL_USER pm2 set pm2:autodump true
+        sudo -u $REAL_USER pm2 set pm2:log_date_format "YYYY-MM-DD HH:mm:ss"
+    else
+        echo -e "${YELLOW}⚠ PM2 not found — skipping auto-startup configuration.${NC}"
+    fi
+
+    cat > "$REAL_HOME/ecosystem.config.js" << 'ECOSYSTEM'
+module.exports = {
+  apps: [
+    {
+      name: "app",
+      script: "./index.js",
+      instances: 1,
+      exec_mode: "fork",
+      watch: false,
+      ignore_watch: ["node_modules", "logs", ".git"],
+      max_memory_restart: "300M",
+      log_date_format: "YYYY-MM-DD HH:mm:ss",
+      merge_logs: true,
+      time: true,
+      autorestart: true,
+      max_restarts: 10,
+      restart_delay: 1000,
+      kill_timeout: 3000,
+      wait_ready: false,
+      env: {
+        NODE_ENV: "development",
+      },
+      env_production: {
+        NODE_ENV: "production",
+      },
+    },
+  ],
+};
+ECOSYSTEM
+    sudo chown "$REAL_USER:$(id -gn $REAL_USER)" "$REAL_HOME/ecosystem.config.js"
+    echo -e "${GREEN}✔ PM2 defaults configured — template saved to ~/ecosystem.config.js${NC}"
 }
 
 

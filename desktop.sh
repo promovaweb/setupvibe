@@ -24,11 +24,14 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.32.0"
+VERSION="0.32.1"
 INSTALL_URL="https://raw.githubusercontent.com/promovaweb/setupvibe/refs/heads/main/desktop.sh"
 
 echo -e "${CYAN}SetupVibe Desktop v${VERSION}${NC}"
 echo ""
+
+# --- ENVIRONMENT ---
+export COMPOSER_ALLOW_SUPERUSER=1
 
 # --- CLEANUP /tmp ---
 echo -e "${YELLOW}Cleaning /tmp...${NC}"
@@ -68,6 +71,11 @@ if [[ "$(uname -s)" == "Linux" ]]; then
         sudo systemctl stop packagekit 2>/dev/null || true
         sleep 2
     fi
+
+    # --- ENSURE BASE TOOLS FOR REPO MANAGEMENT ---
+    echo -e "${YELLOW}Installing base tools (gnupg, curl, ca-certificates)...${NC}"
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq gnupg curl ca-certificates lsb-release software-properties-common
 fi
 
 # --- STEPS CONFIGURATION ---
@@ -153,14 +161,6 @@ REAL_HOME=$(getent passwd "$REAL_USER" 2>/dev/null | cut -d: -f6)
 [[ -z "$REAL_HOME" ]] && REAL_HOME="$HOME"
 
 
-# Ensure lsb-release is available before using it (Linux)
-if $IS_LINUX; then
-    if ! command -v lsb_release &>/dev/null; then
-        sudo apt-get install -y -qq lsb-release 2>/dev/null || true
-    fi
-fi
-
-
 # Detect Distro (Linux only)
 if $IS_LINUX; then
     DISTRO_ID=$(lsb_release -is 2>/dev/null | tr '[:upper:]' '[:lower:]')
@@ -220,9 +220,7 @@ if $IS_MACOS; then
         brew_cmd install figlet git 2>/dev/null || true
     fi
 else
-    echo "Cleaning APT lists cache..."
-    sudo apt-get update -qq 2>/dev/null || true
-    sudo apt-get install -y figlet git lsb-release >/dev/null 2>&1 || sudo apt-get install -y --fix-missing figlet git lsb-release >/dev/null
+    sudo apt-get install -y figlet git >/dev/null 2>&1 || sudo apt-get install -y --fix-missing figlet git >/dev/null
 fi
 
 
@@ -396,7 +394,6 @@ step_1() {
         echo "Updating APT..."
         sudo apt-get update -qq
         echo "Installing Build Essentials & Tmux..."
-        sudo apt-get install -y software-properties-common
         sudo apt-get install -y build-essential git wget unzip fontconfig curl sshpass \
             libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm \
             libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
@@ -1035,18 +1032,22 @@ step_14() {
     fi
 
     echo "Configuring PM2 for auto-startup..."
-    if $IS_MACOS; then
-        sudo -u $REAL_USER pm2 startup launchd -u $REAL_USER --hp $REAL_HOME
-        sudo -u $REAL_USER pm2 save
-    else
-        sudo -u $REAL_USER pm2 startup systemd -u $REAL_USER --hp $REAL_HOME
-        sudo -u $REAL_USER pm2 save
-    fi
-    echo -e "${GREEN}✔ PM2 configured for auto-startup${NC}"
+    if command -v pm2 &>/dev/null; then
+        if $IS_MACOS; then
+            sudo -u $REAL_USER pm2 startup launchd -u $REAL_USER --hp $REAL_HOME
+            sudo -u $REAL_USER pm2 save
+        else
+            sudo -u $REAL_USER pm2 startup systemd -u $REAL_USER --hp $REAL_HOME
+            sudo -u $REAL_USER pm2 save
+        fi
+        echo -e "${GREEN}✔ PM2 configured for auto-startup${NC}"
 
-    echo "Configuring PM2 defaults..."
-    sudo -u $REAL_USER pm2 set pm2:autodump true
-    sudo -u $REAL_USER pm2 set pm2:log_date_format "YYYY-MM-DD HH:mm:ss"
+        echo "Configuring PM2 defaults..."
+        sudo -u $REAL_USER pm2 set pm2:autodump true
+        sudo -u $REAL_USER pm2 set pm2:log_date_format "YYYY-MM-DD HH:mm:ss"
+    else
+        echo -e "${YELLOW}⚠ PM2 not found — skipping auto-startup configuration.${NC}"
+    fi
 
     cat > "$REAL_HOME/ecosystem.config.js" << 'ECOSYSTEM'
 module.exports = {
