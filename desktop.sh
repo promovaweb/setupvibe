@@ -589,10 +589,10 @@ step_3() {
             sudo add-apt-repository ppa:ondrej/php -y
         elif $IS_DEBIAN; then
             echo "Using Debian Sury Strategy..."
-            # Sury repo supports Debian stable releases; fall back to bookworm for unsupported codenames
-            PHP_CODENAME="$DISTRO_CODENAME"
+            # Sury repo may not support bleeding-edge codenames; fall back to trixie (current stable)
             case "$DISTRO_CODENAME" in
-                trixie|forky|sid|experimental) PHP_CODENAME="bookworm" ;;
+                trixie|forky|sid|experimental) PHP_CODENAME="trixie" ;;
+                *) PHP_CODENAME="bookworm" ;;
             esac
             install_key "https://packages.sury.org/php/apt.gpg" "/etc/apt/keyrings/php.gpg"
             echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ $PHP_CODENAME main" | sudo tee /etc/apt/sources.list.d/php.list
