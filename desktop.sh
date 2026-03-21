@@ -562,6 +562,8 @@ step_2() {
         # Verify brew is accessible
         if command -v brew &>/dev/null; then
             echo -e "${GREEN}✔ Homebrew is ready and available in PATH.${NC}"
+            echo "Upgrading existing Homebrew packages..."
+            brew_cmd upgrade
         else
             echo -e "${RED}✘ Homebrew installation failed or brew not found in PATH.${NC}"
             echo -e "${YELLOW}Please check the error messages above.${NC}"
