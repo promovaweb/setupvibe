@@ -1,4 +1,4 @@
-# Skill: markdown-format
+# Command: markdown-format
 
 Apply Markdown formatting rules to all `.md` files in the SetupVibe project.
 
@@ -43,7 +43,7 @@ For each `.md` file modified or created:
 
 ## Invocation
 
-Use `/markdown-format` to verify and apply these rules across all Markdown files in the project.
+Use `/markdown-format` in Gemini CLI to verify and apply these rules across all Markdown files in the project.
 
 ---
 > Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
