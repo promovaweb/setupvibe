@@ -60,13 +60,13 @@ Subset of desktop steps — no Homebrew, no language ecosystems (PHP, Ruby, Pyth
 
 ### `docs/` Directory
 
-| Path | Content |
-|---|---|
-| `docs/README.md` | Overview and comparison table of both editions |
-| `docs/desktop/en/README.md` | Full desktop edition documentation (14 steps) |
-| `docs/server/en/README.md` | Server edition documentation (9 steps) |
-| `docs/desktop/en/tmux.md` | Tmux plugin and keybinding reference (shared by both editions) |
-| `docs/desktop/en/pm2.md` | PM2 command and configuration reference (shared by both editions) |
+| Path                        | Content                                                           |
+| --------------------------- | ----------------------------------------------------------------- |
+| `docs/README.md`            | Overview and comparison table of both editions                    |
+| `docs/desktop/en/README.md` | Full desktop edition documentation (14 steps)                     |
+| `docs/server/en/README.md`  | Server edition documentation (9 steps)                            |
+| `docs/desktop/en/tmux.md`   | Tmux plugin and keybinding reference (shared by both editions)    |
+| `docs/desktop/en/pm2.md`    | PM2 command and configuration reference (shared by both editions) |
 
 ### `conf/` Directory
 

@@ -14,13 +14,13 @@ Installs and configures a complete development stack in one command, supporting 
 
 ## Documentation
 
-| | Link |
-|---|---|
-| Overview | [docs/README.md](docs/README.md) |
+|                 | Link                                             |
+| --------------- | ------------------------------------------------ |
+| Overview        | [docs/README.md](docs/README.md)                 |
 | Desktop Edition | [docs/desktop/README.md](docs/desktop/README.md) |
-| Server Edition | [docs/server/README.md](docs/server/README.md) |
-| Tmux Guide | [docs/desktop/tmux.md](docs/desktop/tmux.md) |
-| PM2 Guide | [docs/desktop/pm2.md](docs/desktop/pm2.md) |
+| Server Edition  | [docs/server/README.md](docs/server/README.md)   |
+| Tmux Guide      | [docs/desktop/tmux.md](docs/desktop/tmux.md)     |
+| PM2 Guide       | [docs/desktop/pm2.md](docs/desktop/pm2.md)       |
 
 ## Quick Start
 
