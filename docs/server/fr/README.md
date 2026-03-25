@@ -6,13 +6,13 @@ Un script de configuration léger et ciblé pour les serveurs Linux. Pas de Home
 
 ## Configuration Requise
 
-|                    | Supporté                        |
-| ------------------ | ------------------------------- |
-| **Ubuntu**         | 24.04+                          |
-| **Debian**         | 12+                             |
-| **Zorin OS**       | 18+                             |
-| **Linux Mint**     | 21+                             |
-| **Architectures**  | x86_64 (amd64), ARM64 (aarch64) |
+|                   | Supporté                        |
+| ----------------- | ------------------------------- |
+| **Ubuntu**        | 24.04+                          |
+| **Debian**        | 12+                             |
+| **Zorin OS**      | 18+                             |
+| **Linux Mint**    | 21+                             |
+| **Architectures** | x86_64 (amd64), ARM64 (aarch64) |
 
 > Linux uniquement. Le script s'arrête immédiatement s'il est exécuté sur macOS.
 
@@ -118,7 +118,7 @@ Appuyez sur `prefix + I` dans tmux pour installer tous les plugins. Voir le [Gui
 
 Installe **Node.js 24** via le dépôt APT NodeSource, puis installe globalement via `npm install -g` :
 
-| Outil               | Paquet                           |
+| Outil              | Paquet                           |
 | ------------------ | -------------------------------- |
 | Claude Code        | `@anthropic-ai/claude-code`      |
 | Gemini CLI         | `@google/gemini-cli`             |

@@ -13,12 +13,12 @@ PM2 es un **administrador de procesos de producción para Node.js**: mantiene su
 
 **Conceptos clave:**
 
-| Concepto           | Descripción                                                            |
-| ------------------ | ---------------------------------------------------------------------- |
+| Concepto           | Descripción                                                               |
+| ------------------ | ------------------------------------------------------------------------- |
 | **App**            | Un proceso administrado por PM2 (Node.js, Python, Go o cualquier binario) |
-| **Ecosystem file** | `ecosystem.config.js`: config declarativa para una o más aplicaciones  |
-| **Cluster mode**   | Lanza múltiples instancias en los núcleos de la CPU (solo Node.js)     |
-| **Fork mode**      | Proceso único, funciona con cualquier runtime (por defecto)            |
+| **Ecosystem file** | `ecosystem.config.js`: config declarativa para una o más aplicaciones     |
+| **Cluster mode**   | Lanza múltiples instancias en los núcleos de la CPU (solo Node.js)        |
+| **Fork mode**      | Proceso único, funciona con cualquier runtime (por defecto)               |
 
 ---
 
@@ -138,36 +138,36 @@ module.exports = {
 
 ### General
 
-| Opción             | Tipo    | Defecto         | Descripción                                                       |
-| ------------------ | ------- | --------------- | ----------------------------------------------------------------- |
-| `name`             | string  | nombre archivo  | Identificador usado en `pm2 list` y comandos                      |
-| `script`           | string  | —               | Ruta al script de entrada (requerido)                             |
-| `cwd`              | string  | —               | Directorio de trabajo para el proceso                             |
-| `args`             | string  | —               | Argumentos CLI pasados al script                                  |
-| `interpreter`      | string  | `node`          | Ruta al intérprete del runtime                                    |
-| `interpreter_args` | string  | —               | Flags pasadas al intérprete (ej: `--max-old-space-size=4096`)     |
-| `force`            | boolean | `false`         | Permitir lanzar el mismo script más de una vez                    |
+| Opción             | Tipo    | Defecto        | Descripción                                                   |
+| ------------------ | ------- | -------------- | ------------------------------------------------------------- |
+| `name`             | string  | nombre archivo | Identificador usado en `pm2 list` y comandos                  |
+| `script`           | string  | —              | Ruta al script de entrada (requerido)                         |
+| `cwd`              | string  | —              | Directorio de trabajo para el proceso                         |
+| `args`             | string  | —              | Argumentos CLI pasados al script                              |
+| `interpreter`      | string  | `node`         | Ruta al intérprete del runtime                                |
+| `interpreter_args` | string  | —              | Flags pasadas al intérprete (ej: `--max-old-space-size=4096`) |
+| `force`            | boolean | `false`        | Permitir lanzar el mismo script más de una vez                |
 
 ### Escalabilidad
 
-| Opción      | Tipo   | Defecto | Descripción                                             |
-| ----------- | ------ | ------- | ------------------------------------------------------- |
-| `instances` | number | `1`     | Número de instancias; `-1` = todos los núcleos de CPU   |
-| `exec_mode` | string | `fork`  | `fork` (cualquier runtime) o `cluster` (solo Node.js)   |
+| Opción      | Tipo   | Defecto | Descripción                                           |
+| ----------- | ------ | ------- | ----------------------------------------------------- |
+| `instances` | number | `1`     | Número de instancias; `-1` = todos los núcleos de CPU |
+| `exec_mode` | string | `fork`  | `fork` (cualquier runtime) o `cluster` (solo Node.js) |
 
 ### Estabilidad y Reinicio
 
-| Opción                  | Tipo          | Defecto | Descripción                                                        |
-| ----------------------- | ------------- | ------- | ------------------------------------------------------------------ |
-| `autorestart`           | boolean       | `true`  | Reiniciar en caso de caída                                         |
-| `max_restarts`          | number        | `10`    | Máximo de reinicios inestables consecutivos antes de detenerse     |
-| `min_uptime`            | string/number | —       | Tiempo mínimo para considerarse estable (ms o `"2s"`)              |
-| `restart_delay`         | number        | `0`     | Milisegundos a esperar antes de reiniciar una app caída            |
-| `max_memory_restart`    | string        | —       | Reiniciar si el RSS excede este valor (ej: `"300M"`, `"1G"`)       |
-| `kill_timeout`          | number        | `1600`  | Milisegundos antes de SIGKILL tras SIGTERM                         |
-| `shutdown_with_message` | boolean       | `false` | Usar `process.send('shutdown')` en lugar de SIGTERM                |
-| `wait_ready`            | boolean       | `false` | Esperar a `process.send('ready')` antes de considerar la app online|
-| `listen_timeout`        | number        | —       | Milisegundos para esperar señal `ready` antes de forzar recarga    |
+| Opción                  | Tipo          | Defecto | Descripción                                                         |
+| ----------------------- | ------------- | ------- | ------------------------------------------------------------------- |
+| `autorestart`           | boolean       | `true`  | Reiniciar en caso de caída                                          |
+| `max_restarts`          | number        | `10`    | Máximo de reinicios inestables consecutivos antes de detenerse      |
+| `min_uptime`            | string/number | —       | Tiempo mínimo para considerarse estable (ms o `"2s"`)               |
+| `restart_delay`         | number        | `0`     | Milisegundos a esperar antes de reiniciar una app caída             |
+| `max_memory_restart`    | string        | —       | Reiniciar si el RSS excede este valor (ej: `"300M"`, `"1G"`)        |
+| `kill_timeout`          | number        | `1600`  | Milisegundos antes de SIGKILL tras SIGTERM                          |
+| `shutdown_with_message` | boolean       | `false` | Usar `process.send('shutdown')` en lugar de SIGTERM                 |
+| `wait_ready`            | boolean       | `false` | Esperar a `process.send('ready')` antes de considerar la app online |
+| `listen_timeout`        | number        | —       | Milisegundos para esperar señal `ready` antes de forzar recarga     |
 
 ### Watch
 
@@ -178,33 +178,33 @@ module.exports = {
 
 ### Logging
 
-| Opción                        | Tipo    | Defecto                        | Descripción                                         |
-| ----------------------------- | ------- | ------------------------------ | --------------------------------------------------- |
+| Opción                        | Tipo    | Defecto                        | Descripción                                              |
+| ----------------------------- | ------- | ------------------------------ | -------------------------------------------------------- |
 | `log_date_format`             | string  | —                              | Formato de marca de tiempo (ej: `"YYYY-MM-DD HH:mm:ss"`) |
-| `out_file`                    | string  | `~/.pm2/logs/<name>-out.log`   | Ruta para el log stdout                             |
-| `error_file`                  | string  | `~/.pm2/logs/<name>-error.log` | Ruta para el log stderr                             |
-| `log_file`                    | string  | —                              | Ruta para log combinado stdout+stderr               |
-| `merge_logs` / `combine_logs` | boolean | `false`                        | Desactivar sufijos de log por instancia en cluster  |
-| `time`                        | boolean | `false`                        | Prefijar cada línea de log con una marca de tiempo  |
+| `out_file`                    | string  | `~/.pm2/logs/<name>-out.log`   | Ruta para el log stdout                                  |
+| `error_file`                  | string  | `~/.pm2/logs/<name>-error.log` | Ruta para el log stderr                                  |
+| `log_file`                    | string  | —                              | Ruta para log combinado stdout+stderr                    |
+| `merge_logs` / `combine_logs` | boolean | `false`                        | Desactivar sufijos de log por instancia en cluster       |
+| `time`                        | boolean | `false`                        | Prefijar cada línea de log con una marca de tiempo       |
 
 ### Entorno
 
-| Opción            | Tipo    | Descripción                                                                 |
-| ----------------- | ------- | --------------------------------------------------------------------------- |
-| `env`             | object  | Variables inyectadas en todos los modos                                     |
-| `env_<name>`      | object  | Variables inyectadas al iniciar con `--env <name>` (ej: `env_production`)   |
-| `filter_env`      | array   | Eliminar variables de entorno globales que coincidan con estos prefijos     |
+| Opción            | Tipo    | Descripción                                                                         |
+| ----------------- | ------- | ----------------------------------------------------------------------------------- |
+| `env`             | object  | Variables inyectadas en todos los modos                                             |
+| `env_<name>`      | object  | Variables inyectadas al iniciar con `--env <name>` (ej: `env_production`)           |
+| `filter_env`      | array   | Eliminar variables de entorno globales que coincidan con estos prefijos             |
 | `instance_var`    | string  | Nombre de la variable con el índice de instancia (por defecto: `NODE_APP_INSTANCE`) |
-| `appendEnvToName` | boolean | Añadir el nombre del entorno al nombre de la aplicación                     |
+| `appendEnvToName` | boolean | Añadir el nombre del entorno al nombre de la aplicación                             |
 
 ### Source Maps y Otros
 
-| Opción               | Tipo    | Defecto | Descripción                                                    |
-| -------------------- | ------- | ------- | -------------------------------------------------------------- |
-| `source_map_support` | boolean | `true`  | Habilitar soporte de source maps para stack traces             |
-| `vizion`             | boolean | `true`  | Rastrear metadados del control de versiones                    |
-| `cron_restart`       | string  | —       | Expresión cron para reinicios programados (ej: `"0 3 * * *"`)  |
-| `post_update`        | array   | —       | Comandos a ejecutar tras una actualización con `pm2 pull`      |
+| Opción               | Tipo    | Defecto | Descripción                                                   |
+| -------------------- | ------- | ------- | ------------------------------------------------------------- |
+| `source_map_support` | boolean | `true`  | Habilitar soporte de source maps para stack traces            |
+| `vizion`             | boolean | `true`  | Rastrear metadados del control de versiones                   |
+| `cron_restart`       | string  | —       | Expresión cron para reinicios programados (ej: `"0 3 * * *"`) |
+| `post_update`        | array   | —       | Comandos a ejecutar tras una actualización con `pm2 pull`     |
 
 ---
 

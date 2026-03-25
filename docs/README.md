@@ -4,10 +4,10 @@
 
 SetupVibe transforms any fresh machine into a fully configured development workspace in one command. It supports two editions depending on your target:
 
-| Edition     | Script       | Platforms                                            | Guides                                                                                                   |
-| ----------- | ------------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Edition     | Script       | Platforms                                            | Guides                                                                                                               |
+| ----------- | ------------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | **Desktop** | `desktop.sh` | macOS 12+, Ubuntu 24.04+, Debian 12+, Zorin OS 18+   | [EN](desktop/en/README.md) · [PT](desktop/pt-br/README.md) · [FR](desktop/fr/README.md) · [ES](desktop/es/README.md) |
-| **Server**  | `server.sh`  | Ubuntu 24.04+, Debian 12+, Zorin OS 18+ (Linux only) | [EN](server/en/README.md) · [PT](server/pt-br/README.md) · [FR](server/fr/README.md) · [ES](server/es/README.md) |
+| **Server**  | `server.sh`  | Ubuntu 24.04+, Debian 12+, Zorin OS 18+ (Linux only) | [EN](server/en/README.md) · [PT](server/pt-br/README.md) · [FR](server/fr/README.md) · [ES](server/es/README.md)     |
 
 ## Quick Start
 
