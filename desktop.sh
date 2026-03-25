@@ -499,7 +499,7 @@ step_2() {
                 echo -e "${RED}✘ Homebrew cannot be installed as root. Skipping.${NC}"
             else
                 # Run installer as REAL_USER
-                user_do NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                user_do env NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             fi
 
             # Cleanup temporary sudoers rule
@@ -617,6 +617,7 @@ step_3() {
         else
             user_do composer self-update 2>/dev/null || sys_do composer self-update
         fi
+        export PATH="$REAL_HOME/.local/bin:$PATH"
         echo "Setup Laravel Installer..."
         user_do composer global require laravel/installer
     fi
