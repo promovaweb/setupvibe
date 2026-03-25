@@ -7,6 +7,7 @@ This file provides instructions and context for Gemini CLI when working with the
 **SetupVibe** is a cross-platform automated development environment setup tool (v0.34.0). It streamlines the installation and configuration of a complete developer toolkit for macOS (12+) and major Linux distributions (Ubuntu 24.04+, Debian 12+, Zorin OS 18+).
 
 The project consists of two primary editions:
+
 - `desktop.sh`: Full stack including language ecosystems (PHP, Ruby, Python, Go, Rust, Node/Bun), GUI tools, and AI CLIs.
 - `server.sh`: Lean installation focused on DevOps tools (Docker, Ansible), monitoring, and shell customization.
 
