@@ -1,6 +1,13 @@
-# Command: markdown-format
+---
+name: markdown-format
+description: Enforce and apply SetupVibe Markdown formatting standards when creating or editing any .md file in the repository.
+metadata:
+  short-description: Format project Markdown files
+---
 
-Apply Markdown formatting rules to all `.md` files in the SetupVibe project.
+# Markdown Format
+
+Apply the SetupVibe Markdown rules to every `.md` file you create or edit.
 
 ## Mandatory Rules
 
@@ -13,7 +20,7 @@ Every Markdown file in this project must follow these rules:
 5. **Lists** — hyphens `-` for unordered items; numbers for ordered lists.
 6. **Blank lines** — one blank line before and after headings, code blocks, and tables.
 7. **No inline HTML** — do not use `<br>`, `<b>`, `<i>` or other tags inside Markdown.
-8. **Footer link** — every `.md` file must end with a formatting reference footer:
+8. **Footer link** — every `.md` file must end with this footer:
 
 ```markdown
 ---
@@ -27,15 +34,14 @@ For each `.md` file modified or created:
 1. Verify all rules above are respected.
 2. Fix spacing, table alignment, and code blocks missing a language specifier.
 3. Add the footer link if absent.
-4. Never remove content — format only.
+4. Never remove content; format only.
 
-## Project Markdown Files
+## Common Targets
 
 - `README.md`
 - `CLAUDE.md`
 - `GEMINI.md`
 - `AGENTS.md`
-- `docs/README.md`
 - `docs/desktop/en/README.md`
 - `docs/desktop/en/tmux.md`
 - `docs/desktop/en/pm2.md`
@@ -43,7 +49,7 @@ For each `.md` file modified or created:
 
 ## Invocation
 
-Use `/markdown-format` in Gemini CLI to verify and apply these rules across all Markdown files in the project.
+Use `markdown-format` when a task creates or edits Markdown in this repository.
 
 ---
 > Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
