@@ -176,7 +176,7 @@ module.exports = {
 | `watch`        | boolean/array | `false` | Redémarrer sur changement de fichier ; passer un tableau de chemins |
 | `ignore_watch` | array         | —       | Chemins ou motifs glob exclus du watch                              |
 
-### Logs
+### PM2 Logs
 
 | Option                        | Type    | Défaut                         | Description                                          |
 | ----------------------------- | ------- | ------------------------------ | ---------------------------------------------------- |
@@ -242,7 +242,7 @@ pm2 scale myapp +2    # Ajouter 2 instances supplémentaires
 
 ---
 
-## Démarrage automatique
+## Démarrage automatique PM2
 
 SetupVibe configure PM2 pour démarrer automatiquement au boot :
 
