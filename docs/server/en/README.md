@@ -140,7 +140,7 @@ npm global packages are installed to `~/.npm-global` (configured with `npm confi
 
 Licensed under the **GNU General Public License v3.0** — see [LICENSE](../../LICENSE) for details.
 
-Maintained by [promovaweb.com](https://promovaweb.com) · <contact@promovaweb.com>
+Maintained by [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 
 ---
 > Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

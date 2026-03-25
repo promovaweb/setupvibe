@@ -140,7 +140,7 @@ Los paquetes globales de npm se instalan en `~/.npm-global` (configurado con `np
 
 Bajo la licencia **GNU General Public License v3.0** — ver [LICENSE](../../LICENSE) para detalles.
 
-Mantenido por [promovaweb.com](https://promovaweb.com) · <contact@promovaweb.com>
+Mantenido por [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 
 ---
 > Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

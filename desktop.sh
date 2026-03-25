@@ -5,7 +5,7 @@
 # SETUPVIBE.DEV - DESKTOP DEVELOPER EDITION (V2.3 - Cross Platform)
 # ==============================================================================
 # Maintainer:    promovaweb.com
-# Contact:       contact@promovaweb.com
+# Contact:       contato@promovaweb.com
 # ------------------------------------------------------------------------------
 # Compatibility: macOS 12+, Zorin OS 18+, Ubuntu 24.04+, Debian 12+
 # Architectures: x86_64 (amd64) & ARM64 (aarch64/arm64)
@@ -284,7 +284,7 @@ header() {
     figlet "SETUPVIBE" 2>/dev/null || echo "SETUPVIBE.DEV"
     echo -e "${NC}"
     echo -e "${CYAN}:: Desktop Developer Edition - Cross Platform ::${NC}"
-    echo -e "${YELLOW}Maintained by PromovaWeb.com | Contact: contact@promovaweb.com${NC}"
+    echo -e "${YELLOW}Maintained by PromovaWeb.com | Contact: contato@promovaweb.com${NC}"
     echo "--------------------------------------------------------"
     echo "OS: $DISTRO_ID $DISTRO_CODENAME | Arch: $ARCH_RAW | User: $REAL_USER"
     echo "--------------------------------------------------------"
