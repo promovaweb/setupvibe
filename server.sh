@@ -7,7 +7,7 @@
 # Maintainer:    promovaweb.com
 # Contact:       contato@promovaweb.com
 # ------------------------------------------------------------------------------
-# Compatibility: Zorin OS 18+, Ubuntu 24.04+, Debian 12+
+# Compatibility: Bluefin, Zorin OS 18+, Ubuntu 24.04+, Debian 12+
 # Architectures: x86_64 (amd64) & ARM64 (aarch64/arm64)
 # Target:        Linux servers — no desktop or dev language tools
 # ==============================================================================
@@ -25,7 +25,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.38.0"
+VERSION="0.39.0"
 INSTALL_URL="https://server.setupvibe.dev"
 
 # --- ARGUMENT PARSING ---
@@ -43,18 +43,24 @@ echo ""
 # --- ENVIRONMENT ---
 export COMPOSER_ALLOW_SUPERUSER=1
 
-# --- HELPERS ---
+# --- PLATFORM DETECTION (EARLY) ---
+OS_RELEASE_ID=""
+OS_RELEASE_VARIANT_ID=""
 
-# Run as real user (handles both running as root and running as user)
-user_do() {
-    if [[ "$(id -u)" -eq 0 && -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
-        sudo -u "$REAL_USER" -H "$@"
-    else
-        "$@"
-    fi
-}
+if [[ -r /etc/os-release ]]; then
+    OS_RELEASE_ID=$(grep -E '^ID=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"')
+    OS_RELEASE_VARIANT_ID=$(grep -E '^VARIANT_ID=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"')
+fi
 
-# Run with elevated privileges (only use sudo if not already root)
+IS_BLUEFIN=false
+if [[ "$OS_RELEASE_ID" == "bluefin" || "$OS_RELEASE_VARIANT_ID" == "bluefin" || -x "/usr/bin/rpm-ostree" ]]; then
+    IS_BLUEFIN=true
+fi
+
+# --- PRIVILEGE HELPERS ---
+# Must be defined before any usage in the script.
+
+# Run with elevated privileges (only escalates when not already root)
 sys_do() {
     if [[ "$(id -u)" -ne 0 ]]; then
         sudo "$@"
@@ -63,36 +69,59 @@ sys_do() {
     fi
 }
 
-# --- CLEANUP APT KEYRINGS & SOURCES ---
-echo -e "${YELLOW}Preparing APT environment...${NC}"
-# Ensure keyrings directory exists
-sys_do mkdir -p -m 755 /etc/apt/keyrings
-
-# Remove third-party repos managed by this script to ensure we start from a clean state
-# This prevents the signature verification error if the keys were deleted but the lists remained
-sys_do grep -rl 'docker\|nodesource\|charm\.sh\|cli\.github\|ansible\|codeiumdata\|windsurf\|antigravity\|pkg\.dev' \
-    /etc/apt/sources.list.d/ 2>/dev/null | xargs -I {} sys_do rm -f "{}" 2>/dev/null || true
-
-# Clean APT cache if we are root
-if [[ "$(id -u)" -eq 0 ]]; then
-    sys_do apt-get clean -qq
-fi
-
-# --- WAIT FOR APT LOCK ---
-echo -e "${YELLOW}Checking apt lock...${NC}"
-for i in $(seq 1 10); do
-    if ! sys_do fuser /var/lib/apt/lists/lock /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock >/dev/null 2>&1; then
-        break
+# Run as the real user (drops from root to REAL_USER; no-op when already unprivileged)
+user_do() {
+    if [[ "$(id -u)" -eq 0 && -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
+        runuser -u "$REAL_USER" -- "$@"
+    else
+        "$@"
     fi
-    echo -e "${YELLOW}  apt lock held, waiting... (${i}/10)${NC}"
-    sleep 2
-done
+}
 
-# --- ENSURE BASE TOOLS ---
-echo -e "${YELLOW}Ensuring base tools (gpg, curl, ca-certificates)...${NC}"
-export DEBIAN_FRONTEND=noninteractive
-sys_do apt-get update -y -qq
-sys_do apt-get install -y -q gnupg gnupg2 curl ca-certificates lsb-release software-properties-common apt-transport-https
+# --- CLEANUP /tmp ---
+echo -e "${YELLOW}Cleaning /tmp...${NC}"
+sys_do rm -rf /tmp/* 2>/dev/null || true
+
+if ! $IS_BLUEFIN; then
+    # --- CLEANUP APT KEYRINGS & SOURCES ---
+    echo -e "${YELLOW}Cleaning APT keyrings and sources lists...${NC}"
+    # Remove only keyrings that this script will recreate (selective — preserves other software keys)
+    sys_do mkdir -p -m 755 /etc/apt/keyrings
+    sys_do rm -f /etc/apt/keyrings/docker.gpg \
+               /etc/apt/keyrings/charm.gpg \
+               /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+               /etc/apt/keyrings/ansible.gpg 2>/dev/null || true
+    # Remove all .list files referencing third-party repos
+    sys_do grep -rl 'docker\|nodesource\|charm\.sh\|cli\.github\|ansible\|codeiumdata\|windsurf\|antigravity\|pkg\.dev' \
+        /etc/apt/sources.list.d/ 2>/dev/null | xargs sys_do rm -f 2>/dev/null || true
+    # Clean APT cache and stale lists
+    sys_do rm -rf /var/lib/apt/lists/*
+    sys_do apt-get clean -qq
+
+    # --- WAIT FOR APT LOCK ---
+    echo -e "${YELLOW}Waiting for apt lock to be released...${NC}"
+    for i in $(seq 1 30); do
+        if ! sys_do fuser /var/lib/apt/lists/lock /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock >/dev/null 2>&1; then
+            break
+        fi
+        echo -e "${YELLOW}  apt lock held, waiting... (${i}/30)${NC}"
+        sleep 2
+    done
+    # Stop packagekitd if it still holds the lock
+    if sys_do fuser /var/lib/apt/lists/lock /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock >/dev/null 2>&1; then
+        echo -e "${YELLOW}  Stopping packagekitd to release apt lock...${NC}"
+        sys_do systemctl stop packagekit 2>/dev/null || true
+        sleep 2
+    fi
+
+    # --- ENSURE BASE TOOLS FOR REPO MANAGEMENT ---
+    echo -e "${YELLOW}Installing base tools (gpg, curl, ca-certificates)...${NC}"
+    export DEBIAN_FRONTEND=noninteractive
+    sys_do apt-get update -y
+    sys_do apt-get install -y -q gnupg gnupg2 curl ca-certificates lsb-release software-properties-common apt-transport-https
+else
+    echo -e "${YELLOW}Bluefin detected: skipping APT cleanup and repo bootstrap.${NC}"
+fi
 
 # Robust GPG detection (try without sudo first for current user path)
 GPG_CMD=""
@@ -123,12 +152,14 @@ fi
 STEPS=(
     "SetupVibe: Prerequisites & Arch Check"
     "Base System & Build Tools"
+    "Homebrew (Package Manager)"
     "Docker, Ansible & GitHub CLI"
+    "Modern Unix Tools (Via Brew)"
     "Network, Monitoring & Tailscale"
     "SSH Server"
     "Shell (ZSH & Starship Config)"
     "Tmux & Plugins"
-    "AI CLI Tools"
+    "Node.js & AI CLI Tools"
     "Finalization & Cleanup"
 )
 
@@ -157,13 +188,29 @@ elif [[ "$(id -u)" -eq 0 ]]; then
 else
     REAL_USER=$(whoami)
 fi
+# Last resort: if still root, detect from Homebrew installation ownership
+if [[ "$REAL_USER" == "root" && -d "/home/linuxbrew/.linuxbrew" ]]; then
+    _BREW_OWNER=$(stat -c '%U' /home/linuxbrew/.linuxbrew 2>/dev/null)
+    if [[ -n "$_BREW_OWNER" && "$_BREW_OWNER" != "root" ]]; then
+        REAL_USER="$_BREW_OWNER"
+    fi
+fi
 REAL_HOME=$(getent passwd "$REAL_USER" 2>/dev/null | cut -d: -f6)
 [[ -z "$REAL_HOME" ]] && REAL_HOME="$HOME"
 
 
 # --- DETECT DISTRO ---
-DISTRO_ID=$(lsb_release -is 2>/dev/null | tr '[:upper:]' '[:lower:]')
-DISTRO_CODENAME=$(lsb_release -cs 2>/dev/null)
+DISTRO_ID="linux"
+DISTRO_CODENAME="unknown"
+
+if [[ -r /etc/os-release ]]; then
+    DISTRO_ID=$(grep -E '^ID=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"' | tr '[:upper:]' '[:lower:]')
+    DISTRO_CODENAME=$(grep -E '^VERSION_CODENAME=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"')
+    if [[ -z "$DISTRO_CODENAME" ]]; then
+        DISTRO_CODENAME=$(grep -E '^UBUNTU_CODENAME=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"')
+    fi
+    [[ -z "$DISTRO_CODENAME" ]] && DISTRO_CODENAME=$(grep -E '^VERSION_ID=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"')
+fi
 # Map derivative distros to their Ubuntu base codename for repository compatibility
 if [[ "$DISTRO_ID" == "zorin" || "$DISTRO_ID" == "linuxmint" ]]; then
     DISTRO_ID="ubuntu"
@@ -180,19 +227,27 @@ IS_DEBIAN=false
 
 
 # --- DETECT ARCHITECTURE ---
-ARCH_RAW=$(dpkg --print-architecture)
-if [[ "$ARCH_RAW" == "amd64" ]]; then
+ARCH_KERNEL=$(uname -m)
+if [[ "$ARCH_KERNEL" == "x86_64" ]]; then
+    ARCH_RAW="amd64"
     ARCH_GO="amd64"
-elif [[ "$ARCH_RAW" == "arm64" ]]; then
+elif [[ "$ARCH_KERNEL" == "aarch64" || "$ARCH_KERNEL" == "arm64" ]]; then
+    ARCH_RAW="arm64"
     ARCH_GO="arm64"
 else
-    echo -e "${RED}Error: Architecture $ARCH_RAW is not supported.${NC}"
+    echo -e "${RED}Error: Architecture $ARCH_KERNEL is not supported.${NC}"
     exit 1
 fi
 
+BREW_PREFIX="/home/linuxbrew/.linuxbrew"
+
 
 # --- INSTALL FIGLET & GIT ---
-sys_do apt-get install -y figlet git >/dev/null 2>&1 || sys_do apt-get install -y --fix-missing figlet git >/dev/null
+if $IS_BLUEFIN; then
+    command -v figlet >/dev/null 2>&1 || echo -e "${YELLOW}figlet not found (optional on Bluefin).${NC}"
+else
+    sys_do apt-get install -y figlet git >/dev/null 2>&1 || sys_do apt-get install -y --fix-missing figlet git >/dev/null
+fi
 
 
 # --- UI & LOGIC FUNCTIONS ---
@@ -219,13 +274,61 @@ install_key() {
     return 1
 }
 
+brew_cmd() {
+    if [[ "$(id -u)" -eq 0 && -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
+        ( cd "$REAL_HOME" && runuser -u "$REAL_USER" -- env HOME="$REAL_HOME" "$BREW_PREFIX/bin/brew" "$@" )
+    else
+        "$BREW_PREFIX/bin/brew" "$@"
+    fi
+}
+
+run_in_real_home() {
+    if [[ "$(id -u)" -eq 0 && -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
+        ( cd "$REAL_HOME" && runuser -u "$REAL_USER" -- env HOME="$REAL_HOME" "$@" )
+    else
+        ( cd "$REAL_HOME" && env HOME="$REAL_HOME" "$@" )
+    fi
+}
+
+apt_update() {
+    if $IS_BLUEFIN; then
+        echo "Bluefin detected: skipping apt update"
+        return 0
+    fi
+    sys_do apt-get update -qq
+}
+
+apt_install() {
+    if $IS_BLUEFIN; then
+        echo "Bluefin detected: skipping apt install $*"
+        return 0
+    fi
+    sys_do apt-get install -y "$@"
+}
+
+apt_add_repo() {
+    if $IS_BLUEFIN; then
+        echo "Bluefin detected: skipping apt repository configuration"
+        return 0
+    fi
+    "$@"
+}
+
+brew_install() {
+    if ! command -v brew &>/dev/null; then
+        echo -e "${YELLOW}⚠ Homebrew not found. Skipping brew package install: $*${NC}"
+        return 1
+    fi
+    brew_cmd install "$@" 2>/dev/null || brew_cmd upgrade "$@" 2>/dev/null || true
+}
+
 header() {
     clear
     echo -e "${MAGENTA}"
     figlet "SETUPVIBE" 2>/dev/null || echo "SETUPVIBE.DEV"
     echo -e "${NC}"
     echo -e "${CYAN}:: Linux Server Edition ::${NC}"
-    echo -e "${YELLOW}Maintained by PromovaWeb.com | Contact: contato@promovaweb.com${NC}"
+    echo -e "${YELLOW}Maintained by PromovaWeb.com | Contact: contact@promovaweb.com${NC}"
     echo "--------------------------------------------------------"
     echo "OS: $DISTRO_ID $DISTRO_CODENAME | Arch: $ARCH_RAW | User: $REAL_USER"
     echo "--------------------------------------------------------"
@@ -373,21 +476,31 @@ step_0() {
 
 
 step_1() {
-    echo "Updating APT..."
-    sys_do apt-get update -qq
+    if $IS_BLUEFIN; then
+        echo "Bluefin detected: running host pre-check (no apt installation)."
+        local required_cmds=(git curl wget unzip tmux)
+        for cmd in "${required_cmds[@]}"; do
+            if ! command -v "$cmd" &>/dev/null; then
+                echo -e "${YELLOW}⚠ Missing command on host: $cmd${NC}"
+            fi
+        done
+    else
+        echo "Updating APT..."
+        apt_update
 
-    echo "Installing Build Essentials & Core Server Tools..."
-    sys_do apt-get install -y \
-        build-essential git wget unzip fontconfig curl sshpass \
-        libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
-        libncurses5-dev xz-utils libffi-dev liblzma-dev \
-        libyaml-dev autoconf procps file tmux fzf \
-        python3 python3-pip python3-venv python-is-python3 \
-        cron logrotate rsyslog
+        echo "Installing Build Essentials & Core Server Tools..."
+        apt_install \
+            build-essential git wget unzip fontconfig curl sshpass \
+            libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
+            libncurses5-dev xz-utils libffi-dev liblzma-dev \
+            libyaml-dev autoconf procps file tmux fzf \
+            python3 python3-pip python3-venv python-is-python3 \
+            cron logrotate rsyslog
 
-    echo "Installing zoxide..."
-    if ! command -v zoxide &>/dev/null; then
-        curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | user_do sh
+        echo "Installing zoxide..."
+        if ! command -v zoxide &>/dev/null; then
+            curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | user_do sh
+        fi
     fi
 
     echo "Setup uv (Python Package Manager)..."
@@ -397,14 +510,129 @@ step_1() {
         user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv self update"
     fi
     export PATH="$REAL_HOME/.local/bin:$PATH"
+
+    if ! $IS_BLUEFIN; then
+        # Adding Charmbracelet Repo (needed for Glow)
+        install_key "https://repo.charm.sh/apt/gpg.key" "/etc/apt/keyrings/charm.gpg"
+        echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sys_do tee /etc/apt/sources.list.d/charm.list
+        apt_update
+    fi
 }
 
 
 step_2() {
+    echo "Checking Homebrew installation..."
+    if $IS_BLUEFIN && ! command -v brew &>/dev/null; then
+        echo -e "${RED}✘ Homebrew is required on Bluefin host.${NC}"
+        echo -e "${YELLOW}Run: ujust devmode && ujust dx-group, reboot, then run this script again.${NC}"
+        return 1
+    fi
+
+    if [ ! -d "/home/linuxbrew/.linuxbrew" ] && [ ! -d "$REAL_HOME/.linuxbrew" ]; then
+        echo "Installing Homebrew..."
+        if ! $IS_BLUEFIN; then
+            apt_install build-essential procps curl file git
+        fi
+
+        # Ensure /home/linuxbrew directory exists with proper permissions
+        echo "Ensuring /home/linuxbrew permissions..."
+        sys_do mkdir -p /home/linuxbrew
+        sys_do chown -R "$REAL_USER" /home/linuxbrew 2>/dev/null || true
+        sys_do chmod -R 775 /home/linuxbrew 2>/dev/null || true
+        
+        # Pre-create .linuxbrew to help the installer
+        sys_do mkdir -p /home/linuxbrew/.linuxbrew
+        sys_do chown -R "$REAL_USER" /home/linuxbrew/.linuxbrew 2>/dev/null || true
+
+        # Temporarily allow REAL_USER to use sudo without password for Homebrew installation
+        # This is required because the installer checks for sudo even in non-interactive mode
+        if [[ "$REAL_USER" != "root" ]]; then
+            echo "Temporarily allowing $REAL_USER to use sudo without password for Homebrew installation..."
+            echo "$REAL_USER ALL=(ALL) NOPASSWD:ALL" | sys_do tee /etc/sudoers.d/setupvibe-brew > /dev/null
+            sys_do chmod 440 /etc/sudoers.d/setupvibe-brew
+        fi
+
+        # Install Homebrew
+        if [[ "$REAL_USER" == "root" ]]; then
+            echo -e "${RED}✘ Homebrew cannot be installed as root. Skipping.${NC}"
+        else
+            # Run installer as REAL_USER
+            user_do env NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        fi
+
+        # Cleanup temporary sudoers rule
+        sys_do rm -f /etc/sudoers.d/setupvibe-brew
+    else
+        echo "Homebrew already installed. Checking for updates..."
+        local BREW_EXEC="/home/linuxbrew/.linuxbrew/bin/brew"
+        [ ! -f "$BREW_EXEC" ] && BREW_EXEC="$REAL_HOME/.linuxbrew/bin/brew"
+
+        if [ -f "$BREW_EXEC" ]; then
+            brew_cmd update
+        fi
+    fi
+
+    # Configure Homebrew PATH in shell profiles
+    echo "Configuring Homebrew PATH in shell profiles..."
+    for CONFIG_FILE in "$REAL_HOME/.bashrc" "$REAL_HOME/.profile" "$REAL_HOME/.zshrc"; do
+        if [ ! -f "$CONFIG_FILE" ]; then
+            user_do touch "$CONFIG_FILE"
+        fi
+
+        if ! grep -q "linuxbrew" "$CONFIG_FILE"; then
+            echo -e "\n# Homebrew Configuration" | user_do tee -a "$CONFIG_FILE" > /dev/null
+            echo 'if [ -d "/home/linuxbrew/.linuxbrew" ]; then eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"; fi' | user_do tee -a "$CONFIG_FILE" > /dev/null
+            echo 'if [ -d "$HOME/.linuxbrew" ]; then eval "$($HOME/.linuxbrew/bin/brew shellenv)"; fi' | user_do tee -a "$CONFIG_FILE" > /dev/null
+            echo -e "${GREEN}✔ Added Homebrew to $CONFIG_FILE${NC}"
+        fi
+    done
+
+    # Load brew environment for this script session
+    echo "Loading Homebrew environment for current session..."
+    if [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+        if [[ "$(id -u)" -eq 0 && "$REAL_USER" != "root" ]]; then
+            eval "$(sudo -H -u "$REAL_USER" env HOME="$REAL_HOME" /home/linuxbrew/.linuxbrew/bin/brew shellenv 2>/dev/null)"
+        else
+            eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv 2>/dev/null)"
+        fi
+        export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
+    elif [ -f "$REAL_HOME/.linuxbrew/bin/brew" ]; then
+        if [[ "$(id -u)" -eq 0 && "$REAL_USER" != "root" ]]; then
+            eval "$(sudo -H -u "$REAL_USER" env HOME="$REAL_HOME" "$REAL_HOME/.linuxbrew/bin/brew" shellenv 2>/dev/null)"
+        else
+            eval "$("$REAL_HOME/.linuxbrew/bin/brew" shellenv 2>/dev/null)"
+        fi
+        export PATH="$REAL_HOME/.linuxbrew/bin:$REAL_HOME/.linuxbrew/sbin:$PATH"
+    fi
+
+    if command -v brew &>/dev/null; then
+        echo -e "${GREEN}✔ Homebrew is ready and available in PATH.${NC}"
+    else
+        echo -e "${RED}✘ Homebrew installation failed or brew not found in PATH.${NC}"
+        return 1
+    fi
+}
+
+
+step_3() {
+    if $IS_BLUEFIN; then
+        echo "Bluefin detected: validating Docker from host DX image..."
+        if command -v docker &>/dev/null; then
+            echo -e "${GREEN}✔ Docker is available on host.${NC}"
+        else
+            echo -e "${YELLOW}⚠ Docker not found. Enable DX mode (ujust devmode + ujust dx-group) and reboot.${NC}"
+        fi
+
+        echo "Installing Ansible and GitHub CLI via Homebrew..."
+        brew_install ansible
+        brew_install gh
+        return 0
+    fi
+
     # Docker Strategy
     echo "Configuring Docker..."
     DOCKER_CODENAME="$DISTRO_CODENAME"
-
+    
     if $IS_UBUNTU; then
         echo "Using Ubuntu Docker Strategy..."
     elif $IS_DEBIAN; then
@@ -415,50 +643,86 @@ step_2() {
     fi
 
     install_key "https://download.docker.com/linux/$DISTRO_ID/gpg" "/etc/apt/keyrings/docker.gpg"
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DOCKER_CODENAME stable" | sys_do tee /etc/apt/sources.list.d/docker.list
-
-    sys_do apt-get update -qq
-    sys_do apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
+    echo "deb [arch=$ARCH_RAW signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DOCKER_CODENAME stable" | sys_do tee /etc/apt/sources.list.d/docker.list
+    
+    apt_update
+    apt_install docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
     sys_do usermod -aG docker "$REAL_USER"
 
     # Ansible Strategy
     echo "Configuring Ansible..."
     if $IS_UBUNTU; then
         echo "Using Ubuntu Ansible PPA Strategy..."
-        sys_do add-apt-repository --yes --update ppa:ansible/ansible
-        sys_do apt-get install -y ansible
+        apt_add_repo sudo add-apt-repository --yes --update ppa:ansible/ansible
+        apt_install ansible
     elif $IS_DEBIAN; then
         echo "Using Debian Ansible Strategy..."
         # Debian 12+ (Bookworm/Trixie) removes 'ansible' package; 'ansible-core' is the base.
-        sys_do apt-get install -y ansible-core
+        apt_install ansible-core
     fi
 
     # GitHub CLI
     echo "Installing GitHub CLI..."
     wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sys_do tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
     sys_do chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sys_do tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-    sys_do apt-get update -qq && sys_do apt-get install -y gh
+    echo "deb [arch=$ARCH_RAW signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sys_do tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+    apt_update && apt_install gh
 }
 
 
-step_3() {
-    echo "Installing Network & Monitoring Tools (APT)..."
-    sys_do apt-get install -y \
-        rsync net-tools dnsutils mtr-tiny nmap tcpdump \
-        iftop nload iotop sysstat whois iputils-ping \
-        speedtest-cli glances htop btop
+step_4() {
+    echo "Installing Modern Unix Tools via Homebrew..."
+    TOOLS="bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow jq tldr fastfetch duf bandwhich gping trippy node@24 mise"
+
+    if ! command -v brew &>/dev/null; then
+        echo -e "${RED}Error: Homebrew binary not found. Skipping modern tools installation.${NC}"
+        return 1
+    fi
+
+    brew_cmd install $TOOLS || brew_cmd upgrade $TOOLS
+    brew_cmd link node@24 --force --overwrite 2>/dev/null || true
+
+    # FZF keybindings
+    local FZF_OPT="/home/linuxbrew/.linuxbrew/opt/fzf"
+    [ ! -d "$FZF_OPT" ] && FZF_OPT="$REAL_HOME/.linuxbrew/opt/fzf"
+    if [ -d "$FZF_OPT" ]; then
+        user_do "$FZF_OPT/install" --all --no-bash --no-fish > /dev/null 2>&1
+    fi
+
+}
+
+
+step_5() {
+    if $IS_BLUEFIN; then
+        echo "Installing Network & Monitoring tools via Homebrew..."
+        brew_install rsync nmap mtr htop btop glances speedtest-cli
+    else
+        echo "Installing Network & Monitoring Tools (APT)..."
+        apt_install \
+            rsync net-tools dnsutils mtr-tiny nmap tcpdump \
+            iftop nload iotop sysstat whois iputils-ping \
+            speedtest-cli glances htop btop
+    fi
 
     echo "Installing ctop for $ARCH_GO..."
-    if ! command -v ctop &>/dev/null && [ ! -f "$REAL_HOME/.local/bin/ctop" ]; then
-        user_do mkdir -p "$REAL_HOME/.local/bin"
-        wget -q "https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-${ARCH_GO}" -O /tmp/ctop
-        user_do mv /tmp/ctop "$REAL_HOME/.local/bin/ctop"
-        user_do chmod +x "$REAL_HOME/.local/bin/ctop"
+    local CTOP_BIN="/usr/local/bin/ctop"
+    if $IS_BLUEFIN; then
+        mkdir -p "$REAL_HOME/.local/bin"
+        CTOP_BIN="$REAL_HOME/.local/bin/ctop"
+    fi
+    if [ ! -f "$CTOP_BIN" ]; then
+        user_do wget -q "https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-${ARCH_GO}" -O "$CTOP_BIN"
+        user_do chmod +x "$CTOP_BIN"
     fi
 
     echo "Installing Tailscale..."
-    if ! command -v tailscale &>/dev/null; then
+    if $IS_BLUEFIN; then
+        if command -v tailscale &>/dev/null; then
+            echo "Tailscale already available on Bluefin host."
+        else
+            echo -e "${YELLOW}⚠ Tailscale not found on host image.${NC}"
+        fi
+    elif ! command -v tailscale &>/dev/null; then
         user_do curl -fsSL https://tailscale.com/install.sh | sys_do sh
     else
         echo "Tailscale already installed."
@@ -466,12 +730,18 @@ step_3() {
 }
 
 
-step_4() {
+step_6() {
+    if $IS_BLUEFIN; then
+        echo "Bluefin detected: OpenSSH service should be enabled manually if needed."
+        echo "Run: sudo systemctl enable --now sshd"
+        return 0
+    fi
+
     echo "Setting up SSH Server..."
 
     if ! command -v sshd &> /dev/null; then
         echo "Installing OpenSSH Server..."
-        sys_do apt-get install -y openssh-server openssh-client
+        apt_install openssh-server openssh-client
     fi
 
     echo "Enabling SSH service..."
@@ -496,6 +766,12 @@ step_4() {
     if sys_do sshd -t &> /dev/null; then
         sys_do systemctl restart ssh
         echo -e "${GREEN}✔ SSH Server configured and running${NC}"
+        echo ""
+        echo "SSH Server Status:"
+        sys_do systemctl status ssh --no-pager | grep -E 'Active|Loaded'
+        echo ""
+        echo "Current SSH Configuration:"
+        grep -E '^PermitRootLogin|^PasswordAuthentication' /etc/ssh/sshd_config
     else
         echo -e "${RED}Error: SSH configuration failed validation${NC}"
         echo "Restoring original configuration..."
@@ -506,8 +782,12 @@ step_4() {
 }
 
 
-step_5() {
-    sys_do apt-get install -y zsh
+step_7() {
+    if $IS_BLUEFIN; then
+        brew_install zsh
+    else
+        apt_install zsh
+    fi
 
     if [ ! -d "$REAL_HOME/.oh-my-zsh" ]; then
         user_do sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
@@ -517,7 +797,9 @@ step_5() {
     git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
 
     echo "Configuring Starship..."
-    if ! command -v starship &>/dev/null && [ ! -f "$REAL_HOME/.local/bin/starship" ]; then
+    if $IS_BLUEFIN; then
+        brew_install starship
+    elif ! command -v starship &>/dev/null && [ ! -f "$REAL_HOME/.local/bin/starship" ]; then
         user_do mkdir -p "$REAL_HOME/.local/bin"
         curl -sS https://starship.rs/install.sh | user_do sh -s -- -y --bin-dir "$REAL_HOME/.local/bin"
     fi
@@ -530,13 +812,15 @@ step_5() {
     safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/zshrc-server.zsh "$REAL_HOME/.zshrc"
     sys_do chown $REAL_USER:$REAL_USER "$REAL_HOME/.zshrc"
 
-    if [ "$SHELL" != "/bin/zsh" ] && [ "$SHELL" != "/usr/bin/zsh" ]; then
+    if ! $IS_BLUEFIN && [ "$SHELL" != "/bin/zsh" ] && [ "$SHELL" != "/usr/bin/zsh" ]; then
         sys_do chsh -s $(which zsh) $REAL_USER
+    elif $IS_BLUEFIN; then
+        echo "Bluefin note: set zsh as default shell in Ptyxis profile instead of chsh."
     fi
 }
 
 
-step_6() {
+step_8() {
     echo "Installing TPM (Tmux Plugin Manager)..."
     git_ensure "https://github.com/tmux-plugins/tpm" "$REAL_HOME/.tmux/plugins/tpm"
 
@@ -559,17 +843,19 @@ step_6() {
 }
 
 
-step_7() {
-    echo "Installing Node.js 24 via NodeSource..."
-    install_key "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" "/etc/apt/keyrings/nodesource.gpg"
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sys_do tee /etc/apt/sources.list.d/nodesource.list
-    sys_do apt-get update -qq
-    sys_do apt-get install -y nodejs
+step_9() {
+    if ! $IS_BLUEFIN; then
+        echo "Installing Node.js 24 via NodeSource..."
+        install_key "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" "/etc/apt/keyrings/nodesource.gpg"
+        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sys_do tee /etc/apt/sources.list.d/nodesource.list
+        apt_update
+        apt_install nodejs
+    fi
 
     local NPM_BIN
-    NPM_BIN=$(command -v npm 2>/dev/null)
+    NPM_BIN=$(command -v npm 2>/dev/null || echo "$BREW_PREFIX/bin/npm")
 
-    if [ -z "$NPM_BIN" ]; then
+    if [ -z "$NPM_BIN" ] || [ ! -f "$NPM_BIN" ]; then
         echo -e "${RED}✘ npm not found after Node.js installation — skipping AI CLI Tools.${NC}"
         return 1
     fi
@@ -590,20 +876,25 @@ step_7() {
 
     for pkg in "${AI_TOOLS[@]}"; do
         echo "Installing $pkg..."
-        user_do "$NPM_BIN" install -g "$pkg" 2>/dev/null || echo -e "${YELLOW}⚠ Failed to install $pkg${NC}"
+        user_do "$NPM_BIN" install -g "$pkg" \
+            2>/dev/null || echo -e "${YELLOW}⚠ Failed to install $pkg${NC}"
     done
 }
 
 
-step_8() {
-    echo "Cleaning APT cache and orphaned packages..."
-    sys_do apt-get autoremove -y -qq
-    sys_do apt-get autoclean -qq
-    sys_do apt-get clean -qq
-    sys_do rm -rf /var/lib/apt/lists/*
+step_10() {
+    if ! $IS_BLUEFIN; then
+        echo "Cleaning APT cache and orphaned packages..."
+        sys_do apt-get autoremove -y -qq
+        sys_do apt-get autoclean -qq
+        sys_do apt-get clean -qq
+        sys_do rm -rf /var/lib/apt/lists/*
+    else
+        echo "Bluefin detected: skipping APT cleanup."
+    fi
 
     echo "Cleaning temp and log junk..."
-    sys_do rm -rf /tmp/ctop /tmp/starship 2>/dev/null || true
+    sys_do rm -rf /tmp/*.tar.gz /tmp/*.zip /tmp/ctop /tmp/starship 2>/dev/null || true
     sys_do journalctl --vacuum-time=7d 2>/dev/null || true
 
     echo "Cleaning user caches..."
@@ -690,9 +981,11 @@ run_section 5 step_5
 run_section 6 step_6
 run_section 7 step_7
 run_section 8 step_8
+run_section 9 step_9
+run_section 10 step_10
 
 if [[ "$SWARM_MANAGER" == "true" ]]; then
-    run_section 9 step_swarm
+    run_section 11 step_swarm
 fi
 
 
@@ -713,7 +1006,7 @@ if [[ "$SWARM_MANAGER" == "false" ]]; then
     if [[ "$SWARM_ANSWER" =~ ^[yYsS]$ ]]; then
         SWARM_MANAGER=true
         STEPS+=("Docker Swarm Manager Setup")
-        run_section 9 step_swarm
+        run_section 11 step_swarm
     else
         echo -e "${YELLOW}Skipping Docker Swarm setup.${NC}"
     fi

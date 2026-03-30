@@ -7,7 +7,7 @@
 # Maintainer:    promovaweb.com
 # Contact:       contato@promovaweb.com
 # ------------------------------------------------------------------------------
-# Compatibility: macOS 12+, Zorin OS 18+, Ubuntu 24.04+, Debian 12+
+# Compatibility: macOS 12+, Bluefin, Zorin OS 18+, Ubuntu 24.04+, Debian 12+
 # Architectures: x86_64 (amd64) & ARM64 (aarch64/arm64)
 # ==============================================================================
 
@@ -24,7 +24,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.38.0"
+VERSION="0.39.0"
 INSTALL_URL="https://desktop.setupvibe.dev"
 
 echo -e "${CYAN}SetupVibe Desktop v${VERSION}${NC}"
@@ -33,18 +33,24 @@ echo ""
 # --- ENVIRONMENT ---
 export COMPOSER_ALLOW_SUPERUSER=1
 
-# --- HELPERS ---
+# --- PLATFORM DETECTION (EARLY) ---
+OS_RELEASE_ID=""
+OS_RELEASE_VARIANT_ID=""
 
-# Run as real user (handles both running as root and running as user)
-user_do() {
-    if [[ "$(id -u)" -eq 0 && -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
-        sudo -u "$REAL_USER" -H "$@"
-    else
-        "$@"
-    fi
-}
+if [[ "$(uname -s)" == "Linux" ]] && [[ -r /etc/os-release ]]; then
+    OS_RELEASE_ID=$(grep -E '^ID=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"' | tr '[:upper:]' '[:lower:]')
+    OS_RELEASE_VARIANT_ID=$(grep -E '^VARIANT_ID=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"' | tr '[:upper:]' '[:lower:]')
+fi
 
-# Run with elevated privileges (only use sudo if not already root)
+IS_BLUEFIN=false
+if [[ "$OS_RELEASE_ID" == "bluefin" || "$OS_RELEASE_VARIANT_ID" == "bluefin" || -x "/usr/bin/rpm-ostree" ]]; then
+    IS_BLUEFIN=true
+fi
+
+# --- PRIVILEGE HELPERS ---
+# Must be defined before any usage in the script.
+
+# Run with elevated privileges (only escalates when not already root)
 sys_do() {
     if [[ "$(id -u)" -ne 0 ]]; then
         sudo "$@"
@@ -53,25 +59,58 @@ sys_do() {
     fi
 }
 
+# Run as the real user (drops from root to REAL_USER; no-op when already unprivileged)
+user_do() {
+    if [[ "$(id -u)" -eq 0 && -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
+        runuser -u "$REAL_USER" -- "$@"
+    else
+        "$@"
+    fi
+}
+
+# --- CLEANUP /tmp ---
+echo -e "${YELLOW}Cleaning /tmp...${NC}"
+sys_do rm -rf /tmp/* 2>/dev/null || true
+
 # --- CLEANUP APT KEYRINGS & SOURCES ---
-if [[ "$(uname -s)" == "Linux" ]]; then
-    echo -e "${YELLOW}Preparing APT environment...${NC}"
-    # Ensure keyrings directory exists
+if [[ "$(uname -s)" == "Linux" ]] && ! $IS_BLUEFIN; then
+    echo -e "${YELLOW}Cleaning APT keyrings and sources lists...${NC}"
+    # Remove only keyrings that this script will recreate (selective — preserves other software keys)
     sys_do mkdir -p -m 755 /etc/apt/keyrings
-    
-    # Remove only legacy/old paths that are definitely not used anymore
+    sys_do rm -f /etc/apt/keyrings/docker.gpg \
+               /etc/apt/keyrings/nodesource.gpg \
+               /etc/apt/keyrings/charm.gpg \
+               /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+               /etc/apt/keyrings/ansible.gpg 2>/dev/null || true
+    # Remove legacy sury key from old path
     sys_do rm -f /usr/share/keyrings/deb.sury.org-php.gpg 2>/dev/null || true
-    
-    # --- ENSURE BASE TOOLS ---
-    echo -e "${YELLOW}Ensuring base tools (gpg, curl, ca-certificates)...${NC}"
-    export DEBIAN_FRONTEND=noninteractive
-    
-    # If we have errors in APT, we try to fix them by removing potentially broken lists managed by this script
-    # This prevents the error you saw: signature verification failed because keys were deleted
+    # Remove all .list files referencing third-party repos
     sys_do grep -rl 'docker\|nodesource\|charm\.sh\|cli\.github\|sury\|ondrej\|ansible\|codeiumdata\|windsurf\|antigravity\|pkg\.dev' \
         /etc/apt/sources.list.d/ 2>/dev/null | xargs -I {} sys_do rm -f "{}" 2>/dev/null || true
+    # Clean APT cache and stale lists
+    sys_do rm -rf /var/lib/apt/lists/*
+    sys_do apt-get clean -qq
 
-    sys_do apt-get update -y -qq
+    # --- WAIT FOR APT LOCK ---
+    echo -e "${YELLOW}Waiting for apt lock to be released...${NC}"
+    for i in $(seq 1 30); do
+        if ! sys_do fuser /var/lib/apt/lists/lock /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock >/dev/null 2>&1; then
+            break
+        fi
+        echo -e "${YELLOW}  apt lock held, waiting... (${i}/30)${NC}"
+        sleep 2
+    done
+    # Stop packagekitd if it still holds the lock
+    if sys_do fuser /var/lib/apt/lists/lock /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock >/dev/null 2>&1; then
+        echo -e "${YELLOW}  Stopping packagekitd to release apt lock...${NC}"
+        sys_do systemctl stop packagekit 2>/dev/null || true
+        sleep 2
+    fi
+
+    # --- ENSURE BASE TOOLS FOR REPO MANAGEMENT ---
+    echo -e "${YELLOW}Installing base tools (gpg, curl, ca-certificates)...${NC}"
+    export DEBIAN_FRONTEND=noninteractive
+    sys_do apt-get update -y
     sys_do apt-get install -y -q gnupg gnupg2 curl ca-certificates lsb-release software-properties-common apt-transport-https
     
     # Robust GPG detection (try without sudo first for current user path)
@@ -91,6 +130,9 @@ if [[ "$(uname -s)" == "Linux" ]]; then
     
     [[ -z "$GPG_CMD" ]] && GPG_CMD="/usr/bin/gpg"
     echo -e "${GREEN}Using GPG: $GPG_CMD${NC}"
+elif [[ "$(uname -s)" == "Linux" ]] && $IS_BLUEFIN; then
+    echo -e "${YELLOW}Bluefin detected: skipping APT cleanup and repo bootstrap.${NC}"
+    GPG_CMD="$(command -v gpg 2>/dev/null || echo /usr/bin/gpg)"
 fi
 
 # --- STEPS CONFIGURATION ---
@@ -178,8 +220,16 @@ REAL_HOME=$(getent passwd "$REAL_USER" 2>/dev/null | cut -d: -f6)
 
 # Detect Distro (Linux only)
 if $IS_LINUX; then
-    DISTRO_ID=$(lsb_release -is 2>/dev/null | tr '[:upper:]' '[:lower:]')
-    DISTRO_CODENAME=$(lsb_release -cs 2>/dev/null)
+    DISTRO_ID="linux"
+    DISTRO_CODENAME="unknown"
+    if [[ -r /etc/os-release ]]; then
+        DISTRO_ID=$(grep -E '^ID=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"' | tr '[:upper:]' '[:lower:]')
+        DISTRO_CODENAME=$(grep -E '^VERSION_CODENAME=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"')
+        if [[ -z "$DISTRO_CODENAME" ]]; then
+            DISTRO_CODENAME=$(grep -E '^UBUNTU_CODENAME=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"')
+        fi
+        [[ -z "$DISTRO_CODENAME" ]] && DISTRO_CODENAME=$(grep -E '^VERSION_ID=' /etc/os-release | head -n1 | cut -d= -f2 | tr -d '"')
+    fi
     # Map derivative distros to their Ubuntu base codename for repository compatibility
     if [[ "$DISTRO_ID" == "zorin" || "$DISTRO_ID" == "linuxmint" ]]; then
         DISTRO_ID="ubuntu"
@@ -193,6 +243,7 @@ if $IS_LINUX; then
     IS_DEBIAN=false
     [[ "$DISTRO_ID" == "ubuntu" ]] && IS_UBUNTU=true
     [[ "$DISTRO_ID" == "debian" ]] && IS_DEBIAN=true
+    [[ "$DISTRO_ID" == "bluefin" ]] && IS_BLUEFIN=true
 else
     DISTRO_ID="macos"
     DISTRO_CODENAME=$(sw_vers -productVersion)
@@ -213,13 +264,15 @@ if $IS_MACOS; then
         exit 1
     fi
 else
-    ARCH_RAW=$(dpkg --print-architecture)
-    if [[ "$ARCH_RAW" == "amd64" ]]; then
+    ARCH_KERNEL=$(uname -m)
+    if [[ "$ARCH_KERNEL" == "x86_64" ]]; then
+        ARCH_RAW="amd64"
         ARCH_GO="amd64"
-    elif [[ "$ARCH_RAW" == "arm64" ]]; then
+    elif [[ "$ARCH_KERNEL" == "aarch64" || "$ARCH_KERNEL" == "arm64" ]]; then
+        ARCH_RAW="arm64"
         ARCH_GO="arm64"
     else
-        echo -e "${RED}Error: Architecture $ARCH_RAW is not supported.${NC}"
+        echo -e "${RED}Error: Architecture $ARCH_KERNEL is not supported.${NC}"
         exit 1
     fi
     BREW_PREFIX="/home/linuxbrew/.linuxbrew"
@@ -240,7 +293,11 @@ if $IS_MACOS; then
         brew_cmd install figlet git 2>/dev/null || true
     fi
 else
-    sys_do apt-get install -y figlet git >/dev/null 2>&1 || sys_do apt-get install -y --fix-missing figlet git >/dev/null
+    if $IS_BLUEFIN; then
+        command -v figlet >/dev/null 2>&1 || echo -e "${YELLOW}figlet not found (optional on Bluefin).${NC}"
+    else
+        sys_do apt-get install -y figlet git >/dev/null 2>&1 || sys_do apt-get install -y --fix-missing figlet git >/dev/null
+    fi
 fi
 
 
@@ -271,11 +328,50 @@ install_key() {
 # Helper function to run brew as regular user (not root)
 brew_cmd() {
     if [[ "$(id -u)" -eq 0 && -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
-        # Use runuser; cd to user home first (runuser inherits CWD and /root is not readable by others)
         ( cd "$REAL_HOME" && runuser -u "$REAL_USER" -- env HOME="$REAL_HOME" "$BREW_PREFIX/bin/brew" "$@" )
     else
         "$BREW_PREFIX/bin/brew" "$@"
     fi
+}
+
+run_in_real_home() {
+    if [[ "$(id -u)" -eq 0 && -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
+        ( cd "$REAL_HOME" && runuser -u "$REAL_USER" -- env HOME="$REAL_HOME" "$@" )
+    else
+        ( cd "$REAL_HOME" && env HOME="$REAL_HOME" "$@" )
+    fi
+}
+
+apt_update() {
+    if $IS_BLUEFIN || ! $IS_LINUX; then
+        echo "Skipping apt update on this platform"
+        return 0
+    fi
+    sys_do apt-get update -qq
+}
+
+apt_install() {
+    if $IS_BLUEFIN || ! $IS_LINUX; then
+        echo "Skipping apt install on this platform: $*"
+        return 0
+    fi
+    sys_do apt-get install -y "$@"
+}
+
+apt_add_repo() {
+    if $IS_BLUEFIN || ! $IS_LINUX; then
+        echo "Skipping apt repository configuration on this platform"
+        return 0
+    fi
+    "$@"
+}
+
+brew_install() {
+    if ! command -v brew &>/dev/null; then
+        echo -e "${YELLOW}⚠ Homebrew not found. Skipping brew package install: $*${NC}"
+        return 1
+    fi
+    brew_cmd install "$@" 2>/dev/null || brew_cmd upgrade "$@" 2>/dev/null || true
 }
 
 header() {
@@ -319,7 +415,6 @@ configure_git_interactive() {
     CURRENT_NAME=$(user_do git config --global user.name)
     CURRENT_EMAIL=$(user_do git config --global user.email)
 
-
     if [[ -n "$CURRENT_NAME" && -n "$CURRENT_EMAIL" ]]; then
         echo -e "${GREEN}✔ Git configured:${NC} $CURRENT_NAME ($CURRENT_EMAIL)"
     else
@@ -333,7 +428,6 @@ configure_git_interactive() {
             echo -ne "Enter your Full Name: "
             read GIT_NAME < /dev/tty
         done
-
 
         while [[ -z "$GIT_EMAIL" ]]; do
             echo -ne "Enter your Email: "
@@ -428,11 +522,19 @@ step_1() {
     if $IS_MACOS; then
         echo "macOS build tools are provided by Xcode Command Line Tools (already installed)"
         echo "Base tools via Homebrew will be installed after Homebrew is set up (Step 3)..."
+    elif $IS_BLUEFIN; then
+        echo "Bluefin detected: host pre-check only (no apt installation)."
+        local required_cmds=(git curl wget unzip tmux)
+        for cmd in "${required_cmds[@]}"; do
+            if ! command -v "$cmd" &>/dev/null; then
+                echo -e "${YELLOW}⚠ Missing command on host: $cmd${NC}"
+            fi
+        done
     else
         echo "Updating APT..."
-        sys_do apt-get update -qq
+        apt_update
         echo "Installing Build Essentials & Tmux..."
-        sys_do apt-get install -y build-essential git wget unzip fontconfig curl sshpass \
+        apt_install build-essential git wget unzip fontconfig curl sshpass \
             libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm \
             libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
             libyaml-dev autoconf bison procps file tmux
@@ -440,7 +542,7 @@ step_1() {
         # Adding Charmbracelet Repo (needed for Glow)
         install_key "https://repo.charm.sh/apt/gpg.key" "/etc/apt/keyrings/charm.gpg"
         echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sys_do tee /etc/apt/sources.list.d/charm.list
-        sys_do apt-get update -qq
+        apt_update
     fi
 }
 
@@ -472,9 +574,17 @@ step_2() {
         fi
     else
         echo "Checking Homebrew installation..."
+        if $IS_BLUEFIN && ! command -v brew &>/dev/null; then
+            echo -e "${RED}✘ Homebrew is required on Bluefin host.${NC}"
+            echo -e "${YELLOW}Run: ujust devmode && ujust dx-group, reboot, then run this script again.${NC}"
+            return 1
+        fi
+
         if [ ! -d "/home/linuxbrew/.linuxbrew" ] && [ ! -d "$REAL_HOME/.linuxbrew" ]; then
             echo "Installing Homebrew..."
-            sys_do apt-get install -y build-essential procps curl file git
+            if ! $IS_BLUEFIN; then
+                apt_install build-essential procps curl file git
+            fi
 
             # Ensure /home/linuxbrew directory exists with proper permissions
             echo "Ensuring /home/linuxbrew permissions..."
@@ -526,7 +636,7 @@ step_2() {
             if ! grep -q "linuxbrew" "$CONFIG_FILE"; then
                 echo -e "\n# Homebrew Configuration" | user_do tee -a "$CONFIG_FILE" > /dev/null
                 echo 'if [ -d "/home/linuxbrew/.linuxbrew" ]; then eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"; fi' | user_do tee -a "$CONFIG_FILE" > /dev/null
-                echo 'if [ -d "$HOME/.linuxbrew" ]; then eval "$($HOME/.linuxbrew/bin/brew shellenv)"; fi' | user_do tee -a "$CONFIG_FILE" > /dev/null
+                echo 'if [ -d "$HOME/.linuxbrew" ]; then eval "$(${HOME}/.linuxbrew/bin/brew shellenv)"; fi' | user_do tee -a "$CONFIG_FILE" > /dev/null
                 echo -e "${GREEN}✔ Added Homebrew to $CONFIG_FILE${NC}"
             fi
         done
@@ -534,10 +644,18 @@ step_2() {
         # Load brew environment for this script session
         echo "Loading Homebrew environment for current session..."
         if [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
-            eval "$(cd "$REAL_HOME" && runuser -u "$REAL_USER" -- env HOME="$REAL_HOME" /home/linuxbrew/.linuxbrew/bin/brew shellenv 2>/dev/null)"
+            if [[ "$(id -u)" -eq 0 && "$REAL_USER" != "root" ]]; then
+                eval "$(runuser -u "$REAL_USER" -- env HOME="$REAL_HOME" /home/linuxbrew/.linuxbrew/bin/brew shellenv 2>/dev/null)"
+            else
+                eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv 2>/dev/null)"
+            fi
             export PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
         elif [ -f "$REAL_HOME/.linuxbrew/bin/brew" ]; then
-            eval "$(cd "$REAL_HOME" && runuser -u "$REAL_USER" -- env HOME="$REAL_HOME" "$REAL_HOME/.linuxbrew/bin/brew" shellenv 2>/dev/null)"
+            if [[ "$(id -u)" -eq 0 && "$REAL_USER" != "root" ]]; then
+                eval "$(runuser -u "$REAL_USER" -- env HOME="$REAL_HOME" "$REAL_HOME/.linuxbrew/bin/brew" shellenv 2>/dev/null)"
+            else
+                eval "$("$REAL_HOME/.linuxbrew/bin/brew" shellenv 2>/dev/null)"
+            fi
             export PATH="$REAL_HOME/.linuxbrew/bin:$REAL_HOME/.linuxbrew/sbin:$PATH"
         fi
 
@@ -563,63 +681,107 @@ step_3() {
         
         # Install common extensions via PECL
         echo "Installing PHP Extensions..."
-        user_do pecl install redis 2>/dev/null || true
-        user_do pecl install xdebug 2>/dev/null || true
-        printf "\n" | user_do pecl install imagick 2>/dev/null || true
+        pecl install redis 2>/dev/null || true
+        pecl install xdebug 2>/dev/null || true
+        printf "\n" | pecl install imagick 2>/dev/null || true
         
         echo "Installing Composer..."
-        if [ ! -f "$REAL_HOME/.local/bin/composer" ] && ! command -v composer &>/dev/null; then
+        if [ ! -f "/usr/local/bin/composer" ] && [ ! -f "$BREW_PREFIX/bin/composer" ]; then
             brew_cmd install composer
         else
-            user_do composer self-update
+            composer self-update
         fi
         
         echo "Setup Laravel Installer..."
-        user_do composer global require laravel/installer
+        composer global require laravel/installer
     else
-        echo "Configuring PHP Repository..."
-        if $IS_UBUNTU; then
-            echo "Using Ubuntu PPA Strategy..."
-            sys_do add-apt-repository ppa:ondrej/php -y
-        elif $IS_DEBIAN; then
-            echo "Using Debian Sury Strategy..."
-            # Sury repo supports Debian stable releases; fall back to bookworm for unsupported codenames
-            PHP_CODENAME="$DISTRO_CODENAME"
-            case "$DISTRO_CODENAME" in
-                trixie|forky|sid|experimental) PHP_CODENAME="bookworm" ;;
-            esac
-            install_key "https://packages.sury.org/php/apt.gpg" "/etc/apt/keyrings/php.gpg"
-            echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ $PHP_CODENAME main" | sys_do tee /etc/apt/sources.list.d/php.list
+        if $IS_BLUEFIN; then
+            echo "Bluefin detected: installing PHP 8.4 + Composer via Homebrew..."
+            brew_install php@8.4 composer
+            brew_cmd link php@8.4 --force --overwrite 2>/dev/null || true
+
+            echo "Installing PHP Extensions (PECL)..."
+            brew_install imagemagick pkg-config
+
+            # redis: force optional serializers/compressors to "no" for better host portability
+            printf "no\nno\nno\nno\nno\nyes\n" | run_in_real_home pecl install redis 2>/dev/null || true
+
+            # xdebug: optional (often already available from Homebrew PHP builds)
+            run_in_real_home pecl install xdebug 2>/dev/null || true
+
+            # imagick: requires ImageMagick metadata in pkg-config path
+            local IM_PREFIX
+            IM_PREFIX=$(brew_cmd --prefix imagemagick 2>/dev/null)
+            if [[ -n "$IM_PREFIX" ]]; then
+                run_in_real_home env PKG_CONFIG_PATH="$IM_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH" pecl install imagick 2>/dev/null || true
+            else
+                run_in_real_home pecl install imagick 2>/dev/null || true
+            fi
+
+            # Validate what was actually loaded in current runtime
+            if php -m | grep -qi '^redis$'; then
+                echo -e "${GREEN}✔ PHP extension loaded: redis${NC}"
+            else
+                echo -e "${YELLOW}⚠ PHP extension not loaded: redis${NC}"
+            fi
+            if php -m | grep -qi '^xdebug$'; then
+                echo -e "${GREEN}✔ PHP extension loaded: xdebug${NC}"
+            else
+                echo -e "${YELLOW}⚠ PHP extension not loaded: xdebug${NC}"
+            fi
+            if php -m | grep -qi '^imagick$'; then
+                echo -e "${GREEN}✔ PHP extension loaded: imagick${NC}"
+            else
+                echo -e "${YELLOW}⚠ PHP extension not loaded: imagick${NC}"
+            fi
+
+            echo "Setup Laravel Installer..."
+            run_in_real_home composer global require laravel/installer
         else
-            echo -e "${YELLOW}⚠ Unknown Linux distribution. Skipping PHP repository configuration.${NC}"
+            echo "Configuring PHP Repository..."
+            if $IS_UBUNTU; then
+                echo "Using Ubuntu PPA Strategy..."
+                apt_add_repo sys_do add-apt-repository ppa:ondrej/php -y
+            elif $IS_DEBIAN; then
+                echo "Using Debian Sury Strategy..."
+                # Sury repo supports Debian stable releases; fall back to bookworm for unsupported codenames
+                PHP_CODENAME="$DISTRO_CODENAME"
+                case "$DISTRO_CODENAME" in
+                    trixie|forky|sid|experimental) PHP_CODENAME="bookworm" ;;
+                esac
+                install_key "https://packages.sury.org/php/apt.gpg" "/etc/apt/keyrings/php.gpg"
+                echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ $PHP_CODENAME main" | sys_do tee /etc/apt/sources.list.d/php.list
+            else
+                echo -e "${YELLOW}⚠ Unknown Linux distribution. Skipping PHP repository configuration.${NC}"
+            fi
+
+            apt_update
+            echo "Installing PHP 8.4 & Extensions..."
+            apt_install php8.4 php8.4-cli php8.4-common php8.4-dev \
+                php8.4-curl php8.4-mbstring php8.4-xml php8.4-zip php8.4-bcmath php8.4-intl \
+                php8.4-mysql php8.4-pgsql php8.4-sqlite3 php8.4-gd php8.4-imagick \
+                php8.4-redis php8.4-mongodb php8.4-yaml php8.4-xdebug
+
+
+            echo "Persisting COMPOSER_ALLOW_SUPERUSER=1..."
+            echo 'export COMPOSER_ALLOW_SUPERUSER=1' | sys_do tee /etc/profile.d/composer.sh > /dev/null
+            sys_do chmod +x /etc/profile.d/composer.sh
+            export COMPOSER_ALLOW_SUPERUSER=1
+
+            # Check for composer in .local/bin or system path
+            if ! command -v composer &>/dev/null && [ ! -f "$REAL_HOME/.local/bin/composer" ]; then
+                echo "Installing Composer to $REAL_HOME/.local/bin..."
+                user_do mkdir -p "$REAL_HOME/.local/bin"
+                curl -sS https://getcomposer.org/installer | user_do php
+                user_do mv composer.phar "$REAL_HOME/.local/bin/composer"
+                user_do chmod +x "$REAL_HOME/.local/bin/composer"
+            else
+                user_do composer self-update 2>/dev/null || sys_do composer self-update
+            fi
+            export PATH="$REAL_HOME/.local/bin:$PATH"
+            echo "Setup Laravel Installer..."
+            user_do composer global require laravel/installer
         fi
-        
-        sys_do apt-get update -qq
-        echo "Installing PHP 8.4 & Extensions..."
-        sys_do apt-get install -y php8.4 php8.4-cli php8.4-common php8.4-dev \
-            php8.4-curl php8.4-mbstring php8.4-xml php8.4-zip php8.4-bcmath php8.4-intl \
-            php8.4-mysql php8.4-pgsql php8.4-sqlite3 php8.4-gd php8.4-imagick \
-            php8.4-redis php8.4-mongodb php8.4-yaml php8.4-xdebug
-
-
-        echo "Persisting COMPOSER_ALLOW_SUPERUSER=1..."
-        echo 'export COMPOSER_ALLOW_SUPERUSER=1' | sys_do tee /etc/profile.d/composer.sh > /dev/null
-        sys_do chmod +x /etc/profile.d/composer.sh
-        export COMPOSER_ALLOW_SUPERUSER=1
-
-        # Check for composer in .local/bin or system path
-        if ! command -v composer &>/dev/null && [ ! -f "$REAL_HOME/.local/bin/composer" ]; then
-            echo "Installing Composer to $REAL_HOME/.local/bin..."
-            user_do mkdir -p "$REAL_HOME/.local/bin"
-            curl -sS https://getcomposer.org/installer | user_do php
-            user_do mv composer.phar "$REAL_HOME/.local/bin/composer"
-            user_do chmod +x "$REAL_HOME/.local/bin/composer"
-        else
-            user_do composer self-update 2>/dev/null || sys_do composer self-update
-        fi
-        export PATH="$REAL_HOME/.local/bin:$PATH"
-        echo "Setup Laravel Installer..."
-        user_do composer global require laravel/installer
     fi
 }
 
@@ -631,18 +793,23 @@ step_4() {
         brew_cmd install rbenv ruby-build
         
         echo "Checking Ruby 3.3.0..."
-        if ! user_do rbenv versions --bare | grep -q "^3.3.0$"; then
+        if ! rbenv versions --bare | grep -q "^3.3.0$"; then
             echo "Compiling Ruby 3.3.0..."
-            user_do rbenv install 3.3.0
-            user_do rbenv global 3.3.0
+            rbenv install 3.3.0
+            rbenv global 3.3.0
         fi
         
         # Initialize rbenv for current session
-        eval "$(user_do rbenv init -)"
+        eval "$(rbenv init -)"
         
         echo "Installing Rails..."
-        user_do gem install bundler rails --no-document
+        gem install bundler rails --no-document
     else
+        if $IS_BLUEFIN; then
+            echo "Installing Ruby build dependencies via Homebrew..."
+            brew_install rbenv ruby-build libffi libyaml openssl@3 readline zlib gmp autoconf bison pkgconf
+        fi
+
         git_ensure "https://github.com/rbenv/rbenv.git" "$REAL_HOME/.rbenv"
         git_ensure "https://github.com/rbenv/ruby-build.git" "$REAL_HOME/.rbenv/plugins/ruby-build"
 
@@ -655,7 +822,16 @@ step_4() {
         echo "Checking Ruby 3.3.0..."
         if ! user_do bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv versions --bare | grep -q "^3.3.0$"'; then
             echo "Compiling Ruby 3.3.0..."
-            user_do bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv install 3.3.0 && rbenv global 3.3.0'
+            if $IS_BLUEFIN; then
+                user_do bash -c 'export PATH="$HOME/.rbenv/bin:/home/linuxbrew/.linuxbrew/bin:$PATH"; eval "$(rbenv init -)"; export PKG_CONFIG_PATH="/home/linuxbrew/.linuxbrew/opt/libffi/lib/pkgconfig:/home/linuxbrew/.linuxbrew/opt/libyaml/lib/pkgconfig:/home/linuxbrew/.linuxbrew/opt/openssl@3/lib/pkgconfig:/home/linuxbrew/.linuxbrew/opt/readline/lib/pkgconfig:/home/linuxbrew/.linuxbrew/opt/zlib/lib/pkgconfig:$PKG_CONFIG_PATH"; export RUBY_CONFIGURE_OPTS="--with-libffi-dir=/home/linuxbrew/.linuxbrew/opt/libffi --with-libyaml-dir=/home/linuxbrew/.linuxbrew/opt/libyaml --with-openssl-dir=/home/linuxbrew/.linuxbrew/opt/openssl@3 --with-readline-dir=/home/linuxbrew/.linuxbrew/opt/readline --with-zlib-dir=/home/linuxbrew/.linuxbrew/opt/zlib --with-gmp-dir=/home/linuxbrew/.linuxbrew/opt/gmp"; rbenv install 3.3.0 && rbenv global 3.3.0'
+            else
+                user_do bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv install 3.3.0 && rbenv global 3.3.0'
+            fi
+        fi
+
+        if ! user_do bash -c 'export PATH="$HOME/.rbenv/bin:$HOME/.rbenv/shims:$PATH"; command -v gem >/dev/null'; then
+            echo -e "${RED}✘ Ruby installation failed: gem not found in rbenv shims.${NC}"
+            return 1
         fi
 
         echo "Installing Rails..."
@@ -671,9 +847,9 @@ step_5() {
         
         echo "Setup uv (Python Package Manager)..."
         if ! command -v uv &> /dev/null; then
-            user_do curl -LsSf https://astral.sh/uv/install.sh | sh
+            curl -LsSf https://astral.sh/uv/install.sh | sh
         else
-            user_do uv self update
+            uv self update
         fi
         
         GO_VER="1.22.2"
@@ -682,14 +858,18 @@ step_5() {
         
         echo "Setup Rust..."
         if ! command -v rustup &> /dev/null; then
-            user_do curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             source "$HOME/.cargo/env"
         else
-            user_do rustup update
+            rustup update
         fi
     else
         echo "Setup Python..."
-        sys_do apt-get install -y python3 python3-pip python3-venv python-is-python3
+        if $IS_BLUEFIN; then
+            brew_install python go
+        else
+            apt_install python3 python3-pip python3-venv python-is-python3
+        fi
 
         echo "Setup uv (Python Package Manager)..."
         if ! user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v uv" &> /dev/null; then
@@ -699,15 +879,19 @@ step_5() {
         fi
         export PATH="$REAL_HOME/.local/bin:$PATH"
 
-        GO_VER="1.22.2"
-        echo "Setup Go $GO_VER ($ARCH_GO)..."
-        if [ ! -d "$REAL_HOME/.local/go" ]; then
-            echo "Installing Go to $REAL_HOME/.local/go..."
-            user_do mkdir -p "$REAL_HOME/.local"
-            wget -q "https://go.dev/dl/go${GO_VER}.linux-${ARCH_GO}.tar.gz" -O /tmp/go.tar.gz
-            user_do tar -C "$REAL_HOME/.local" -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz
+        if $IS_BLUEFIN; then
+            echo "Using Go from Homebrew on Bluefin."
+        else
+            GO_VER="1.22.2"
+            echo "Setup Go $GO_VER ($ARCH_GO)..."
+            if [ ! -d "$REAL_HOME/.local/go" ]; then
+                echo "Installing Go to $REAL_HOME/.local/go..."
+                user_do mkdir -p "$REAL_HOME/.local"
+                wget -q "https://go.dev/dl/go${GO_VER}.linux-${ARCH_GO}.tar.gz" -O /tmp/go.tar.gz
+                user_do tar -C "$REAL_HOME/.local" -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz
+            fi
+            export PATH="$REAL_HOME/.local/go/bin:$PATH"
         fi
-        export PATH="$REAL_HOME/.local/go/bin:$PATH"
 
         echo "Setup Rust..."
         if [ ! -f "$REAL_HOME/.cargo/bin/rustup" ]; then
@@ -735,24 +919,40 @@ step_6() {
         echo "Setup Bun..."
         user_do curl -fsSL https://bun.sh/install | bash
     else
-        echo "Setup NodeSource..."
-        install_key "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" "/etc/apt/keyrings/nodesource.gpg"
-        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sys_do tee /etc/apt/sources.list.d/nodesource.list
-        sys_do apt-get update -qq
-        sys_do apt-get install -y nodejs
-        
-        # Configure npm to use a user-writable directory for global packages if not root
-        if [[ "$(id -u)" -ne 0 ]]; then
-            echo "Configuring npm to use user-writable directory for global packages..."
-            user_do mkdir -p "$REAL_HOME/.npm-global"
-            user_do npm config set prefix "$REAL_HOME/.npm-global"
-            export PATH="$REAL_HOME/.npm-global/bin:$PATH"
+        if $IS_BLUEFIN; then
+            echo "Bluefin detected: installing Node.js via Homebrew..."
+            brew_install node@24
+            brew_cmd link node@24 --force --overwrite 2>/dev/null || true
+
+            local NPM_BIN
+            NPM_BIN=$(command -v npm 2>/dev/null || echo "$BREW_PREFIX/bin/npm")
+            user_do "$NPM_BIN" install -g pnpm npm@latest
+        else
+            echo "Setup NodeSource..."
+            install_key "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" "/etc/apt/keyrings/nodesource.gpg"
+            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sys_do tee /etc/apt/sources.list.d/nodesource.list
+            apt_update
+            apt_install nodejs
+
+            # Configure npm to use a user-writable directory for global packages if not root
+            if [[ "$(id -u)" -ne 0 ]]; then
+                echo "Configuring npm to use user-writable directory for global packages..."
+                user_do mkdir -p "$REAL_HOME/.npm-global"
+                user_do npm config set prefix "$REAL_HOME/.npm-global"
+                export PATH="$REAL_HOME/.npm-global/bin:$PATH"
+            fi
+
+            user_do npm install -g pnpm npm@latest
         fi
 
-        user_do npm install -g pnpm npm@latest
-
         echo "Installing PM2 & n8n..."
-        user_do npm install -g pm2 @n8n/cli
+        if $IS_BLUEFIN; then
+            local NPM_BIN_PM2
+            NPM_BIN_PM2=$(command -v npm 2>/dev/null || echo "$BREW_PREFIX/bin/npm")
+            user_do "$NPM_BIN_PM2" install -g pm2 @n8n/cli
+        else
+            user_do npm install -g pm2 @n8n/cli
+        fi
 
         echo "Setup Bun..."
         user_do bash -c "curl -fsSL https://bun.sh/install | bash"
@@ -780,6 +980,20 @@ step_7() {
         echo "Installing GitHub CLI..."
         brew_cmd install gh
     else
+        if $IS_BLUEFIN; then
+            echo "Bluefin detected: validating Docker from host DX image..."
+            if command -v docker &>/dev/null; then
+                echo -e "${GREEN}✔ Docker is available on host.${NC}"
+            else
+                echo -e "${YELLOW}⚠ Docker not found. Enable DX mode (ujust devmode + ujust dx-group) and reboot.${NC}"
+            fi
+
+            echo "Installing Ansible and GitHub CLI via Homebrew..."
+            brew_install ansible
+            brew_install gh
+            return 0
+        fi
+
         # Docker Strategy
         echo "Configuring Docker..."
         DOCKER_CODENAME="$DISTRO_CODENAME"
@@ -794,30 +1008,30 @@ step_7() {
         fi
 
         install_key "https://download.docker.com/linux/$DISTRO_ID/gpg" "/etc/apt/keyrings/docker.gpg"
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DOCKER_CODENAME stable" | sys_do tee /etc/apt/sources.list.d/docker.list
+        echo "deb [arch=$ARCH_RAW signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DOCKER_CODENAME stable" | sys_do tee /etc/apt/sources.list.d/docker.list
         
-        sys_do apt-get update -qq
-        sys_do apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
+        apt_update
+        apt_install docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
         sys_do usermod -aG docker "$REAL_USER"
 
         # Ansible Strategy
         echo "Configuring Ansible..."
         if $IS_UBUNTU; then
             echo "Using Ubuntu Ansible PPA Strategy..."
-            sys_do add-apt-repository --yes --update ppa:ansible/ansible
-            sys_do apt-get install -y ansible
+            apt_add_repo sys_do add-apt-repository --yes --update ppa:ansible/ansible
+            apt_install ansible
         elif $IS_DEBIAN; then
             echo "Using Debian Ansible Strategy..."
             # Debian 12+ (Bookworm/Trixie) removes 'ansible' package; 'ansible-core' is the base.
-            sys_do apt-get install -y ansible-core
+            apt_install ansible-core
         fi
 
 
         # GitHub CLI
         wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sys_do tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
         sys_do chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sys_do tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-        sys_do apt-get update -qq && sys_do apt-get install -y gh
+        echo "deb [arch=$ARCH_RAW signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sys_do tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        apt_update && apt_install gh
     fi
 }
 
@@ -853,7 +1067,13 @@ step_8() {
         fi
 
         echo "Installing Bruno (API Client)..."
-        if command -v snap &> /dev/null; then
+        if $IS_BLUEFIN; then
+            if command -v flatpak &>/dev/null; then
+                flatpak install -y flathub com.usebruno.Bruno || true
+            else
+                echo -e "${YELLOW}⚠ Flatpak not available. Please install Bruno manually.${NC}"
+            fi
+        elif command -v snap &> /dev/null; then
             sys_do snap install bruno
         else
             echo -e "${YELLOW}⚠ Snap not available. Please install Bruno manually:${NC}"
@@ -871,7 +1091,7 @@ step_9() {
         echo "Installing Network Tools (Rust)..."
         for tool in bandwhich gping trippy rustscan; do
             if ! command -v $tool &> /dev/null; then
-                user_do cargo install $tool
+                cargo install $tool
             fi
         done
         
@@ -881,8 +1101,13 @@ step_9() {
         echo "Installing Tailscale..."
         brew_cmd install --cask tailscale
     else
-        echo "Installing Network Tools (APT)..."
-        sys_do apt-get install -y rsync net-tools dnsutils mtr-tiny nmap tcpdump iftop nload iotop sysstat whois iputils-ping speedtest-cli glances htop btop
+        if $IS_BLUEFIN; then
+            echo "Installing Network Tools via Homebrew..."
+            brew_install rsync nmap mtr htop btop glances speedtest-cli
+        else
+            echo "Installing Network Tools (APT)..."
+            apt_install rsync net-tools dnsutils mtr-tiny nmap tcpdump iftop nload iotop sysstat whois iputils-ping speedtest-cli glances htop btop
+        fi
 
         echo "Installing Network Tools (Rust)..."
         for tool in bandwhich gping trippy rustscan; do
@@ -901,7 +1126,13 @@ step_9() {
         fi
 
         echo "Installing Tailscale..."
-        if ! command -v tailscale &>/dev/null; then
+        if $IS_BLUEFIN; then
+            if command -v tailscale &>/dev/null; then
+                echo "Tailscale already available on Bluefin host."
+            else
+                echo -e "${YELLOW}⚠ Tailscale not found on host image.${NC}"
+            fi
+        elif ! command -v tailscale &>/dev/null; then
             user_do curl -fsSL https://tailscale.com/install.sh | sys_do sh
         else
             echo "Tailscale already installed."
@@ -914,6 +1145,10 @@ step_10() {
     if $IS_MACOS; then
         echo "SSH Server is not required on macOS (not managed by this script)"
         return 0
+    elif $IS_BLUEFIN; then
+        echo "Bluefin detected: OpenSSH service should be enabled manually if needed."
+        echo "Run: sudo systemctl enable --now sshd"
+        return 0
     fi
 
     echo "Setting up SSH Server and enabling root remote login..."
@@ -921,7 +1156,7 @@ step_10() {
     # Install OpenSSH Server
     if ! command -v sshd &> /dev/null; then
         echo "Installing OpenSSH Server..."
-        sys_do apt-get install -y openssh-server openssh-client
+        apt_install openssh-server openssh-client
     fi
 
     # Enable SSH service
@@ -947,11 +1182,22 @@ step_10() {
     sys_do sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
     sys_do sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
+    # Allow empty passwords if needed (optional - commented by default)
+    # sys_do sed -i 's/^#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+
     # Validate configuration
     if sys_do sshd -t &> /dev/null; then
         echo "SSH configuration validated successfully"
         sys_do systemctl restart ssh
         echo -e "${GREEN}✔ SSH Server configured and running${NC}"
+        
+        # Show SSH status
+        echo ""
+        echo "SSH Server Status:"
+        sys_do systemctl status ssh --no-pager | grep -E 'Active|Loaded'
+        echo ""
+        echo "Current SSH Configuration:"
+        grep -E '^PermitRootLogin|^PasswordAuthentication' /etc/ssh/sshd_config
     else
         echo -e "${RED}Error: SSH configuration failed validation${NC}"
         echo "Restoring original configuration..."
@@ -968,7 +1214,7 @@ step_11() {
         echo "ZSH is default on macOS"
         
         if [ ! -d "$REAL_HOME/.oh-my-zsh" ]; then
-            user_do sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+            sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
         fi
 
         git_ensure "https://github.com/zsh-users/zsh-autosuggestions" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
@@ -990,7 +1236,12 @@ step_11() {
         # macOS ZSHRC
         safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/zshrc-macos.zsh "$REAL_HOME/.zshrc"
     else
-        sys_do apt-get install -y zsh
+        if $IS_BLUEFIN; then
+            brew_install zsh
+            brew_install starship
+        else
+            apt_install zsh
+        fi
 
         if [ ! -d "$REAL_HOME/.oh-my-zsh" ]; then
             user_do sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
@@ -1010,10 +1261,12 @@ step_11() {
         user_do fc-cache -f >/dev/null
 
 
-        echo "Configuring Starship..."
-        if ! command -v starship &>/dev/null && [ ! -f "$REAL_HOME/.local/bin/starship" ]; then
-            user_do mkdir -p "$REAL_HOME/.local/bin"
-            curl -sS https://starship.rs/install.sh | user_do sh -s -- -y --bin-dir "$REAL_HOME/.local/bin"
+        if ! $IS_BLUEFIN; then
+            echo "Configuring Starship..."
+            if ! command -v starship &>/dev/null && [ ! -f "$REAL_HOME/.local/bin/starship" ]; then
+                user_do mkdir -p "$REAL_HOME/.local/bin"
+                curl -sS https://starship.rs/install.sh | user_do sh -s -- -y --bin-dir "$REAL_HOME/.local/bin"
+            fi
         fi
         user_do mkdir -p "$REAL_HOME/.config"
 
@@ -1025,8 +1278,10 @@ step_11() {
         safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/zshrc-linux.zsh "$REAL_HOME/.zshrc"
         sys_do chown $REAL_USER:$REAL_USER "$REAL_HOME/.zshrc"
 
-        if [ "$SHELL" != "/bin/zsh" ] && [ "$SHELL" != "/usr/bin/zsh" ]; then
+        if ! $IS_BLUEFIN && [ "$SHELL" != "/bin/zsh" ] && [ "$SHELL" != "/usr/bin/zsh" ]; then
             sys_do chsh -s $(which zsh) $REAL_USER
+        elif $IS_BLUEFIN; then
+            echo "Bluefin note: set zsh as default shell in Ptyxis profile instead of chsh."
         fi
     fi
 }
@@ -1083,11 +1338,15 @@ step_14() {
         rm -rf "$REAL_HOME/Library/Caches/"* 2>/dev/null || true
         rm -rf "$REAL_HOME/.Trash/"* 2>/dev/null || true
     else
-        echo "Cleaning APT cache and orphaned packages..."
-        sys_do apt-get autoremove -y -qq
-        sys_do apt-get autoclean -qq
-        sys_do apt-get clean -qq
-        sys_do rm -rf /var/lib/apt/lists/*
+        if ! $IS_BLUEFIN; then
+            echo "Cleaning APT cache and orphaned packages..."
+            sys_do apt-get autoremove -y -qq
+            sys_do apt-get autoclean -qq
+            sys_do apt-get clean -qq
+            sys_do rm -rf /var/lib/apt/lists/*
+        else
+            echo "Bluefin detected: skipping APT cleanup."
+        fi
 
         echo "Cleaning temp and log junk..."
         sys_do rm -rf /tmp/*.tar.gz /tmp/*.zip /tmp/ctop /tmp/starship 2>/dev/null || true
