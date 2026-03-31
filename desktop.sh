@@ -828,10 +828,7 @@ step_8() {
 
     if $IS_MACOS; then
         brew_cmd install $TOOLS
-        
-        echo "Installing Bruno (API Client)..."
-        brew_cmd install --cask bruno 2>/dev/null || brew_cmd install --cask bruno --force
-        
+
         # FZF keybindings setup
         if [ -d "$BREW_PREFIX/opt/fzf" ]; then
             user_do "$BREW_PREFIX/opt/fzf/install" --all --no-bash --no-fish 2>/dev/null || true
@@ -852,13 +849,6 @@ step_8() {
             user_do "$FZF_OPT/install" --all --no-bash --no-fish > /dev/null 2>&1
         fi
 
-        echo "Installing Bruno (API Client)..."
-        if command -v snap &> /dev/null; then
-            sys_do snap install bruno
-        else
-            echo -e "${YELLOW}⚠ Snap not available. Please install Bruno manually:${NC}"
-            echo "   Visit: https://www.usebruno.com/"
-        fi
     fi
 }
 

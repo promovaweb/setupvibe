@@ -95,26 +95,25 @@ O script exibe um roteiro interativo e solicita confirmação antes de iniciar. 
 
 ### Etapa 8 — Ferramentas Unix Modernas
 
-Instaladas via Homebrew em ambas as plataformas. No Linux, o Bruno é instalado via snap.
+Instaladas via Homebrew em ambas as plataformas.
 
-| Ferramenta   | Descrição                                  |
-| ------------ | ------------------------------------------ |
-| `bat`        | `cat` com realce de sintaxe                |
-| `eza`        | Substituto moderno do `ls`                 |
-| `zoxide`     | `cd` mais inteligente                      |
-| `fzf`        | Buscador fuzzy (com atalhos de shell)      |
-| `ripgrep`    | Substituto rápido do `grep`                |
-| `fd`         | Substituto rápido do `find`                |
-| `lazygit`    | Interface terminal para git                |
-| `lazydocker` | Interface terminal para Docker             |
-| `neovim`     | Vim moderno                                |
-| `glow`       | Renderizador de Markdown                   |
-| `jq`         | Processador JSON                           |
-| `tldr`       | Páginas de manual simplificadas            |
-| `fastfetch`  | Ferramenta de informações do sistema       |
-| `duf`        | `df` moderno                               |
-| `mise`       | Gerenciador de versões de runtime          |
-| Bruno        | Cliente de API (Cask no macOS, snap no Linux) |
+| Ferramenta   | Descrição                             |
+| ------------ | ------------------------------------- |
+| `bat`        | `cat` com realce de sintaxe           |
+| `eza`        | Substituto moderno do `ls`            |
+| `zoxide`     | `cd` mais inteligente                 |
+| `fzf`        | Buscador fuzzy (com atalhos de shell) |
+| `ripgrep`    | Substituto rápido do `grep`           |
+| `fd`         | Substituto rápido do `find`           |
+| `lazygit`    | Interface terminal para git           |
+| `lazydocker` | Interface terminal para Docker        |
+| `neovim`     | Vim moderno                           |
+| `glow`       | Renderizador de Markdown              |
+| `jq`         | Processador JSON                      |
+| `tldr`       | Páginas de manual simplificadas       |
+| `fastfetch`  | Ferramenta de informações do sistema  |
+| `duf`        | `df` moderno                          |
+| `mise`       | Gerenciador de versões de runtime     |
 
 ### Etapa 9 — Rede, Monitoramento e Tailscale
 

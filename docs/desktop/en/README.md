@@ -95,26 +95,25 @@ The script shows an interactive roadmap and asks for confirmation before startin
 
 ### Step 8 — Modern Unix Tools
 
-Installed via Homebrew on both platforms. On Linux, Bruno is installed via snap.
+Installed via Homebrew on both platforms.
 
-| Tool         | Description                               |
-| ------------ | ----------------------------------------- |
-| `bat`        | `cat` with syntax highlighting            |
-| `eza`        | Modern `ls` replacement                   |
-| `zoxide`     | Smarter `cd`                              |
-| `fzf`        | Fuzzy finder (with shell keybindings)     |
-| `ripgrep`    | Fast `grep` replacement                   |
-| `fd`         | Fast `find` replacement                   |
-| `lazygit`    | Terminal UI for git                       |
-| `lazydocker` | Terminal UI for Docker                    |
-| `neovim`     | Modern vim                                |
-| `glow`       | Markdown renderer                         |
-| `jq`         | JSON processor                            |
-| `tldr`       | Simplified man pages                      |
-| `fastfetch`  | System info tool                          |
-| `duf`        | Modern `df`                               |
-| `mise`       | Runtime version manager                   |
-| Bruno        | API client (Cask on macOS, snap on Linux) |
+| Tool         | Description                           |
+| ------------ | ------------------------------------- |
+| `bat`        | `cat` with syntax highlighting        |
+| `eza`        | Modern `ls` replacement               |
+| `zoxide`     | Smarter `cd`                          |
+| `fzf`        | Fuzzy finder (with shell keybindings) |
+| `ripgrep`    | Fast `grep` replacement               |
+| `fd`         | Fast `find` replacement               |
+| `lazygit`    | Terminal UI for git                   |
+| `lazydocker` | Terminal UI for Docker                |
+| `neovim`     | Modern vim                            |
+| `glow`       | Markdown renderer                     |
+| `jq`         | JSON processor                        |
+| `tldr`       | Simplified man pages                  |
+| `fastfetch`  | System info tool                      |
+| `duf`        | Modern `df`                           |
+| `mise`       | Runtime version manager               |
 
 ### Step 9 — Network, Monitoring & Tailscale
 

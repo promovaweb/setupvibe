@@ -95,26 +95,25 @@ El script muestra una hoja de ruta interactiva y solicita confirmación antes de
 
 ### Paso 8 — Herramientas Unix Modernas
 
-Instaladas mediante Homebrew en ambas plataformas. En Linux, Bruno se instala vía snap.
+Instaladas mediante Homebrew en ambas plataformas.
 
-| Herramienta  | Descripción                                  |
-| ------------ | -------------------------------------------- |
-| `bat`        | `cat` con resaltado de sintaxis              |
-| `eza`        | Reemplazo moderno de `ls`                    |
-| `zoxide`     | `cd` más inteligente                         |
-| `fzf`        | Buscador fuzzy (con atajos de shell)        |
-| `ripgrep`    | Reemplazo rápido de `grep`                   |
-| `fd`         | Reemplazo rápido de `find`                   |
-| `lazygit`    | Interfaz de terminal para git                |
-| `lazydocker` | Interfaz de terminal para Docker             |
-| `neovim`     | Vim moderno                                  |
-| `glow`       | Renderizador de Markdown                     |
-| `jq`         | Procesador JSON                              |
-| `tldr`       | Páginas de manual simplificadas              |
-| `fastfetch`  | Herramienta de información del sistema       |
-| `duf`        | `df` moderno                                 |
-| `mise`       | Administrador de versiones de runtime        |
-| Bruno        | Cliente API (Cask en macOS, snap en Linux)   |
+| Herramienta  | Descripción                              |
+| ------------ | ---------------------------------------- |
+| `bat`        | `cat` con resaltado de sintaxis          |
+| `eza`        | Reemplazo moderno de `ls`                |
+| `zoxide`     | `cd` más inteligente                     |
+| `fzf`        | Buscador fuzzy (con atajos de shell)     |
+| `ripgrep`    | Reemplazo rápido de `grep`               |
+| `fd`         | Reemplazo rápido de `find`               |
+| `lazygit`    | Interfaz de terminal para git            |
+| `lazydocker` | Interfaz de terminal para Docker         |
+| `neovim`     | Vim moderno                              |
+| `glow`       | Renderizador de Markdown                 |
+| `jq`         | Procesador JSON                          |
+| `tldr`       | Páginas de manual simplificadas          |
+| `fastfetch`  | Herramienta de información del sistema   |
+| `duf`        | `df` moderno                             |
+| `mise`       | Administrador de versiones de runtime    |
 
 ### Paso 9 — Red, Monitoreo y Tailscale
 

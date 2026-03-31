@@ -95,26 +95,25 @@ Le script affiche une feuille de route interactive et demande confirmation avant
 
 ### Étape 8 — Outils Unix Modernes
 
-Installés via Homebrew sur les deux plateformes. Sur Linux, Bruno est installé via snap.
+Installés via Homebrew sur les deux plateformes.
 
-| Outil        | Description                                  |
-| ------------ | -------------------------------------------- |
-| `bat`        | `cat` avec coloration syntaxique             |
-| `eza`        | Remplacement moderne de `ls`                 |
-| `zoxide`     | `cd` plus intelligent                        |
-| `fzf`        | Recherche floue (avec raccourcis shell)      |
-| `ripgrep`    | Remplacement rapide de `grep`                |
-| `fd`         | Remplacement rapide de `find`                |
-| `lazygit`    | Interface terminal pour git                  |
-| `lazydocker` | Interface terminal pour Docker               |
-| `neovim`     | Vim moderne                                  |
-| `glow`       | Rendu Markdown                               |
-| `jq`         | Processeur JSON                              |
-| `tldr`       | Pages de manuel simplifiées                  |
-| `fastfetch`  | Outil d'infos système                        |
-| `duf`        | `df` moderne                                 |
-| `mise`       | Gestionnaire de versions de runtime          |
-| Bruno        | Client API (Cask sur macOS, snap sur Linux) |
+| Outil        | Description                             |
+| ------------ | --------------------------------------- |
+| `bat`        | `cat` avec coloration syntaxique        |
+| `eza`        | Remplacement moderne de `ls`            |
+| `zoxide`     | `cd` plus intelligent                   |
+| `fzf`        | Recherche floue (avec raccourcis shell) |
+| `ripgrep`    | Remplacement rapide de `grep`           |
+| `fd`         | Remplacement rapide de `find`           |
+| `lazygit`    | Interface terminal pour git             |
+| `lazydocker` | Interface terminal pour Docker          |
+| `neovim`     | Vim moderne                             |
+| `glow`       | Rendu Markdown                          |
+| `jq`         | Processeur JSON                         |
+| `tldr`       | Pages de manuel simplifiées             |
+| `fastfetch`  | Outil d'infos système                   |
+| `duf`        | `df` moderne                            |
+| `mise`       | Gestionnaire de versions de runtime     |
 
 ### Étape 9 — Réseau, Surveillance et Tailscale
 
