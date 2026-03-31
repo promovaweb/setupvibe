@@ -456,14 +456,15 @@ step_2() {
             if [[ -f "$BREW_PREFIX/bin/brew" ]]; then
                 eval "$($BREW_PREFIX/bin/brew shellenv)"
             fi
-        else
-            echo "Homebrew already installed. Updating..."
-            brew_cmd update
         fi
 
         # Verify installation
         if command -v brew &>/dev/null; then
             echo -e "${GREEN}✔ Homebrew is ready.${NC}"
+            echo "Updating Homebrew and upgrading existing packages..."
+            brew_cmd update
+            brew_cmd upgrade
+            
             echo "Installing base tools via Homebrew..."
             brew_cmd install wget unzip curl tmux sshpass openssl readline sqlite3 xz zlib tcl-tk
         else
@@ -504,14 +505,6 @@ step_2() {
 
             # Cleanup temporary sudoers rule
             sys_do rm -f /etc/sudoers.d/setupvibe-brew
-        else
-            echo "Homebrew already installed. Checking for updates..."
-            local BREW_EXEC="/home/linuxbrew/.linuxbrew/bin/brew"
-            [ ! -f "$BREW_EXEC" ] && BREW_EXEC="$REAL_HOME/.linuxbrew/bin/brew"
-
-            if [ -f "$BREW_EXEC" ]; then
-                brew_cmd update
-            fi
         fi
 
         # Configure Homebrew PATH in shell profiles
@@ -544,7 +537,8 @@ step_2() {
         # Verify brew is accessible
         if command -v brew &>/dev/null; then
             echo -e "${GREEN}✔ Homebrew is ready and available in PATH.${NC}"
-            echo "Upgrading existing Homebrew packages..."
+            echo "Updating Homebrew and upgrading existing packages..."
+            brew_cmd update
             brew_cmd upgrade
         else
             echo -e "${RED}✘ Homebrew installation failed or brew not found in PATH.${NC}"
