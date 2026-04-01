@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [v0.41.4] - 2026-04-01
+
+### Added
+
+- Automated `cron` service activation and configuration for macOS and Linux
+- Pre-configured example cron tasks (hourly heartbeat and daily disk usage snapshot)
+- Robust `cron_ensure` helper function in both Desktop and Server editions
+
+---
+
 ## [v0.41.3] - 2026-04-01
 
 ### Added

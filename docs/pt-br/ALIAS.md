@@ -1448,6 +1448,24 @@ Esta é a lista exaustiva de todos os aliases configurados pelo SetupVibe em tod
   - Descrição: Abre o dashboard TUI do Cronboard para gerenciar tarefas cron.
   - Exemplo: `cronb`
 
+- **`cronl`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `crontab -l`
+  - Descrição: Lista as tarefas cron do usuário atual.
+  - Exemplo: `cronl`
+
+- **`crone`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `crontab -e`
+  - Descrição: Edita as tarefas cron do usuário atual.
+  - Exemplo: `crone`
+
+- **`cronr`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `crontab -r`
+  - Descrição: Remove todas as tarefas cron do usuário atual (CUIDADO).
+  - Exemplo: `cronr`
+
 ### Monitoramento & Processos
 
 - **`topc`**

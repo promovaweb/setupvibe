@@ -25,7 +25,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.3"
+VERSION="0.41.4"
 INSTALL_URL="https://server.setupvibe.dev"
 
 # --- ARGUMENT PARSING ---
@@ -60,6 +60,49 @@ sys_do() {
         sudo "$@"
     else
         "$@"
+    fi
+}
+
+# Ensure cron is active and has example tasks
+cron_ensure() {
+    echo "Ensuring cron service is active and configured..."
+    # Cron package is already installed in step_1
+    sys_do systemctl enable --now cron 2>/dev/null || true
+
+    # Add example tasks to crontab if they don't exist
+    # 1. A simple heartbeat to /tmp/cron-heartbeat.log every hour
+    # 2. A disk usage snapshot to ~/cron-disk-usage.log every day at midnight
+    
+    local CRON_HEARTBEAT="0 * * * * echo \"Cron heartbeat: \$(date)\" >> /tmp/cron-heartbeat.log"
+    local CRON_DISK="0 0 * * * df -h > \$HOME/cron-disk-usage.log"
+
+    # Get current crontab
+    local CURRENT_CRON
+    CURRENT_CRON=$(user_do crontab -l 2>/dev/null || echo "")
+
+    local NEW_CRON="$CURRENT_CRON"
+    local CHANGED=false
+
+    if [[ ! "$CURRENT_CRON" == *"/tmp/cron-heartbeat.log"* ]]; then
+        echo "Adding example cron task: hourly heartbeat"
+        NEW_CRON="${NEW_CRON}
+${CRON_HEARTBEAT}"
+        CHANGED=true
+    fi
+
+    if [[ ! "$CURRENT_CRON" == *"cron-disk-usage.log"* ]]; then
+        echo "Adding example cron task: daily disk usage snapshot"
+        NEW_CRON="${NEW_CRON}
+${CRON_DISK}"
+        CHANGED=true
+    fi
+
+    if [ "$CHANGED" = true ]; then
+        # Filter empty lines and install new crontab
+        echo "$NEW_CRON" | grep -v '^$' | user_do crontab -
+        echo -e "${GREEN}✔ Crontab updated with example tasks.${NC}"
+    else
+        echo "Crontab already has example tasks."
     fi
 }
 
@@ -402,6 +445,8 @@ step_1() {
     if ! user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v cronboard" &> /dev/null; then
         user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool install cronboard"
     fi
+
+    cron_ensure
 }
 
 

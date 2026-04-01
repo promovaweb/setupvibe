@@ -315,6 +315,9 @@ alias anfacts="ansible all -m setup"            # Coleta facts de todos os hosts
 
 # --- Cron & Scheduling ---
 alias cronb="cronboard"                         # Abre o dashboard TUI do Cronboard para gerenciar crontab
+alias cronl="crontab -l"                        # Lista as tarefas cron do usuário atual
+alias crone="crontab -e"                        # Edita as tarefas cron do usuário atual
+alias cronr="crontab -r"                        # Remove todas as tarefas cron do usuário atual (CUIDADO)
 
 # --- Sistema (macOS) ---
 alias topc="top -o cpu"                         # Monitora processos ordenados por uso de CPU

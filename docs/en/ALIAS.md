@@ -1439,6 +1439,24 @@ This is the exhaustive list of all aliases configured by SetupVibe on all platfo
   - Description: Opens the Cronboard TUI dashboard to manage cron tasks.
   - Example: `cronb`
 
+- **`cronl`**
+  - Availability: 🌐 Both
+  - Command: `crontab -l`
+  - Description: Lists cron tasks for the current user.
+  - Example: `cronl`
+
+- **`crone`**
+  - Availability: 🌐 Both
+  - Command: `crontab -e`
+  - Description: Edits cron tasks for the current user.
+  - Example: `crone`
+
+- **`cronr`**
+  - Availability: 🌐 Both
+  - Command: `crontab -r`
+  - Description: Removes all cron tasks for the current user (CAUTION).
+  - Example: `cronr`
+
 ### Monitoring & Processes
 - **`topc`**
   - Availability: 🌐 Both

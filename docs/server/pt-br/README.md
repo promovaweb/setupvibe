@@ -1,6 +1,6 @@
 # SetupVibe — Edição Servidor
 
-> Configuração de servidor Linux — v0.41.3
+> Configuração de servidor Linux — v0.41.4
 
 Um script de configuração enxuto e focado para servidores Linux. Sem Homebrew, sem ecossistemas de linguagens, sem ferramentas de desktop. Instala apenas o que um servidor de produção precisa: Docker, Ansible, rede, shell, tmux e ferramentas AI CLI.
 
