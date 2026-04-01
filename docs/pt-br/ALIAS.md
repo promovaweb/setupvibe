@@ -764,6 +764,76 @@ Esta é a lista exaustiva de todos os aliases configurados pelo SetupVibe em tod
   - Descrição: Atualiza a imagem e reinicia o Portainer.
   - Exemplo: `portainer-update`
 
+## PM2
+
+- **`p`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `pm2`
+  - Descrição: Atalho para o comando PM2.
+  - Exemplo: `p list`
+
+- **`p-start`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `pm2 start ~/ecosystem.config.js`
+  - Descrição: Inicia todas as aplicações definidas no arquivo ecosystem global.
+  - Exemplo: `p-start`
+
+- **`p-stop`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `pm2 stop ~/ecosystem.config.js`
+  - Descrição: Para todas as aplicações definidas no arquivo ecosystem.
+  - Exemplo: `p-stop`
+
+- **`p-restart`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `pm2 restart ~/ecosystem.config.js`
+  - Descrição: Reinicia todas as aplicações definidas no arquivo ecosystem.
+  - Exemplo: `p-restart`
+
+- **`pl`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `pm2 list`
+  - Descrição: Lista todos os processos gerenciados pelo PM2.
+  - Exemplo: `pl`
+
+- **`psave`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `pm2 save`
+  - Descrição: Salva a lista de processos atual para restaurar no boot.
+  - Exemplo: `psave`
+
+- **`plog`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `pm2 logs`
+  - Descrição: Segue os logs de todos os processos em tempo real.
+  - Exemplo: `plog`
+
+## Agentlytics
+
+- **`agl-start`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `pm2 start agentlytics`
+  - Descrição: Inicia o processo do Agentlytics no PM2.
+  - Exemplo: `agl-start`
+
+- **`agl-stop`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `pm2 stop agentlytics`
+  - Descrição: Para o processo do Agentlytics.
+  - Exemplo: `agl-stop`
+
+- **`agl-restart`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `pm2 restart agentlytics`
+  - Descrição: Reinicia o processo do Agentlytics.
+  - Exemplo: `agl-restart`
+
+- **`agl-logs`**
+  - Disponibilidade: 🌐 Ambos
+  - Comando: `pm2 logs agentlytics`
+  - Descrição: Exibe os logs específicos do Agentlytics.
+  - Exemplo: `agl-logs`
+
 ## Gerenciadores de Pacotes
 
 - **`update`**

@@ -763,8 +763,76 @@ This is the exhaustive list of all aliases configured by SetupVibe on all platfo
   - Description: Updates the Portainer image and restarts it.
   - Example: `portainer-update`
 
-  ## Package Managers
+  ## PM2
 
+  - **`p`**
+    - Availability: 🌐 Both
+    - Command: `pm2`
+    - Description: Shortcut for the PM2 command.
+    - Example: `p list`
+
+  - **`p-start`**
+    - Availability: 🌐 Both
+    - Command: `pm2 start ~/ecosystem.config.js`
+    - Description: Starts all applications defined in the global ecosystem file.
+    - Example: `p-start`
+
+  - **`p-stop`**
+    - Availability: 🌐 Both
+    - Command: `pm2 stop ~/ecosystem.config.js`
+    - Description: Stops all applications defined in the ecosystem file.
+    - Example: `p-stop`
+
+  - **`p-restart`**
+    - Availability: 🌐 Both
+    - Command: `pm2 restart ~/ecosystem.config.js`
+    - Description: Restarts all applications defined in the ecosystem file.
+    - Example: `p-restart`
+
+  - **`pl`**  - Availability: 🌐 Both
+  - Command: `pm2 list`
+  - Description: Lists all processes managed by PM2.
+  - Example: `pl`
+
+  - **`psave`**
+  - Availability: 🌐 Both
+  - Command: `pm2 save`
+  - Description: Saves the current process list for boot restoration.
+  - Example: `psave`
+
+  - **`plog`**
+  - Availability: 🌐 Both
+  - Command: `pm2 logs`
+  - Description: Follows logs for all processes in real-time.
+  - Example: `plog`
+
+  ## Agentlytics
+
+  - **`agl-start`**
+  - Availability: 🌐 Both
+  - Command: `pm2 start agentlytics`
+  - Description: Starts the Agentlytics process in PM2.
+  - Example: `agl-start`
+
+  - **`agl-stop`**
+  - Availability: 🌐 Both
+  - Command: `pm2 stop agentlytics`
+  - Description: Stops the Agentlytics process.
+  - Example: `agl-stop`
+
+  - **`agl-restart`**
+  - Availability: 🌐 Both
+  - Command: `pm2 restart agentlytics`
+  - Description: Restarts the Agentlytics process.
+  - Example: `agl-restart`
+
+  - **`agl-logs`**
+  - Availability: 🌐 Both
+  - Command: `pm2 logs agentlytics`
+  - Description: Shows specific logs for Agentlytics.
+  - Example: `agl-logs`
+
+  ## Package Managers
 - **`update`**
   - Availability: 🌐 Both
   - Command: `brew update && brew upgrade` (macOS) / `sudo apt update...` (Linux)

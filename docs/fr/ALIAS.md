@@ -763,8 +763,76 @@ Voici la liste exhaustive de tous les aliases configurés par SetupVibe sur tout
   - Description : Met à jour l'image et redémarre Portainer.
   - Exemple : `portainer-update`
 
-  ## Gestionnaires de Paquets
+  ## PM2
 
+  - **`p`**
+    - Disponibilité : 🌐 Les deux
+    - Commande : `pm2`
+    - Description : Raccourci pour a commande PM2.
+    - Exemple : `p list`
+
+  - **`p-start`**
+    - Disponibilité : 🌐 Les deux
+    - Commande : `pm2 start ~/ecosystem.config.js`
+    - Description : Démarre toutes les applications définies dans le fichier ecosystem global.
+    - Exemple : `p-start`
+
+  - **`p-stop`**
+    - Disponibilité : 🌐 Les deux
+    - Commande : `pm2 stop ~/ecosystem.config.js`
+    - Description : Arrête toutes les applications définies dans le fichier ecosystem.
+    - Exemple : `p-stop`
+
+  - **`p-restart`**
+    - Disponibilité : 🌐 Les deux
+    - Commande : `pm2 restart ~/ecosystem.config.js`
+    - Description : Redémarre toutes les applications définies dans le fichier ecosystem.
+    - Exemple : `p-restart`
+
+  - **`pl`**  - Disponibilité : 🌐 Les deux
+  - Commande : `pm2 list`
+  - Description : Liste tous les processus gérés par PM2.
+  - Exemple : `pl`
+
+  - **`psave`**
+  - Disponibilité : 🌐 Les deux
+  - Commande : `pm2 save`
+  - Description : Sauvegarde la liste des processus pour restauration au démarrage.
+  - Exemple : `psave`
+
+  - **`plog`**
+  - Disponibilité : 🌐 Les deux
+  - Commande : `pm2 logs`
+  - Description : Suit les logs de tous les processus en temps réel.
+  - Exemple : `plog`
+
+  ## Agentlytics
+
+  - **`agl-start`**
+  - Disponibilité : 🌐 Les deux
+  - Commande : `pm2 start agentlytics`
+  - Description : Démarre le processus Agentlytics dans PM2.
+  - Exemple : `agl-start`
+
+  - **`agl-stop`**
+  - Disponibilité : 🌐 Les deux
+  - Commande : `pm2 stop agentlytics`
+  - Description : Arrête le processus Agentlytics.
+  - Exemple : `agl-stop`
+
+  - **`agl-restart`**
+  - Disponibilité : 🌐 Les deux
+  - Commande : `pm2 restart agentlytics`
+  - Description : Redémarre le processus Agentlytics.
+  - Exemple : `agl-restart`
+
+  - **`agl-logs`**
+  - Disponibilité : 🌐 Les deux
+  - Commande : `pm2 logs agentlytics`
+  - Description : Affiche les logs spécifiques à Agentlytics.
+  - Exemple : `agl-logs`
+
+  ## Gestionnaires de Paquets
 - **`update`**
   - Disponibilité : 🌐 Les deux
   - Commande : `brew update && brew upgrade` (macOS) / `sudo apt update...` (Linux)

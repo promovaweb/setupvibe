@@ -183,6 +183,27 @@ alias portainer-update="docker compose -f ~/.setupvibe/portainer-compose.yml pul
 alias portainer-start="docker compose -f ~/.setupvibe/portainer-compose.yml up -d"
 alias portainer-stop="docker compose -f ~/.setupvibe/portainer-compose.yml stop"
 
+# --- PM2 ---
+alias p="pm2"                                        # Atalho para o pm2
+alias p-start="pm2 start ~/ecosystem.config.js"      # Inicia apps via ecosystem file
+alias p-stop="pm2 stop ~/ecosystem.config.js"       # Para apps via ecosystem file
+alias p-restart="pm2 restart ~/ecosystem.config.js" # Reinicia apps via ecosystem file
+alias pl="pm2 list"                                  # Lista todos os processos
+alias psave="pm2 save"                               # Salva a lista de processos atual
+alias pres="pm2 resurrect"                           # Restaura a lista de processos salva
+alias pmon="pm2 monit"                               # Monitora CPU/memória em tempo real
+alias plog="pm2 logs"                                # Segue os logs de todos os processos
+alias pstop="pm2 stop"                               # Para um processo (ex: pstop 0)
+alias prestart="pm2 restart"                         # Reinicia um processo
+alias pdel="pm2 delete"                              # Remove um processo da lista
+
+# --- Agentlytics ---
+alias agl-start="pm2 start agentlytics"              # Inicia o Agentlytics
+alias agl-stop="pm2 stop agentlytics"                # Para o Agentlytics
+alias agl-restart="pm2 restart agentlytics"          # Reinicia o Agentlytics
+alias agl-logs="pm2 logs agentlytics"                # Segue os logs do Agentlytics
+alias agl-show="pm2 show agentlytics"                # Mostra detalhes do Agentlytics
+
 # --- Homebrew ---
 alias update="brew update && brew upgrade"      # Atualiza o Homebrew e todos os pacotes instalados
 alias brewup="brew update && brew upgrade && brew cleanup" # Atualiza e remove versões antigas
