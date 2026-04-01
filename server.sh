@@ -25,7 +25,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.0"
+VERSION="0.41.1"
 INSTALL_URL="https://server.setupvibe.dev"
 
 # --- ARGUMENT PARSING ---
@@ -420,6 +420,9 @@ step_2() {
     sys_do apt-get update -qq
     sys_do apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
     sys_do usermod -aG docker "$REAL_USER"
+    
+    echo "Enabling and starting Docker service..."
+    sys_do systemctl enable --now docker
 
     # Ansible Strategy
     echo "Configuring Ansible..."
@@ -439,6 +442,22 @@ step_2() {
     sys_do chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sys_do tee /etc/apt/sources.list.d/github-cli.list > /dev/null
     sys_do apt-get update -qq && sys_do apt-get install -y gh
+
+    # Portainer Setup
+    echo "Configuring Portainer..."
+    user_do mkdir -p "$REAL_HOME/.setupvibe/portainer_data"
+    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/portainer-compose.yml "$REAL_HOME/.setupvibe/portainer-compose.yml"
+    sys_do chown -R "$REAL_USER:$(id -gn $REAL_USER)" "$REAL_HOME/.setupvibe"
+
+    # Try to start Portainer if docker is running
+    if command -v docker &>/dev/null && sys_do docker info &>/dev/null; then
+        echo "Starting Portainer..."
+        sys_do docker compose -f "$REAL_HOME/.setupvibe/portainer-compose.yml" up -d
+        echo -e "${GREEN}✔ Portainer is running at http://localhost:9000 and https://localhost:9443${NC}"
+    else
+        echo -e "${YELLOW}⚠ Docker is not running or socket is not ready. Portainer will be ready to start later with:${NC}"
+        echo -e "${CYAN}  docker compose -f ~/.setupvibe/portainer-compose.yml up -d${NC}"
+    fi
 }
 
 

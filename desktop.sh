@@ -24,7 +24,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.0"
+VERSION="0.41.1"
 INSTALL_URL="https://desktop.setupvibe.dev"
 
 echo -e "${CYAN}SetupVibe Desktop v${VERSION}${NC}"
@@ -795,6 +795,9 @@ step_7() {
         sys_do apt-get update -qq
         sys_do apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
         sys_do usermod -aG docker "$REAL_USER"
+        
+        echo "Enabling and starting Docker service..."
+        sys_do systemctl enable --now docker
 
         # Ansible Strategy
         echo "Configuring Ansible..."
@@ -823,9 +826,9 @@ step_7() {
     sys_do chown -R "$REAL_USER:$(id -gn $REAL_USER)" "$REAL_HOME/.setupvibe"
 
     # Try to start Portainer if docker is running
-    if command -v docker &>/dev/null && docker info &>/dev/null; then
+    if command -v docker &>/dev/null && sys_do docker info &>/dev/null; then
         echo "Starting Portainer..."
-        user_do docker compose -f "$REAL_HOME/.setupvibe/portainer-compose.yml" up -d
+        sys_do docker compose -f "$REAL_HOME/.setupvibe/portainer-compose.yml" up -d
         echo -e "${GREEN}✔ Portainer is running at http://localhost:9000 and https://localhost:9443${NC}"
     else
         echo -e "${YELLOW}⚠ Docker is not running. Portainer will be ready to start later with:${NC}"

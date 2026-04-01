@@ -4,7 +4,7 @@ This file provides instructions and context for Gemini CLI when working with the
 
 ## Project Overview
 
-**SetupVibe** is a cross-platform automated development environment setup tool (v0.41.0). It streamlines the installation and configuration of a complete developer toolkit for macOS (12+) and major Linux distributions (Ubuntu 24.04+, Debian 12+, Zorin OS 18+).
+**SetupVibe** is a cross-platform automated development environment setup tool (v0.41.1). It streamlines the installation and configuration of a complete developer toolkit for macOS (12+) and major Linux distributions (Ubuntu 24.04+, Debian 12+, Zorin OS 18+).
 
 The project consists of two primary editions:
 
@@ -50,7 +50,13 @@ Since there is no automated test suite, changes should be verified by running th
 
 ### Versioning
 
-The version number is defined at the top of both `desktop.sh` and `server.sh`. Ensure both are updated simultaneously when bumping the version.
+The version number is defined at the top of both `desktop.sh` and `server.sh`. **Whenever a version is changed, it must be updated in ALL related files to maintain consistency**, including:
+- `desktop.sh` (version variable)
+- `server.sh` (version variable)
+- `CHANGELOG.md` (new entry)
+- `GEMINI.md` (project overview)
+- `CLAUDE.md` (project overview)
+- Any other documentation referring to the current version.
 
 ## Development Conventions
 

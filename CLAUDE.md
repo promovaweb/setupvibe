@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-**SetupVibe** is a cross-platform automated development environment setup script (v0.41.0). It installs and configures a complete developer toolkit in one command, supporting macOS 12+ and Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+).
+**SetupVibe** is a cross-platform automated development environment setup script (v0.41.1). It installs and configures a complete developer toolkit in one command, supporting macOS 12+ and Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+).
 
 There are two editions:
 
@@ -102,7 +102,13 @@ ARCH_RAW=$(dpkg --print-architecture)  # amd64 or arm64
 
 ## Versioning
 
-The version string appears in both `desktop.sh` and `server.sh` near the top of each file. Update both when bumping the version.
+The version number is defined at the top of both `desktop.sh` and `server.sh`. **Whenever a version is changed, it must be updated in ALL related files to maintain consistency**, including:
+- `desktop.sh` (version variable)
+- `server.sh` (version variable)
+- `CHANGELOG.md` (new entry)
+- `GEMINI.md` (project overview)
+- `CLAUDE.md` (project overview)
+- Any other documentation referring to the current version.
 
 ## Markdown Standards
 

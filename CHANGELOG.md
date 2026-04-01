@@ -6,6 +6,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [v0.41.1] - 2026-03-31
+
+### Added
+
+- Portainer installation added to Server Edition (Step 2)
+- Consistency: Both Desktop and Server editions now deploy Portainer via `~/.setupvibe/portainer-compose.yml`
+
+### Fixed
+
+- Docker service is now explicitly enabled and started (`systemctl enable --now docker`) on Linux in both editions
+- Portainer startup process hardened using `sys_do` to bypass group membership delays during installation
+- Docker status verification improved with `sys_do docker info` for better reliability during setup
+
+---
+
 ## [v0.41.0] - 2026-03-31
 
 ### Added
