@@ -764,7 +764,7 @@ step_5() {
 
         echo "Installing Cronboard (Cron TUI)..."
         if ! user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v cronboard" &> /dev/null; then
-            user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool install cronboard"
+            user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool install git+https://github.com/antoniorodr/cronboard"
         fi
 
         cron_ensure
