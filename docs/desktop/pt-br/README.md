@@ -1,6 +1,6 @@
 # SetupVibe — Edição Desktop
 
-> Configuração de ambiente de desenvolvimento multiplataforma — v0.41.4
+> Configuração de ambiente de desenvolvimento multiplataforma — v0.41.5
 
 Instala e configura um stack de desenvolvedor completo em um comando. Suporta macOS e as principais distribuições Linux.
 
@@ -158,6 +158,7 @@ Instaladas globalmente via `npm install -g`:
 | Agentlytics        | `agentlytics`                    |
 | Claude Code        | `@anthropic-ai/claude-code`      |
 | Gemini CLI         | `@google/gemini-cli`             |
+| GSD 2              | `@gsd-build/cli`                 |
 | OpenAI Codex       | `@openai/codex`                  |
 | GitHub Copilot CLI | `@githubnext/github-copilot-cli` |
 
@@ -192,6 +193,9 @@ Cada plataforma recebe um `.zshrc` dedicado:
 | `brewup`   | `brew update && brew upgrade && brew cleanup`                                              |
 | `ge`       | `gemini --approval-mode=yolo`                                                                 |
 | `cc`       | `claude --permission-mode=auto --dangerously-skip-permissions`                                |
+| `gsdn`     | `gsd new`                                                                                     |
+| `gsds`     | `gsd status`                                                                                  |
+| `gsdm`     | `gsd map`                                                                                     |
 | `skl`      | `npx skills list`                                                                             |
 | `skf`      | `npx skills find`                                                                             |
 | `ska`      | `npx skills add`                                                                              |

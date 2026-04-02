@@ -6,6 +6,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [v0.41.5] - 2026-04-02
+
+### Added
+
+- Added GSD 2 (`@gsd-build/cli`) to the AI CLI Tools step in both Desktop and Server editions.
+- Added ZSH aliases for GSD 2: `gsdn` (new), `gsds` (status), `gsdm` (map), and `gsdi` (init).
+
+---
+
 ## [v0.41.4] - 2026-04-01
 
 ### Added

@@ -47,6 +47,10 @@ alias setupvibe="curl -sSL desktop.setupvibe.dev | bash"                      # 
 # --- AI CLIs ---
 alias ge="gemini --approval-mode=yolo"                                        # Gemini CLI sem confirmações
 alias cc="claude --permission-mode=auto --dangerously-skip-permissions"        # Claude CLI sem confirmações
+alias gsdn="gsd new"                                                          # Inicia um novo projeto/task com GSD
+alias gsds="gsd status"                                                       # Mostra o status do milestone atual
+alias gsdm="gsd map"                                                          # Mapeia o contexto do projeto
+alias gsdi="gsd init"                                                         # Inicializa o GSD no projeto
 
 # --- Skills CLI ---
 alias skl="npx skills list"                     # Lista todas as skills instaladas

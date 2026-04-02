@@ -24,7 +24,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.4"
+VERSION="0.41.5"
 INSTALL_URL="https://desktop.setupvibe.dev"
 
 echo -e "${CYAN}SetupVibe Desktop v${VERSION}${NC}"
@@ -1122,6 +1122,7 @@ step_13() {
         "agentlytics"
         "@anthropic-ai/claude-code"
         "@google/gemini-cli"
+        "@gsd-build/cli"
         "@openai/codex"
         "@githubnext/github-copilot-cli"
     )

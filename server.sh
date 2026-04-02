@@ -25,7 +25,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.4"
+VERSION="0.41.5"
 INSTALL_URL="https://server.setupvibe.dev"
 
 # --- ARGUMENT PARSING ---
@@ -654,6 +654,7 @@ step_7() {
     AI_TOOLS=(
         "@anthropic-ai/claude-code"
         "@google/gemini-cli"
+        "@gsd-build/cli"
         "@openai/codex"
         "@githubnext/github-copilot-cli"
     )

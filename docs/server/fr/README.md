@@ -1,6 +1,6 @@
 # SetupVibe — Édition Serveur
 
-> Configuration de serveur Linux — v0.41.4
+> Configuration de serveur Linux — v0.41.5
 
 Un script de configuration léger et ciblé pour les serveurs Linux. Pas de Homebrew, pas d'écosystèmes de langages, pas d'outils de bureau. Installe uniquement ce dont un serveur de production a besoin : Docker, Ansible, réseau, shell, tmux et outils AI CLI.
 
@@ -135,10 +135,11 @@ Appuyez sur `prefix + I` dans tmux pour installer tous les plugins. Voir le [Gui
 
 Installe **Node.js 24** via le dépôt APT NodeSource, puis installe globalement via `npm install -g` :
 
-| Outil              | Paquet                           |
+| Outil               | Paquet                           |
 | ------------------ | -------------------------------- |
 | Claude Code        | `@anthropic-ai/claude-code`      |
 | Gemini CLI         | `@google/gemini-cli`             |
+| GSD 2              | `@gsd-build/cli`                 |
 | OpenAI Codex       | `@openai/codex`                  |
 | GitHub Copilot CLI | `@githubnext/github-copilot-cli` |
 

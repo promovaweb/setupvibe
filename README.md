@@ -1,6 +1,6 @@
 # SetupVibe
 
-> The ultimate cross-platform development environment setup script — v0.41.4
+> The ultimate cross-platform development environment setup script — v0.41.5
 
 Installs and configures a complete development stack in one command, supporting macOS and major Linux distributions.
 

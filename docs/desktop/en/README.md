@@ -1,6 +1,6 @@
 # SetupVibe — Desktop Edition
 
-> Cross-platform development environment setup — v0.41.4
+> Cross-platform development environment setup — v0.41.5
 
 Installs and configures a complete developer stack in one command. Supports macOS and major Linux distributions.
 
@@ -157,6 +157,7 @@ Installed globally via `npm install -g`:
 | Agentlytics        | `agentlytics`                    |
 | Claude Code        | `@anthropic-ai/claude-code`      |
 | Gemini CLI         | `@google/gemini-cli`             |
+| GSD 2              | `@gsd-build/cli`                 |
 | OpenAI Codex       | `@openai/codex`                  |
 | GitHub Copilot CLI | `@githubnext/github-copilot-cli` |
 
@@ -191,6 +192,9 @@ Each platform gets a dedicated `.zshrc`:
 | `brewup`   | `brew update && brew upgrade && brew cleanup`                                         |
 | `ge`       | `gemini --approval-mode=yolo`                                                         |
 | `cc`       | `claude --permission-mode=auto --dangerously-skip-permissions`                        |
+| `gsdn`     | `gsd new`                                                                             |
+| `gsds`     | `gsd status`                                                                          |
+| `gsdm`     | `gsd map`                                                                             |
 | `skl`      | `npx skills list`                                                                     |
 | `skf`      | `npx skills find`                                                                     |
 | `ska`      | `npx skills add`                                                                      |
