@@ -9,32 +9,42 @@ metadata:
 
 Apply the SetupVibe Markdown rules to every `.md` file you create or edit.
 
-## Mandatory Rules
+## Source of Truth
 
-Every Markdown file in this project must follow these rules:
+All formatting rules, markdownlint rule IDs, configuration values, and examples are defined in [`MARKDOWN.md`](../../../MARKDOWN.md) at the project root. **Read that file before applying rules.** Do not derive rules from CLAUDE.md or any other file — `MARKDOWN.md` is authoritative.
 
-1. **Headings** — use hierarchical `#` (H1 → H2 → H3), never skip levels.
-2. **Tables** — columns aligned with pipes `|`, always include a separator row `|---|---|`.
-3. **Code blocks** — always specify the language (` ```bash `, ` ```js `, etc.).
-4. **Links** — use `[text](url)` format, never bare URLs.
-5. **Lists** — hyphens `-` for unordered items; numbers for ordered lists.
-6. **Blank lines** — one blank line before and after headings, code blocks, and tables.
-7. **No inline HTML** — do not use `<br>`, `<b>`, `<i>` or other tags inside Markdown.
+The markdownlint configuration is in [`.markdownlint.json`](../../../.markdownlint.json).
 
 ## How to Apply
 
 For each `.md` file modified or created:
 
-1. Verify all rules above are respected.
-2. Fix spacing, table alignment, and code blocks missing a language specifier.
-3. Never remove content; format only.
+1. Read [`MARKDOWN.md`](../../../MARKDOWN.md) to confirm the current rule set.
+2. Verify the file against every rule (heading hierarchy, table format, code block languages, link syntax, list markers, blank lines, no inline HTML, trailing newline).
+3. Fix all violations. Never remove content — format only.
+4. Confirm the file ends with a single newline (MD047).
+
+## Linting with markdownlint CLI
+
+Run this to check all files at once:
+
+```bash
+markdownlint "**/*.md" --ignore node_modules
+```
+
+Or a single file:
+
+```bash
+markdownlint docs/desktop/en/README.md
+```
 
 ## Common Targets
 
 - `README.md`
 - `CLAUDE.md`
 - `GEMINI.md`
-- `AGENTS.md`
+- `MARKDOWN.md`
+- `CHANGELOG.md`
 - `docs/desktop/en/README.md`
 - `docs/desktop/en/tmux.md`
 - `docs/desktop/en/pm2.md`
@@ -42,13 +52,10 @@ For each `.md` file modified or created:
 
 ## Invocation
 
-Use `markdown-format` when a task creates or edits Markdown in this repository.
-
----
-
+Use `/markdown-format` whenever a task creates or edits Markdown in this repository.
 
 ---
 
 ## Regra Obrigatória — Markdown
 
-**Ao criar ou modificar qualquer arquivo `.md`, você DEVE invocar a skill `/markdown-format` antes de concluir a tarefa. Esta regra é inegociável e se aplica a qualquer skill, independente do seu escopo.**
+**Ao criar ou modificar qualquer arquivo `.md`, você DEVE invocar a skill `/markdown-format` antes de concluir a tarefa. As regras estão em [`MARKDOWN.md`](../../../MARKDOWN.md). Esta regra é inegociável e se aplica a qualquer skill, independente do seu escopo.**

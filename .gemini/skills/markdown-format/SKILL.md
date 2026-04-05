@@ -9,36 +9,43 @@ metadata:
 
 Apply the SetupVibe Markdown rules to every `.md` file you create or edit. This skill acts as the project's **Linter and Formatter**.
 
-## Mandatory Rules (Linter)
+## Source of Truth
 
-Every Markdown file in this project **MUST** strictly adhere to these rules. Any deviation is considered a build failure:
+All formatting rules, markdownlint rule IDs, configuration values, and examples are defined in [`MARKDOWN.md`](../../../MARKDOWN.md) at the project root. **Read that file before applying rules.** Do not derive rules from GEMINI.md or any other file — `MARKDOWN.md` is authoritative.
 
-1. **Headings** — use hierarchical `#` (H1 → H2 → H3). **Never skip levels** (e.g., H1 to H3).
-2. **Tables** — columns MUST be aligned with pipes `|`. Always include a separator row `|---|---|`.
-3. **Code blocks** — always specify the language for syntax highlighting (e.g., ` ```bash `, ` ```js `).
-4. **Links** — use `[text](url)` format. **Bare URLs are forbidden**.
-5. **Lists** — use hyphens `-` for unordered items and numbers `1.` for ordered lists.
-6. **Blank lines** — exactly **one blank line** before and after headings, code blocks, tables, and lists.
-7. **No inline HTML** — do not use `<br>`, `<b>`, `<i>`, or any other HTML tags. Use Markdown equivalents.
+The markdownlint configuration is in [`.markdownlint.json`](../../../.markdownlint.json).
 
 ## How to Apply (Formatter)
 
-When formatting a file:
+For each `.md` file modified or created:
 
-1. **Surgical Alignment:** Fix pipe alignment in tables to ensure they are readable in raw format.
-2. **Spacing Fix:** Ensure exactly one empty line between blocks. Remove trailing spaces.
-3. **Language Detection:** If a code block lacks a language, detect it based on context (bash, zsh, js, json, etc.).
-4. **Standardization:** Convert any non-standard list markers (like `*` or `+`) to `-`.
+1. Read [`MARKDOWN.md`](../../../MARKDOWN.md) to confirm the current rule set.
+2. **Surgical Alignment:** Fix pipe alignment in tables for readability in raw format.
+3. **Spacing Fix:** Ensure exactly one blank line between blocks. Remove trailing spaces.
+4. **Language Detection:** If a code block lacks a language, detect it from context (`bash`, `zsh`, `js`, `json`, etc.).
+5. **Standardization:** Convert non-standard list markers (`*` or `+`) to `-`.
+6. Confirm the file ends with a single newline (MD047).
+
+## Linting with markdownlint CLI
+
+Run this to check all files at once:
+
+```bash
+markdownlint "**/*.md" --ignore node_modules
+```
+
+Or a single file:
+
+```bash
+markdownlint docs/desktop/en/README.md
+```
 
 ## Invocation
 
-This skill is the **source of truth** for formatting. It must be called at the end of every task that modifies Markdown files to ensure compliance.
-
----
-
+This skill is the automated enforcer of the rules in `MARKDOWN.md`. It must be called at the end of every task that modifies Markdown files to ensure compliance.
 
 ---
 
 ## Regra Obrigatória — Markdown
 
-**Ao criar ou modificar qualquer arquivo `.md`, você DEVE invocar a skill `/markdown-format` antes de concluir a tarefa. Esta regra é inegociável e se aplica a qualquer skill, independente do seu escopo.**
+**Ao criar ou modificar qualquer arquivo `.md`, você DEVE invocar a skill `/markdown-format` antes de concluir a tarefa. As regras estão em [`MARKDOWN.md`](../../../MARKDOWN.md). Esta regra é inegociável e se aplica a qualquer skill, independente do seu escopo.**

@@ -72,4 +72,4 @@ Distribua as mudanças nas seções padronizadas do "Keep a Changelog":
 
 ## Regra Obrigatória — Markdown
 
-**Ao criar ou modificar qualquer arquivo `.md`, você DEVE invocar a skill `/markdown-format` antes de concluir a tarefa. Esta regra é inegociável e se aplica a qualquer skill, independente do seu escopo.**
+**Ao criar ou modificar qualquer arquivo `.md`, você DEVE invocar a skill `/markdown-format` antes de concluir a tarefa. As regras de formatação estão em [`MARKDOWN.md`](../../../MARKDOWN.md). Esta regra é inegociável e se aplica a qualquer skill, independente do seu escopo.**

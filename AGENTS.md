@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides instructions and context for AI coding agents (OpenAI Codex, Cursor, GitHub Copilot, and similar tools) when working with the **SetupVibe** repository.
 
 ## What This Project Is
 
@@ -60,26 +60,26 @@ Subset of desktop steps — no Homebrew, no language ecosystems (PHP, Ruby, Pyth
 
 ### `docs/` Directory
 
-| Path                        | Content                                                           |
-| --------------------------- | ----------------------------------------------------------------- |
-| `docs/README.md`            | Overview and comparison table of both editions                    |
-| `docs/desktop/en/README.md` | Full desktop edition documentation (14 steps)                     |
-| `docs/server/en/README.md`  | Server edition documentation (9 steps)                            |
-| `docs/desktop/en/tmux.md`   | Tmux plugin and keybinding reference (shared by both editions)    |
-| `docs/desktop/en/pm2.md`    | PM2 command and configuration reference (shared by both editions) |
+| Path | Content |
+| --- | --- |
+| `docs/README.md` | Overview and comparison table of both editions |
+| `docs/desktop/en/README.md` | Full desktop edition documentation (14 steps) |
+| `docs/server/en/README.md` | Server edition documentation (9 steps) |
+| `docs/desktop/en/tmux.md` | Tmux plugin and keybinding reference (shared by both editions) |
+| `docs/desktop/en/pm2.md` | PM2 command and configuration reference (shared by both editions) |
 
 ### `conf/` Directory
 
 Configuration files deployed by the scripts to the user's home directory:
 
-| File                  | Deployed to                | Purpose                                                                       |
-| --------------------- | -------------------------- | ----------------------------------------------------------------------------- |
-| `tmux-desktop.conf`   | `~/.tmux.conf` (desktop)   | Tmux with TPM; 20+ plugins, onedark theme, mouse support, session persistence |
-| `tmux-server.conf`    | `~/.tmux.conf` (server)    | Lean tmux config for server environments                                      |
-| `zshrc-macos.zsh`     | `~/.zshrc` (macOS)         | Homebrew, Cargo, Composer, Go, Bun, rbenv paths                               |
-| `zshrc-linux.zsh`     | `~/.zshrc` (Linux desktop) | Linuxbrew paths, NPM, system aliases                                          |
-| `zshrc-server.zsh`    | `~/.zshrc` (server)        | Server-specific shell config                                                  |
-| `ecosystem.config.js` | Used with PM2              | PM2 config for two app processes                                              |
+| File | Deployed to | Purpose |
+| --- | --- | --- |
+| `tmux-desktop.conf` | `~/.tmux.conf` (desktop) | Tmux with TPM; 20+ plugins, onedark theme, mouse support, session persistence |
+| `tmux-server.conf` | `~/.tmux.conf` (server) | Lean tmux config for server environments |
+| `zshrc-macos.zsh` | `~/.zshrc` (macOS) | Homebrew, Cargo, Composer, Go, Bun, rbenv paths |
+| `zshrc-linux.zsh` | `~/.zshrc` (Linux desktop) | Linuxbrew paths, NPM, system aliases |
+| `zshrc-server.zsh` | `~/.zshrc` (server) | Server-specific shell config |
+| `ecosystem.config.js` | Used with PM2 | PM2 config for two app processes |
 
 ## Key Scripting Patterns
 
@@ -100,9 +100,16 @@ REAL_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
 ARCH_RAW=$(dpkg --print-architecture)  # amd64 or arm64
 ```
 
+## Development Conventions
+
+- **Helper Functions**: Use `user_do` to run commands as the real user and `sys_do` for commands requiring elevated privileges.
+- **Keyring Management**: APT keys go in `/etc/apt/keyrings/`. Always remove legacy sources before adding new ones to prevent signature conflicts.
+- **Lock Management**: In `server.sh`, check for APT locks before package operations to avoid failures on boot.
+
 ## Versioning
 
 The version number is defined at the top of both `desktop.sh` and `server.sh`. **Whenever a version is changed, it must be updated in ALL related files to maintain consistency**, including:
+
 - `desktop.sh` (version variable)
 - `server.sh` (version variable)
 - `CHANGELOG.md` (new entry)
@@ -118,8 +125,6 @@ The version number is defined at the top of both `desktop.sh` and `server.sh`. *
 All `.md` files in this project must conform to the rules defined in [`MARKDOWN.md`](MARKDOWN.md). That file is the single source of truth for formatting rules, markdownlint rule IDs, configuration, and examples.
 
 The linting configuration is in [`.markdownlint.json`](.markdownlint.json) at the project root.
-
-Use the `/markdown-format` skill to verify and apply these rules across all Markdown files.
 
 ## AI Context File Synchronization
 
