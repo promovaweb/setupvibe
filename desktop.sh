@@ -723,12 +723,13 @@ step_5() {
         brew_cmd install go
         
         echo "Setup Rust..."
-        if ! command -v rustup &> /dev/null; then
-            user_do curl --proto \'=https\' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-            source "$HOME/.cargo/env"
+        if ! user_do bash -c "command -v rustup" &> /dev/null; then
+            user_do sh -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+            source "$REAL_HOME/.cargo/env" 2>/dev/null || true
         else
-            user_do rustup update
+            user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; rustup update"
         fi
+        export PATH="$REAL_HOME/.cargo/bin:$PATH"
 
         echo "Installing Cronboard (Cron TUI)..."
         brew_cmd install cronboard
