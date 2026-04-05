@@ -37,16 +37,14 @@ Sempre que houver mudanças nas funções `step_NN_` nos arquivos `desktop.sh` o
 2.  **Atualização:** Vá até a seção "What Gets Installed" (ou "O que é instalado") nos READMEs correspondentes.
 3.  **Replicação:** Aplique a mudança no `README.md` da raiz e nos READMEs de `docs/desktop/` ou `docs/server/` em **todos os 4 idiomas**.
 
-## 📝 Fase 3: Automação de CHANGELOG
+## 📝 Fase 3: Gestão de CHANGELOG
 
-Para documentar uma nova versão:
+Para documentar uma nova versão, utilize a skill especializada `make-changelog`. Ela automatiza:
+- A coleta de logs do Git.
+- A categorização em Added, Changed e Fixed.
+- A garantia de que o novo bloco de versão esteja no topo e formatado corretamente.
 
-1.  **Coleta:** Use `git log vANTERIOR..HEAD --oneline` para ver o que mudou.
-2.  **Classificação:**
-    *   `Added`: Novos scripts, ferramentas ou aliases.
-    *   `Changed`: Melhorias em funções existentes ou refatoração.
-    *   `Fixed`: Correções de bugs ou permissões.
-3.  **Escrita:** Siga o padrão [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+Após atualizar o CHANGELOG, siga para a Fase 4 para garantir que as traduções e links reflitam a nova versão.
 
 ## 🌍 Fase 4: Tradução e Glossário Técnico
 
