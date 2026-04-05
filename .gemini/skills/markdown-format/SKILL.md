@@ -24,7 +24,7 @@ Every Markdown file in this project **MUST** strictly adhere to these rules. Any
 
 ```markdown
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
+> Apply Markdown standards using the `/markdown-format` skill.
 ```
 
 ## How to Apply (Formatter)
@@ -42,4 +42,4 @@ When formatting a file:
 This skill is the **source of truth** for formatting. It must be called at the end of every task that modifies Markdown files to ensure compliance.
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
+> Apply Markdown standards using the `/markdown-format` skill.

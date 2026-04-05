@@ -26,7 +26,7 @@ Ao criar ou editar QUALQUER arquivo `.md`, você DEVE seguir estas regras para e
 6.  **Rodapé Obrigatório:** Todo arquivo deve terminar exatamente com:
     ```markdown
     ---
-    > Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
+    > Apply Markdown standards using the `/markdown-format` skill.
     ```
 
 ## 🔄 Fase 2: Sincronização de Passos (Steps)
@@ -65,4 +65,4 @@ Antes de considerar a tarefa concluída, execute:
 3.  Verificação visual de que o rodapé padrão está presente.
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
+> Apply Markdown standards using the `/markdown-format` skill.

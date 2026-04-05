@@ -57,4 +57,4 @@ Para garantir a perfeição visual e técnica do `CHANGELOG.md`:
 ```
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
+> Apply Markdown standards using the `/markdown-format` skill.

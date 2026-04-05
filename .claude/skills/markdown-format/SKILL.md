@@ -24,7 +24,7 @@ Every Markdown file in this project must follow these rules:
 
 ```markdown
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
+> Apply Markdown standards using the `/markdown-format` skill.
 ```
 
 ## How to Apply
@@ -52,4 +52,4 @@ For each `.md` file modified or created:
 Use `markdown-format` when a task creates or edits Markdown in this repository.
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
+> Apply Markdown standards using the `/markdown-format` skill.

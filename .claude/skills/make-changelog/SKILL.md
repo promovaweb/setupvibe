@@ -66,4 +66,4 @@ Distribua as mudanças nas seções padronizadas do "Keep a Changelog":
 ```
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
+> Apply Markdown standards using the `/markdown-format` skill.

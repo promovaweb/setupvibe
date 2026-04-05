@@ -197,4 +197,4 @@ Substitua `<autor>` pelo login do usuário que abriu a issue (campo `author:` li
 
 ---
 
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
+> Apply Markdown standards using the `/markdown-format` skill.

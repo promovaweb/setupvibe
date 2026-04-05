@@ -42,4 +42,4 @@ O Inglês (`en/`) é a fonte da verdade. Ao traduzir:
 3.  **Version Check:** `grep_search` para garantir que versões antigas foram substituídas.
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
+> Apply Markdown standards using the `/markdown-format` skill.
