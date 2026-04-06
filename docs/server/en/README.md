@@ -1,6 +1,6 @@
 # SetupVibe — Server Edition
 
-> Linux server setup — v0.41.5
+> Linux server setup — v0.41.6
 
 A lean, focused setup script for Linux servers. No Homebrew, no language ecosystems, no desktop tools. Installs only what a production server needs: Docker, Ansible, networking, shell, tmux, and AI CLI tools.
 
@@ -138,7 +138,6 @@ Installs **Node.js 24** via NodeSource APT repo, then installs globally via `npm
 | ------------------ | -------------------------------- |
 | Claude Code        | `@anthropic-ai/claude-code`      |
 | Gemini CLI         | `@google/gemini-cli`             |
-| GSD 2              | `@gsd-build/cli`                 |
 | OpenAI Codex       | `@openai/codex`                  |
 | GitHub Copilot CLI | `@githubnext/github-copilot-cli` |
 
@@ -160,6 +159,10 @@ Activated by passing `--manager` or by answering **yes** to the interactive prom
 3. **Creates the overlay network** `network_swarm_public` with `--driver overlay --attachable`. Idempotent — skips if the network already exists.
 4. **Displays join tokens** for both worker and manager roles so additional nodes can be joined immediately.
 
+## Contributing
+
+We welcome contributions of all sizes! Please read our [Contribution Guide](../../../CONTRIBUTING.md) to get started.
+
 ---
 
 ## License
@@ -169,4 +172,3 @@ Licensed under the **GNU General Public License v3.0** — see [LICENSE](../../L
 Maintained by [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

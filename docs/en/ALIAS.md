@@ -1,5 +1,7 @@
 # SetupVibe Aliases
 
+> Shell environment aliases — v0.41.6
+
 This is the exhaustive list of all aliases configured by SetupVibe on all platforms.
 
 **Availability Legend:**
@@ -1676,4 +1678,3 @@ This is the exhaustive list of all aliases configured by SetupVibe on all platfo
   - Example: `dotenv`
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

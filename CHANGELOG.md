@@ -2,7 +2,21 @@
 
 All notable changes to **SetupVibe** are documented in this file.
 
-Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+---
+
+## [v0.41.6] - 2026-04-05
+
+### Added
+
+- New Python and `uv` aliases in Server Edition: `py`, `pyv`, `uvi`, `uvs`, `venv`, and `activate`.
+- Automatic addition of `$HOME/.local/bin` to `.bashrc` in both Desktop and Server editions to ensure tool accessibility in Bash sessions.
+
+### Changed
+
+- Improved Composer installation with explicit directory/filename flags and robust PATH handling for global packages.
+- Enhanced Ruby compilation process using a local `TMPDIR` to bypass `noexec` restrictions on `/tmp`.
+- Optimized Rust/rustup installation and update logic with improved PATH management.
+- Refined post-installation instructions to suggest `exec zsh` for immediate shell synchronization.
 
 ---
 
@@ -267,4 +281,3 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

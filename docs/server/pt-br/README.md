@@ -1,6 +1,6 @@
 # SetupVibe — Edição Servidor
 
-> Configuração de servidor Linux — v0.41.5
+> Configuração de servidor Linux — v0.41.6
 
 Um script de configuração enxuto e focado para servidores Linux. Sem Homebrew, sem ecossistemas de linguagens, sem ferramentas de desktop. Instala apenas o que um servidor de produção precisa: Docker, Ansible, rede, shell, tmux e ferramentas AI CLI.
 
@@ -139,7 +139,6 @@ Instala o **Node.js 24** via repositório NodeSource APT, e então instala globa
 | ------------------ | -------------------------------- |
 | Claude Code        | `@anthropic-ai/claude-code`      |
 | Gemini CLI         | `@google/gemini-cli`             |
-| GSD 2              | `@gsd-build/cli`                 |
 | OpenAI Codex       | `@openai/codex`                  |
 | GitHub Copilot CLI | `@githubnext/github-copilot-cli` |
 
@@ -161,6 +160,10 @@ Ativado passando `--manager` ou respondendo **sim** ao prompt interativo exibido
 3. **Cria a rede overlay** `network_swarm_public` com `--driver overlay --attachable`. Idempotente — ignora se a rede já existir.
 4. **Exibe os tokens de ingresso** para as roles worker e manager, permitindo adicionar novos nós imediatamente.
 
+## Contribuição
+
+Contribuições de todos os tamanhos são bem-vindas! Por favor, leia nosso [Guia de Contribuição](../../../CONTRIBUTING.md) para começar.
+
 ---
 
 ## Licença
@@ -170,4 +173,3 @@ Licenciado sob a **GNU General Public License v3.0** — veja [LICENSE](../../LI
 Mantido por [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

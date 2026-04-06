@@ -1,6 +1,6 @@
 # SetupVibe — Desktop Edition
 
-> Cross-platform development environment setup — v0.41.5
+> Cross-platform development environment setup — v0.41.6
 
 Installs and configures a complete developer stack in one command. Supports macOS and major Linux distributions.
 
@@ -157,9 +157,10 @@ Installed globally via `npm install -g`:
 | Agentlytics        | `agentlytics`                    |
 | Claude Code        | `@anthropic-ai/claude-code`      |
 | Gemini CLI         | `@google/gemini-cli`             |
-| GSD 2              | `@gsd-build/cli`                 |
 | OpenAI Codex       | `@openai/codex`                  |
 | GitHub Copilot CLI | `@githubnext/github-copilot-cli` |
+
+**Spec-Kit** is installed via `uv tool install specify-cli`. See [SPECKIT.md](SPECKIT.md) for the full Spec-Driven Development guide and aliases.
 
 ### Step 14 — Finalization & Cleanup
 
@@ -192,9 +193,6 @@ Each platform gets a dedicated `.zshrc`:
 | `brewup`   | `brew update && brew upgrade && brew cleanup`                                         |
 | `ge`       | `gemini --approval-mode=yolo`                                                         |
 | `cc`       | `claude --permission-mode=auto --dangerously-skip-permissions`                        |
-| `gsdn`     | `gsd new`                                                                             |
-| `gsds`     | `gsd status`                                                                          |
-| `gsdm`     | `gsd map`                                                                             |
 | `skl`      | `npx skills list`                                                                     |
 | `skf`      | `npx skills find`                                                                     |
 | `ska`      | `npx skills add`                                                                      |
@@ -212,6 +210,10 @@ Each platform gets a dedicated `.zshrc`:
 
 `git rsync cp extract zoxide fzf zsh-autosuggestions zsh-syntax-highlighting brew gh ansible docker docker-compose laravel composer rails ruby python pip node npm bun golang rust` + `macos` (macOS only) / `nmap tmux` (Linux only)
 
+## Contributing
+
+We welcome contributions of all sizes! Please read our [Contribution Guide](../../../CONTRIBUTING.md) to get started.
+
 ---
 
 ## License
@@ -221,4 +223,3 @@ Licensed under the **GNU General Public License v3.0** — see [LICENSE](../../L
 Maintained by [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

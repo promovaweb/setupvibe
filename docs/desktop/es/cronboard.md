@@ -1,4 +1,5 @@
 # Guía de Cronboard
+> Panel de monitoreo Cron TUI — v0.41.6
 
 SetupVibe instala [Cronboard](https://github.com/antoniorodr/cronboard) para proporcionar una interfaz de usuario de terminal (TUI) para gestionar tareas de cron.
 
@@ -50,4 +51,3 @@ Cronboard permite gestionar servidores a través de SSH. Puedes configurar conex
 Para más detalles sobre configuraciones avanzadas, visita la [documentación oficial](https://antoniorodr.github.io/cronboard/configuration/).
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

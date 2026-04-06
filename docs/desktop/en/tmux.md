@@ -1,4 +1,5 @@
 # Tmux Guide
+> Terminal multiplexer configuration — v0.41.6
 
 SetupVibe installs and configures tmux with [TPM](https://github.com/tmux-plugins/tpm) and a curated plugin set. The Desktop edition uses [`conf/tmux-desktop.conf`](../../../conf/tmux-desktop.conf), downloaded automatically during setup.
 
@@ -359,4 +360,3 @@ Highlights the status bar when the prefix key is active, in copy mode, or in syn
 | `prefix + Space` | `next-layout`                 | tmux-which-key    | which-key takes Space — next-layout still available via `prefix + Alt+1–5` |
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

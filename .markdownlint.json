@@ -1,0 +1,23 @@
+{
+  "default": true,
+  "MD001": true,
+  "MD003": { "style": "atx" },
+  "MD004": { "style": "dash" },
+  "MD009": true,
+  "MD010": true,
+  "MD012": { "maximum": 1 },
+  "MD013": false,
+  "MD022": true,
+  "MD023": true,
+  "MD024": false,
+  "MD025": true,
+  "MD031": true,
+  "MD032": true,
+  "MD033": true,
+  "MD034": true,
+  "MD040": true,
+  "MD041": false,
+  "MD047": true,
+  "MD049": { "style": "asterisk" },
+  "MD050": { "style": "asterisk" }
+}

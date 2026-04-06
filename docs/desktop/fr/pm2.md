@@ -1,4 +1,5 @@
 # Guide PM2
+> Guide de gestion de processus — v0.41.6
 
 SetupVibe installe [PM2](https://pm2.keymetrics.io/) globalement et le configure pour un démarrage automatique sur l'édition Desktop.
 
@@ -263,4 +264,3 @@ pm2 unstartup
 ```
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

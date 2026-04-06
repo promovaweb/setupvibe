@@ -1,6 +1,6 @@
 # SetupVibe — Edición Escritorio
 
-> Configuración de entorno de desarrollo multiplataforma — v0.41.5
+> Configuración de entorno de desarrollo multiplataforma — v0.41.6
 
 Instala y configura un stack de desarrollo completo en un solo comando. Soporta macOS y las principales distribuciones de Linux.
 
@@ -147,18 +147,19 @@ Instaladas mediante Homebrew en ambas plataformas.
 
 Presiona `prefix + I` dentro de tmux para instalar todos los plugins. Consulta [tmux.md](tmux.md) para la referencia completa de plugins y atajos.
 
-### Paso 13 — Herramientas IA CLI
+### Paso 13 — Herramientas de IA (CLI)
 
-Instaladas globalmente vía `npm install -g`:
+Instaladas globalmente a través de `npm install -g`:
 
 | Herramienta        | Paquete                          |
 | ------------------ | -------------------------------- |
 | Agentlytics        | `agentlytics`                    |
 | Claude Code        | `@anthropic-ai/claude-code`      |
 | Gemini CLI         | `@google/gemini-cli`             |
-| GSD 2              | `@gsd-build/cli`                 |
 | OpenAI Codex       | `@openai/codex`                  |
 | GitHub Copilot CLI | `@githubnext/github-copilot-cli` |
+
+**Spec-Kit** se instala a través de `uv tool install specify-cli`. Consulte [SPECKIT.md](SPECKIT.md) para obtener la guía completa de Spec-Driven Development y los aliases.
 
 ### Paso 14 — Finalización y Limpieza
 
@@ -191,9 +192,6 @@ Cada plataforma recibe un `.zshrc` dedicado:
 | `brewup`   | `brew update && brew upgrade && brew cleanup`                                             |
 | `ge`       | `gemini --approval-mode=yolo`                                                         |
 | `cc`       | `claude --permission-mode=auto --dangerously-skip-permissions`                        |
-| `gsdn`     | `gsd new`                                                                             |
-| `gsds`     | `gsd status`                                                                          |
-| `gsdm`     | `gsd map`                                                                             |
 | `skl`      | `npx skills list`                                                                     |
 | `skf`      | `npx skills find`                                                                     |
 | `ska`      | `npx skills add`                                                                      |
@@ -212,6 +210,10 @@ Cada plataforma recibe un `.zshrc` dedicado:
 
 `git rsync cp extract zoxide fzf zsh-autosuggestions zsh-syntax-highlighting brew gh ansible docker docker-compose laravel composer rails ruby python pip node npm bun golang rust` + `macos` (solo macOS) / `nmap tmux` (solo Linux)
 
+## Contribución
+
+¡Todas as contribuições de todos os tamanhos são bem-vindas! Por favor, leia nosso [Guia de Contribuição](../../../CONTRIBUTING.md) para começar.
+
 ---
 
 ## Licencia
@@ -221,4 +223,3 @@ Bajo la licencia **GNU General Public License v3.0** — ver [LICENSE](../../LIC
 Mantenido por [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

@@ -1,4 +1,5 @@
 # Guía de Tmux
+> Configuración del multiplexor de terminal — v0.41.6
 
 SetupVibe instala y configura tmux con [TPM](https://github.com/tmux-plugins/tpm) y un conjunto de plugins seleccionados. La edición Desktop usa [`conf/tmux-desktop.conf`](../../../conf/tmux-desktop.conf), descargada automáticamente durante la instalación.
 
@@ -359,4 +360,3 @@ Resalta la barra de estado cuando la tecla prefijo está activa, en modo copia o
 | `prefix + Space` | `next-layout`                 | tmux-which-key    | which-key toma Space; next-layout disponible vía `prefix + Alt+1–5`         |
 
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

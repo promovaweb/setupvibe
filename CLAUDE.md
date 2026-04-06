@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-**SetupVibe** is a cross-platform automated development environment setup script (v0.41.5). It installs and configures a complete developer toolkit in one command, supporting macOS 12+ and Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+).
+**SetupVibe** is a cross-platform automated development environment setup script (v0.41.6). It installs and configures a complete developer toolkit in one command, supporting macOS 12+ and Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+).
 
 There are two editions:
 
@@ -107,30 +107,41 @@ The version number is defined at the top of both `desktop.sh` and `server.sh`. *
 - `server.sh` (version variable)
 - `CHANGELOG.md` (new entry)
 - `README.md` (root project overview)
-- `GEMINI.md` (project overview)
+- `AGENTS.md` (project overview)
 - `CLAUDE.md` (project overview)
+- `GEMINI.md` (project overview)
 - All `README.md` files in the `docs/` directory and its subfolders.
 - Any other documentation referring to the current version.
 
 ## Markdown Standards
 
-All `.md` files in this project must follow these rules:
+All `.md` files in this project must conform to the rules defined in [`MARKDOWN.md`](MARKDOWN.md). That file is the single source of truth for formatting rules, markdownlint rule IDs, configuration, and examples.
 
-1. **Headings** — use hierarchical `#` (H1 → H2 → H3), never skip levels.
-2. **Tables** — columns aligned with pipes `|`, always include a separator row `|---|---|`.
-3. **Code blocks** — always specify the language (` ```bash `, ` ```js `, etc.).
-4. **Links** — use `[text](url)` format, never bare URLs.
-5. **Lists** — hyphens `-` for unordered items; numbers for ordered lists.
-6. **Blank lines** — one blank line before and after headings, code blocks, and tables.
-7. **No inline HTML** — do not use `<br>`, `<b>`, `<i>` or other tags inside Markdown.
-8. **Footer link** — every `.md` file must end with a formatting reference footer:
-
-```markdown
----
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)
-```
+The linting configuration is in [`.markdownlint.json`](.markdownlint.json) at the project root.
 
 Use the `/markdown-format` skill to verify and apply these rules across all Markdown files.
 
+## AI Context File Synchronization
+
+**`AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` are the three primary AI context files for this project.** They must always be kept in sync with each other.
+
+### Rule
+
+Whenever any one of these three files is modified — to add a new convention, update architecture information, change a rule, or correct an error — the **same change must be applied to the other two files** before the task is considered complete.
+
+### Scope
+
+This synchronization rule covers:
+
+- Project overview and version references
+- Architecture descriptions and step counts
+- Key scripting patterns and conventions
+- Versioning policy (the list of files to update)
+- Markdown standards reference
+- Any new global rule or policy added to one file
+
+### What is NOT synchronized
+
+Each file may contain sections specific to its target agent (tool-specific invocation syntax, skill references, etc.). Those sections are intentionally different and must not be overwritten.
+
 ---
-> Follow the formatting guide: [Markdown Format Guide](.claude/commands/markdown-format.md)

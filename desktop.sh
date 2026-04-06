@@ -2,12 +2,13 @@
 
 
 # ==============================================================================
-# SETUPVIBE.DEV - DESKTOP DEVELOPER EDITION (V2.3 - Cross Platform)
+# SETUPVIBE.DEV - DESKTOP DEVELOPER EDITION (V2.4 - Cross Platform)
 # ==============================================================================
 # Maintainer:    promovaweb.com
 # Contact:       contato@promovaweb.com
+# Contributing:  https://github.com/promovaweb/setupvibe/blob/main/CONTRIBUTING.md
 # ------------------------------------------------------------------------------
-# Compatibility: macOS 12+, Zorin OS 18+, Ubuntu 24.04+, Debian 12+
+# Compatibility: macOS 12+, Zorin OS 18+, Ubuntu 24.04+, Debian 12+, Arch Linux
 # Architectures: x86_64 (amd64) & ARM64 (aarch64/arm64)
 # ==============================================================================
 
@@ -24,7 +25,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.5"
+VERSION="0.41.6"
 INSTALL_URL="https://desktop.setupvibe.dev"
 
 echo -e "${CYAN}SetupVibe Desktop v${VERSION}${NC}"
@@ -57,11 +58,14 @@ sys_do() {
 cron_ensure() {
     echo "Ensuring cron service is active and configured..."
     if [[ "$(uname -s)" == "Linux" ]]; then
-        if [ "$PKG_MANAGER" = "pacman" ]; then
-            sys_do systemctl enable --now cronie 2>/dev/null || true
-        else
-            sys_do systemctl enable --now cron 2>/dev/null || true
-        fi
+        case "$PKG_MANAGER" in
+            pacman)
+                sys_do systemctl enable --now cronie 2>/dev/null || true
+                ;;
+            *)
+                sys_do systemctl enable --now cron 2>/dev/null || true
+                ;;
+        esac
     fi
 
     local CRON_HEARTBEAT="0 * * * * echo \"Cron heartbeat: \$(date)\" >> /tmp/cron-heartbeat.log"
@@ -294,11 +298,14 @@ if $IS_MACOS; then
         brew_cmd install figlet git 2>/dev/null || true
     fi
 else
-    if [ "$PKG_MANAGER" = "pacman" ]; then
-        sys_do pacman -Sy --noconfirm figlet git >/dev/null 2>&1
-    else
-        sys_do apt-get install -y figlet git >/dev/null 2>&1 || sys_do apt-get install -y --fix-missing figlet git >/dev/null
-    fi
+    case "$PKG_MANAGER" in
+        pacman)
+            sys_do pacman -Sy --noconfirm figlet git >/dev/null 2>&1
+            ;;
+        *)
+            sys_do apt-get install -y figlet git >/dev/null 2>&1 || sys_do apt-get install -y --fix-missing figlet git >/dev/null
+            ;;
+    esac
 fi
 
 
@@ -330,9 +337,11 @@ install_key() {
 brew_cmd() {
     if [[ "$(id -u)" -eq 0 && -n "$REAL_USER" && "$REAL_USER" != "root" ]]; then
         # Use runuser; cd to user home first (runuser inherits CWD and /root is not readable by others)
-        ( cd "$REAL_HOME" && runuser -u "$REAL_USER" -- env HOME="$REAL_HOME" "$BREW_PREFIX/bin/brew" "$@" )
+        # Redirect stdin from /dev/null to prevent brew from consuming the script when run via curl|bash
+        ( cd "$REAL_HOME" && runuser -u "$REAL_USER" -- env HOME="$REAL_HOME" "$BREW_PREFIX/bin/brew" "$@" < /dev/null )
     else
-        "$BREW_PREFIX/bin/brew" "$@"
+        # Redirect stdin from /dev/null to prevent brew from consuming the script when run via curl|bash
+        "$BREW_PREFIX/bin/brew" "$@" < /dev/null
     fi
 }
 
@@ -487,24 +496,27 @@ step_1() {
         echo "macOS build tools are provided by Xcode Command Line Tools (already installed)"
         echo "Base tools via Homebrew will be installed after Homebrew is set up (Step 3)..."
     else
-        if [ "$PKG_MANAGER" = "pacman" ]; then
-            echo "Updating Pacman..."
-            sys_do pacman -Syu --noconfirm
-            echo "Installing Base System & Tmux..."
-            sys_do pacman -S --noconfirm base-devel git wget unzip fontconfig curl sshpass openssl zlib bzip2 readline sqlite llvm ncurses xz tk libxml2 libxmlsec libffi yaml autoconf bison procps-ng file tmux ffmpeg imagemagick cronie glow
-        else
-            echo "Updating APT..."
-            sys_do apt-get update -qq
-            echo "Installing Build Essentials & Tmux..."
-            sys_do apt-get install -y build-essential git wget unzip fontconfig curl sshpass \
-                libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm \
-                libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
-                libyaml-dev autoconf bison procps file tmux ffmpeg imagemagick cron
-
-            install_key "https://repo.charm.sh/apt/gpg.key" "/etc/apt/keyrings/charm.gpg"
-            echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sys_do tee /etc/apt/sources.list.d/charm.list
-            sys_do apt-get update -qq
-        fi
+        case "$PKG_MANAGER" in
+            pacman)
+                echo "Updating Pacman..."
+                sys_do pacman -Syu --noconfirm
+                echo "Installing Base System & Tmux..."
+                sys_do pacman -S --noconfirm base-devel git wget unzip fontconfig curl sshpass openssl zlib bzip2 readline sqlite llvm ncurses xz tk libxml2 libxmlsec libffi yaml autoconf bison procps-ng file tmux ffmpeg imagemagick cronie glow
+                ;;
+            *)
+                echo "Updating APT..."
+                sys_do apt-get update -qq
+                echo "Installing Build Essentials & Tmux..."
+                sys_do apt-get install -y build-essential git wget unzip fontconfig curl sshpass \
+                    libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm \
+                    libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
+                    libyaml-dev autoconf bison procps file tmux ffmpeg imagemagick cron
+    
+                install_key "https://repo.charm.sh/apt/gpg.key" "/etc/apt/keyrings/charm.gpg"
+                echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sys_do tee /etc/apt/sources.list.d/charm.list
+                sys_do apt-get update -qq
+                ;;
+        esac
     fi
 }
 
@@ -533,11 +545,14 @@ step_2() {
         echo "Checking Homebrew installation..."
         if [ ! -d "/home/linuxbrew/.linuxbrew" ] && [ ! -d "$REAL_HOME/.linuxbrew" ]; then
             echo "Installing Homebrew prerequisites..."
-            if [ "$PKG_MANAGER" = "pacman" ]; then
-                sys_do pacman -S --noconfirm base-devel procps-ng curl file git
-            else
-                sys_do apt-get install -y build-essential procps curl file git
-            fi
+            case "$PKG_MANAGER" in
+                pacman)
+                    sys_do pacman -S --noconfirm base-devel procps-ng curl file git
+                    ;;
+                *)
+                    sys_do apt-get install -y build-essential procps curl file git
+                    ;;
+            esac
 
             sys_do mkdir -p /home/linuxbrew
             sys_do chown -R "$REAL_USER" /home/linuxbrew 2>/dev/null || true
@@ -600,41 +615,45 @@ step_3() {
         fi
         user_do composer global require laravel/installer
     else
-        if [ "$PKG_MANAGER" = "pacman" ]; then
-            echo "Installing PHP Ecosystem (Pacman)..."
-            sys_do pacman -S --noconfirm php php-cgi php-fpm php-gd php-intl php-pgsql php-sqlite php-redis xdebug composer
-        else
-            if $IS_UBUNTU; then
-                sys_do add-apt-repository ppa:ondrej/php -y
-            elif $IS_DEBIAN; then
-                PHP_CODENAME="$DISTRO_CODENAME"
-                case "$DISTRO_CODENAME" in
-                    trixie|forky|sid|experimental) PHP_CODENAME="bookworm" ;;
-                esac
-                install_key "https://packages.sury.org/php/apt.gpg" "/etc/apt/keyrings/php.gpg"
-                echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ $PHP_CODENAME main" | sys_do tee /etc/apt/sources.list.d/php.list
-            fi
-            sys_do apt-get update -qq
-            sys_do apt-get install -y php8.4 php8.4-cli php8.4-common php8.4-dev \
-                php8.4-curl php8.4-mbstring php8.4-xml php8.4-zip php8.4-bcmath php8.4-intl \
-                php8.4-mysql php8.4-pgsql php8.4-sqlite3 php8.4-gd php8.4-imagick \
-                php8.4-redis php8.4-mongodb php8.4-yaml php8.4-xdebug
-        fi
+        case "$PKG_MANAGER" in
+            pacman)
+                echo "Installing PHP Ecosystem (Pacman)..."
+                sys_do pacman -S --noconfirm php php-cgi php-fpm php-gd php-intl php-pgsql php-sqlite php-redis xdebug composer
+                ;;
+            *)
+                if $IS_UBUNTU; then
+                    sys_do add-apt-repository ppa:ondrej/php -y
+                elif $IS_DEBIAN; then
+                    PHP_CODENAME="$DISTRO_CODENAME"
+                    case "$DISTRO_CODENAME" in
+                        trixie|forky|sid|experimental) PHP_CODENAME="bookworm" ;;
+                    esac
+                    install_key "https://packages.sury.org/php/apt.gpg" "/etc/apt/keyrings/php.gpg"
+                    echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ $PHP_CODENAME main" | sys_do tee /etc/apt/sources.list.d/php.list
+                fi
+                sys_do apt-get update -qq
+                sys_do apt-get install -y php8.4 php8.4-cli php8.4-common php8.4-dev \
+                    php8.4-curl php8.4-mbstring php8.4-xml php8.4-zip php8.4-bcmath php8.4-intl \
+                    php8.4-mysql php8.4-pgsql php8.4-sqlite3 php8.4-gd php8.4-imagick \
+                    php8.4-redis php8.4-mongodb php8.4-yaml php8.4-xdebug
+                ;;
+        esac
 
         echo 'export COMPOSER_ALLOW_SUPERUSER=1' | sys_do tee /etc/profile.d/composer.sh > /dev/null
         sys_do chmod +x /etc/profile.d/composer.sh
         export COMPOSER_ALLOW_SUPERUSER=1
 
+        # Check for composer in .local/bin or system path
+        export PATH="$REAL_HOME/.local/bin:$PATH"
         if ! command -v composer &>/dev/null && [ ! -f "$REAL_HOME/.local/bin/composer" ]; then
             user_do mkdir -p "$REAL_HOME/.local/bin"
-            curl -sS https://getcomposer.org/installer | user_do php
-            user_do mv composer.phar "$REAL_HOME/.local/bin/composer"
+            curl -sS https://getcomposer.org/installer | user_do php -- --install-dir="$REAL_HOME/.local/bin" --filename=composer
             user_do chmod +x "$REAL_HOME/.local/bin/composer"
         else
-            user_do composer self-update 2>/dev/null || sys_do composer self-update
+            user_do bash -c "export PATH=\"$REAL_HOME/.local/bin:\$PATH\"; composer self-update" 2>/dev/null || true
         fi
-        export PATH="$REAL_HOME/.local/bin:$PATH"
-        user_do composer global require laravel/installer
+        echo "Setup Laravel Installer..."
+        user_do bash -c "export PATH=\"$REAL_HOME/.local/bin:\$PATH\"; composer global require laravel/installer"
     fi
 }
 
@@ -656,9 +675,13 @@ step_4() {
 
         user_do bash -c 'echo "gem: --no-document" > "$HOME/.gemrc"'
         if ! user_do bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv versions --bare | grep -q "^3.3.0$"'; then
-            user_do bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; export RUBY_CONFIGURE_OPTS="--disable-install-doc"; export MAKE_OPTS="-j$(nproc 2>/dev/null || echo 2)"; rbenv install 3.3.0 && rbenv global 3.3.0'
+            echo "Compiling Ruby 3.3.0 (this may take a few minutes)..."
+            # Use $HOME/.tmp as TMPDIR to avoid noexec on /tmp (common in cloud VMs)
+            user_do bash -c 'mkdir -p "$HOME/.tmp"; export TMPDIR="$HOME/.tmp"; export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; export RUBY_CONFIGURE_OPTS="--disable-install-doc"; export MAKE_OPTS="-j$(nproc 2>/dev/null || echo 2)"; rbenv install 3.3.0 && rbenv global 3.3.0'
         fi
-        user_do bash -c 'export PATH="$HOME/.rbenv/bin:$HOME/.rbenv/shims:$PATH"; gem install bundler rails --no-document'
+
+        echo "Installing Rails..."
+        user_do bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv rehash; gem install bundler rails --no-document'
     fi
 }
 
@@ -671,21 +694,29 @@ step_5() {
             user_do uv self update
         fi
         brew_cmd install go
-        if ! command -v rustup &> /dev/null; then
-            user_do curl --proto \'=https\' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-            source "$HOME/.cargo/env"
+        
+        echo "Setup Rust..."
+        if ! user_do bash -c "command -v rustup" &> /dev/null; then
+            user_do sh -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+            source "$REAL_HOME/.cargo/env" 2>/dev/null || true
         else
-            user_do rustup update
+            user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; rustup update"
         fi
+        export PATH="$REAL_HOME/.cargo/bin:$PATH"
+
+        echo "Installing Cronboard (Cron TUI)..."
         brew_cmd install cronboard
         cron_ensure
     else
         echo "Setup Python..."
-        if [ "$PKG_MANAGER" = "pacman" ]; then
-            sys_do pacman -S --noconfirm python python-pip python-virtualenv
-        else
-            sys_do apt-get install -y python3 python3-pip python3-venv python-is-python3
-        fi
+        case "$PKG_MANAGER" in
+            pacman)
+                sys_do pacman -S --noconfirm python python-pip python-virtualenv
+                ;;
+            *)
+                sys_do apt-get install -y python3 python3-pip python3-venv python-is-python3
+                ;;
+        esac
 
         if ! user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v uv" &> /dev/null; then
             user_do bash -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
@@ -724,14 +755,17 @@ step_6() {
         user_do npm install -g pm2 @n8n/cli
         user_do curl -fsSL https://bun.sh/install | bash
     else
-        if [ "$PKG_MANAGER" = "pacman" ]; then
-            sys_do pacman -S --noconfirm nodejs npm
-        else
-            install_key "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" "/etc/apt/keyrings/nodesource.gpg"
-            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sys_do tee /etc/apt/sources.list.d/nodesource.list
-            sys_do apt-get update -qq
-            sys_do apt-get install -y nodejs
-        fi
+        case "$PKG_MANAGER" in
+            pacman)
+                sys_do pacman -S --noconfirm nodejs npm
+                ;;
+            *)
+                install_key "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" "/etc/apt/keyrings/nodesource.gpg"
+                echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sys_do tee /etc/apt/sources.list.d/nodesource.list
+                sys_do apt-get update -qq
+                sys_do apt-get install -y nodejs
+                ;;
+        esac
         
         if [[ "$(id -u)" -ne 0 ]]; then
             user_do mkdir -p "$REAL_HOME/.npm-global"
@@ -752,32 +786,35 @@ step_7() {
         brew_cmd install ansible
         brew_cmd install gh
     else
-        if [ "$PKG_MANAGER" = "pacman" ]; then
-            sys_do pacman -S --noconfirm docker docker-compose docker-buildx ansible github-cli
-        else
-            DOCKER_CODENAME="$DISTRO_CODENAME"
-            if $IS_DEBIAN; then
-                case "$DISTRO_CODENAME" in
-                    trixie|forky|sid|experimental) DOCKER_CODENAME="bookworm" ;;
-                esac
-            fi
-            install_key "https://download.docker.com/linux/$DISTRO_ID/gpg" "/etc/apt/keyrings/docker.gpg"
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DOCKER_CODENAME stable" | sys_do tee /etc/apt/sources.list.d/docker.list
-            sys_do apt-get update -qq
-            sys_do apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
-            
-            if $IS_UBUNTU; then
-                sys_do add-apt-repository --yes --update ppa:ansible/ansible
-                sys_do apt-get install -y ansible
-            elif $IS_DEBIAN; then
-                sys_do apt-get install -y ansible-core
-            fi
-
-            wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sys_do tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
-            sys_do chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sys_do tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-            sys_do apt-get update -qq && sys_do apt-get install -y gh
-        fi
+        case "$PKG_MANAGER" in
+            pacman)
+                sys_do pacman -S --noconfirm docker docker-compose docker-buildx ansible github-cli
+                ;;
+            *)
+                DOCKER_CODENAME="$DISTRO_CODENAME"
+                if $IS_DEBIAN; then
+                    case "$DISTRO_CODENAME" in
+                        trixie|forky|sid|experimental) DOCKER_CODENAME="bookworm" ;;
+                    esac
+                fi
+                install_key "https://download.docker.com/linux/$DISTRO_ID/gpg" "/etc/apt/keyrings/docker.gpg"
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DOCKER_CODENAME stable" | sys_do tee /etc/apt/sources.list.d/docker.list
+                sys_do apt-get update -qq
+                sys_do apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
+                
+                if $IS_UBUNTU; then
+                    sys_do add-apt-repository --yes --update ppa:ansible/ansible
+                    sys_do apt-get install -y ansible
+                elif $IS_DEBIAN; then
+                    sys_do apt-get install -y ansible-core
+                fi
+    
+                wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sys_do tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+                sys_do chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sys_do tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+                sys_do apt-get update -qq && sys_do apt-get install -y gh
+                ;;
+        esac
 
         sys_do usermod -aG docker "$REAL_USER"
         sys_do systemctl enable --now docker
@@ -801,19 +838,23 @@ step_8() {
             user_do "$BREW_PREFIX/opt/fzf/install" --all --no-bash --no-fish 2>/dev/null || true
         fi
     else
-        # Prioridade para o Pacman no Arch Linux
-        if [ "$PKG_MANAGER" = "pacman" ]; then
-            sys_do pacman -S --noconfirm $TOOLS
-        elif command -v brew &>/dev/null; then
-            brew_cmd install $TOOLS || brew_cmd upgrade $TOOLS
-            local FZF_OPT="/home/linuxbrew/.linuxbrew/opt/fzf"
-            [ ! -d "$FZF_OPT" ] && FZF_OPT="$REAL_HOME/.linuxbrew/opt/fzf"
-            if [ -d "$FZF_OPT" ]; then
-                user_do "$FZF_OPT/install" --all --no-bash --no-fish >/dev/null 2>&1
-            fi
-        else
-            return 1
-        fi
+        case "$PKG_MANAGER" in
+            pacman)
+                sys_do pacman -S --noconfirm $TOOLS
+                ;;
+            *)
+                if command -v brew &>/dev/null; then
+                    brew_cmd install $TOOLS || brew_cmd upgrade $TOOLS
+                    local FZF_OPT="/home/linuxbrew/.linuxbrew/opt/fzf"
+                    [ ! -d "$FZF_OPT" ] && FZF_OPT="$REAL_HOME/.linuxbrew/opt/fzf"
+                    if [ -d "$FZF_OPT" ]; then
+                        user_do "$FZF_OPT/install" --all --no-bash --no-fish >/dev/null 2>&1
+                    fi
+                else
+                    return 1
+                fi
+                ;;
+        esac
     fi
 }
 
@@ -824,11 +865,14 @@ step_9() {
             if ! command -v $tool &> /dev/null; then user_do cargo install $tool; fi
         done
     else
-        if [ "$PKG_MANAGER" = "pacman" ]; then
-            sys_do pacman -S --noconfirm rsync net-tools bind mtr nmap tcpdump iftop nload iotop sysstat whois iputils speedtest-cli glances htop btop
-        else
-            sys_do apt-get install -y rsync net-tools dnsutils mtr-tiny nmap tcpdump iftop nload iotop sysstat whois iputils-ping speedtest-cli glances htop btop
-        fi
+        case "$PKG_MANAGER" in
+            pacman)
+                sys_do pacman -S --noconfirm rsync net-tools bind mtr nmap tcpdump iftop nload iotop sysstat whois iputils speedtest-cli glances htop btop
+                ;;
+            *)
+                sys_do apt-get install -y rsync net-tools dnsutils mtr-tiny nmap tcpdump iftop nload iotop sysstat whois iputils-ping speedtest-cli glances htop btop
+                ;;
+        esac
 
         for tool in bandwhich gping trippy rustscan; do
             if ! user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; command -v $tool" &> /dev/null; then
@@ -852,17 +896,20 @@ step_9() {
 step_10() {
     if $IS_MACOS; then return 0; fi
 
-    if [ "$PKG_MANAGER" = "pacman" ]; then
-        if ! command -v sshd &> /dev/null; then
-            sys_do pacman -S --noconfirm openssh
-        fi
-        SSH_SERVICE="sshd"
-    else
-        if ! command -v sshd &> /dev/null; then
-            sys_do apt-get install -y openssh-server openssh-client
-        fi
-        SSH_SERVICE="ssh"
-    fi
+    case "$PKG_MANAGER" in
+        pacman)
+            if ! command -v sshd &> /dev/null; then
+                sys_do pacman -S --noconfirm openssh
+            fi
+            SSH_SERVICE="sshd"
+            ;;
+        *)
+            if ! command -v sshd &> /dev/null; then
+                sys_do apt-get install -y openssh-server openssh-client
+            fi
+            SSH_SERVICE="ssh"
+            ;;
+    esac
 
     sys_do systemctl enable $SSH_SERVICE
     sys_do systemctl start $SSH_SERVICE
@@ -904,11 +951,14 @@ step_11() {
         perl -i -pe 's/╭/┌/g; s/╰/└/g; s/\x{e0b6}/\x{e0b2}/g; s/\x{e0b4}/\x{e0b0}/g' "$REAL_HOME/.config/starship.toml"
         safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/zshrc-macos.zsh "$REAL_HOME/.zshrc"
     else
-        if [ "$PKG_MANAGER" = "pacman" ]; then
-            sys_do pacman -S --noconfirm zsh unzip
-        else
-            sys_do apt-get install -y zsh
-        fi
+        case "$PKG_MANAGER" in
+            pacman)
+                sys_do pacman -S --noconfirm zsh unzip
+                ;;
+            *)
+                sys_do apt-get install -y zsh
+                ;;
+        esac
 
         if [ ! -d "$REAL_HOME/.oh-my-zsh" ]; then
             user_do sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
@@ -936,6 +986,11 @@ step_11() {
         safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/zshrc-linux.zsh "$REAL_HOME/.zshrc"
         sys_do chown $REAL_USER:$REAL_USER "$REAL_HOME/.zshrc"
 
+        # Ensure ~/.local/bin is in .bashrc so tools like uv are accessible in bash sessions
+        if ! grep -q '\.local/bin' "$REAL_HOME/.bashrc" 2>/dev/null; then
+            echo 'export PATH="$HOME/.local/bin:$PATH"' | user_do tee -a "$REAL_HOME/.bashrc" > /dev/null
+        fi
+
         if [ "$SHELL" != "/bin/zsh" ] && [ "$SHELL" != "/usr/bin/zsh" ]; then
             sys_do chsh -s $(which zsh) $REAL_USER
         fi
@@ -943,22 +998,44 @@ step_11() {
 }
 
 step_12() {
-    if [ "$PKG_MANAGER" = "pacman" ]; then
-        sys_do pacman -S --noconfirm tmux
-    elif $IS_MACOS; then
-        brew_cmd install tmux
-    else
-        sys_do apt-get install -y tmux
-    fi
-    
+    case "$PKG_MANAGER" in
+        pacman)
+            sys_do pacman -S --noconfirm tmux
+            ;;
+        apt)
+            sys_do apt-get install -y tmux
+            ;;
+        *)
+            if $IS_MACOS; then
+                brew_cmd install tmux
+            else
+                sys_do apt-get install -y tmux
+            fi
+            ;;
+    esac
+
     # ... (mantenha o restante da função que configura o tpm/plugins se houver)
 }
 
 step_13() {
-    AI_TOOLS=( "agentlytics" "@anthropic-ai/claude-code" "@google/gemini-cli" "@gsd-build/cli" "@openai/codex" "@githubnext/github-copilot-cli" )
+    AI_TOOLS=(
+        "agentlytics"
+        "@anthropic-ai/claude-code"
+        "@google/gemini-cli"
+        "@openai/codex"
+        "@githubnext/github-copilot-cli"
+    )
+
     for pkg in "${AI_TOOLS[@]}"; do
         user_do npm install -g "$pkg" 2>/dev/null || echo -e "${YELLOW}⚠ Failed to install $pkg${NC}"
     done
+
+    echo "Installing Spec-Kit (specify-cli)..."
+    if ! user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v specify" &>/dev/null; then
+        user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool install specify-cli"
+    else
+        user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool upgrade specify-cli" 2>/dev/null || true
+    fi
 }
 
 step_14() {
@@ -968,15 +1045,18 @@ step_14() {
         sys_do rm -rf /private/tmp/* /private/var/folders/*/*/*/com.apple.* 2>/dev/null || true
         rm -rf "$REAL_HOME/Library/Caches/"* "$REAL_HOME/.Trash/"* 2>/dev/null || true
     else
-        if [ "$PKG_MANAGER" = "pacman" ]; then
-            sys_do pacman -Sc --noconfirm
-            sys_do pacman -Rns $(pacman -Qdtq) 2>/dev/null || true
-        else
-            sys_do apt-get autoremove -y -qq
-            sys_do apt-get autoclean -qq
-            sys_do apt-get clean -qq
-            sys_do rm -rf /var/lib/apt/lists/*
-        fi
+        case "$PKG_MANAGER" in
+            pacman)
+                sys_do pacman -Sc --noconfirm
+                sys_do pacman -Rns $(pacman -Qdtq) 2>/dev/null || true
+                ;;
+            *)
+                sys_do apt-get autoremove -y -qq
+                sys_do apt-get autoclean -qq
+                sys_do apt-get clean -qq
+                sys_do rm -rf /var/lib/apt/lists/*
+                ;;
+        esac
 
         sys_do rm -rf /tmp/*.tar.gz /tmp/*.zip /tmp/ctop /tmp/starship 2>/dev/null || true
         sys_do journalctl --vacuum-time=7d 2>/dev/null || true
@@ -1041,7 +1121,8 @@ echo -e "${GREEN}${BOLD}SetupVibe Desktop Completed Successfully! 🚀${NC}"
 echo ""
 if $IS_LINUX; then
     echo -e "${YELLOW}${BOLD}IMPORTANT - Apply changes to your shell:${NC}"
-    echo -e "${CYAN}For ZSH users:${NC}    source ~/.zshrc"
+    echo -e "${CYAN}Reload ZSH now:${NC}   exec zsh"
+    echo -e "${CYAN}Or for Bash:${NC}      source ~/.bashrc"
     echo ""
     echo -e "${YELLOW}Or restart your terminal/logout and login again.${NC}"
 else
