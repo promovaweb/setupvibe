@@ -25,10 +25,38 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.6"
+VERSION="0.41.7"
 INSTALL_URL="https://desktop.setupvibe.dev"
 
+# --- ARGUMENT PARSING ---
+INSTALL_DOTNET=false
+DOTNET_MAJOR=""
+for arg in "$@"; do
+    case "$arg" in
+        --install-dotnet)
+            INSTALL_DOTNET=true
+            DOTNET_MAJOR="10"
+            ;;
+        --install-dotnet=*)
+            INSTALL_DOTNET=true
+            DOTNET_MAJOR="${arg#*=}"
+            ;;
+    esac
+done
+if $INSTALL_DOTNET; then
+    case "$DOTNET_MAJOR" in
+        8|9|10) ;;
+        *)
+            echo -e "${RED}Error: --install-dotnet requires major version 8, 9, or 10 (e.g. --install-dotnet=9).${NC}"
+            exit 1
+            ;;
+    esac
+fi
+
 echo -e "${CYAN}SetupVibe Desktop v${VERSION}${NC}"
+if $INSTALL_DOTNET; then
+    echo -e "${YELLOW}  → .NET SDK ${DOTNET_MAJOR}.x install requested${NC}"
+fi
 echo ""
 
 # --- ENVIRONMENT ---
@@ -113,7 +141,7 @@ if [[ "$(uname -s)" == "Linux" ]]; then
     
     # If we have errors in APT, we try to fix them by removing potentially broken lists managed by this script
     # This prevents the error you saw: signature verification failed because keys were deleted
-    sys_do grep -rl 'docker\|nodesource\|charm\.sh\|cli\.github\|sury\|ondrej\|ansible\|codeiumdata\|windsurf\|antigravity\|pkg\.dev' \
+    sys_do grep -rl 'docker\|nodesource\|charm\.sh\|cli\.github\|sury\|ondrej\|ansible\|codeiumdata\|windsurf\|antigravity\|pkg\.dev\|packages\.microsoft' \
         /etc/apt/sources.list.d/ 2>/dev/null | xargs -I {} sys_do rm -f "{}" 2>/dev/null || true
 
     sys_do apt-get update -y -qq
@@ -468,6 +496,81 @@ safe_download() {
 }
 
 
+# Install Microsoft .NET SDK (optional; see --install-dotnet / --install-dotnet=MAJOR)
+_install_dotnet_via_install_script() {
+    local inst_dir="$REAL_HOME/.dotnet"
+    echo -e "${YELLOW}Installing .NET SDK via dotnet-install.sh (channel ${DOTNET_MAJOR}.0) → $inst_dir${NC}"
+    user_do mkdir -p "$inst_dir"
+    local script
+    script=$(mktemp /tmp/dotnet-install.XXXXXX.sh)
+    if ! curl -fsSL "https://dot.net/v1/dotnet-install.sh" -o "$script"; then
+        echo -e "${RED}✘ Failed to download dotnet-install.sh${NC}"
+        rm -f "$script"
+        return 1
+    fi
+    chmod +x "$script"
+    if user_do bash "$script" --channel "${DOTNET_MAJOR}.0" --install-dir "$inst_dir"; then
+        rm -f "$script"
+        if user_do test -x "$inst_dir/dotnet"; then
+            echo -e "${GREEN}✔ .NET SDK installed to $inst_dir${NC}"
+            return 0
+        fi
+    fi
+    rm -f "$script"
+    echo -e "${RED}✘ .NET SDK installation failed.${NC}"
+    return 1
+}
+
+install_dotnet_sdk() {
+    echo ""
+    echo -e "${BLUE}========================================================${NC}"
+    echo -e "${BOLD}▶ .NET SDK (${DOTNET_MAJOR}.x)${NC}"
+    echo -e "${BLUE}========================================================${NC}"
+    local sdk_pkg="dotnet-sdk-${DOTNET_MAJOR}.0"
+
+    if $IS_MACOS; then
+        _install_dotnet_via_install_script
+        return $?
+    fi
+
+    if $IS_LINUX && ( $IS_UBUNTU || $IS_DEBIAN ); then
+        local msdeb=""
+        local ubver=""
+        local dver=""
+        if $IS_UBUNTU; then
+            ubver=$(lsb_release -rs 2>/dev/null)
+            [[ -n "$ubver" ]] && msdeb="https://packages.microsoft.com/config/ubuntu/${ubver}/packages-microsoft-prod.deb"
+        else
+            dver=$(grep -E '^VERSION_ID=' /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"')
+            [[ -n "$dver" ]] && msdeb="https://packages.microsoft.com/config/debian/${dver}/packages-microsoft-prod.deb"
+        fi
+
+        if [[ -n "$msdeb" ]]; then
+            local tmpdeb
+            tmpdeb=$(mktemp /tmp/msprodXXXXXX.deb)
+            echo -e "${YELLOW}Adding Microsoft package repository...${NC}"
+            if curl -fsSL "$msdeb" -o "$tmpdeb" && sys_do dpkg -i "$tmpdeb"; then
+                rm -f "$tmpdeb"
+                sys_do apt-get install -f -y -qq 2>/dev/null || true
+                sys_do apt-get update -qq
+                if sys_do apt-get install -y "$sdk_pkg"; then
+                    echo -e "${GREEN}✔ .NET SDK installed via APT (${sdk_pkg}).${NC}"
+                    command -v dotnet >/dev/null 2>&1 && user_do dotnet --version
+                    return 0
+                fi
+            else
+                rm -f "$tmpdeb"
+            fi
+            echo -e "${YELLOW}⚠ APT install failed or package unavailable — trying dotnet-install.sh...${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠ Non-Debian/Ubuntu Linux — using dotnet-install.sh...${NC}"
+    fi
+
+    _install_dotnet_via_install_script
+}
+
+
 # --- INSTALLATION STEPS ---
 
 
@@ -735,6 +838,10 @@ step_5() {
         brew_cmd install cronboard
 
         cron_ensure
+
+        if $INSTALL_DOTNET; then
+            install_dotnet_sdk || echo -e "${YELLOW}⚠ .NET SDK step finished with warnings.${NC}"
+        fi
     else
         echo "Setup Python..."
         sys_do apt-get install -y python3 python3-pip python3-venv python-is-python3
@@ -771,6 +878,10 @@ step_5() {
         fi
 
         cron_ensure
+
+        if $INSTALL_DOTNET; then
+            install_dotnet_sdk || echo -e "${YELLOW}⚠ .NET SDK step finished with warnings.${NC}"
+        fi
     fi
 }
 
@@ -1208,9 +1319,38 @@ step_14() {
 }
 
 
+# Adjust roadmap/summary labels when .NET install is requested or already present
+update_steps_dotnet_labels() {
+    local base="Languages (Go, Rust, Python + uv)"
+    if $INSTALL_DOTNET; then
+        STEPS[4]="${base}; .NET SDK ${DOTNET_MAJOR}.x"
+        return
+    fi
+    local dver=""
+    local cand
+    # Try common paths (dotnet-install ~/.dotnet, Microsoft APT /usr/bin, shared root)
+    for cand in "$REAL_HOME/.dotnet/dotnet" "/usr/bin/dotnet" "/usr/share/dotnet/dotnet"; do
+        [[ -e "$cand" ]] || continue
+        dver=$(user_do env HOME="$REAL_HOME" PATH="$(dirname "$cand"):/usr/local/bin:/usr/bin:${PATH}" "$cand" --version 2>/dev/null | head -1 | tr -d '\r' || true)
+        [[ -n "$dver" ]] && break
+    done
+    # Non-login shell with PATH typical for dotnet-install, snap, and package installs
+    if [[ -z "$dver" ]]; then
+        dver=$(user_do bash -c 'export PATH="$HOME/.dotnet:/snap/bin:/usr/local/bin:/usr/bin:$PATH"; command -v dotnet >/dev/null 2>&1 && dotnet --version' 2>/dev/null | head -1 | tr -d '\r' || true)
+    fi
+    if [[ -z "$dver" ]] && command -v dotnet &>/dev/null; then
+        dver=$(dotnet --version 2>/dev/null | head -1 | tr -d '\r' || true)
+    fi
+    if [[ -n "$dver" ]]; then
+        STEPS[4]="${base} [.NET present: ${dver}]"
+    fi
+}
+
+
 # --- MAIN EXECUTION ---
 
 
+update_steps_dotnet_labels
 show_roadmap_and_wait
 configure_git_interactive
 

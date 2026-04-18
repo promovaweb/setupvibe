@@ -7,6 +7,10 @@ elif [[ -f "/usr/local/bin/brew" ]]; then
 fi
 
 # Define PATHs before loading plugins so they can find the tools
+if [[ -d "$HOME/.dotnet" ]]; then
+    export DOTNET_ROOT="$HOME/.dotnet"
+    export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
+fi
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/.config/composer/vendor/bin:$PATH"

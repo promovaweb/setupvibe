@@ -4,7 +4,7 @@ This file provides instructions and context for Gemini CLI when working with the
 
 ## Project Overview
 
-**SetupVibe** is a cross-platform automated development environment setup tool (v0.41.6). It streamlines the installation and configuration of a complete developer toolkit for macOS (12+) and major Linux distributions (Ubuntu 24.04+, Debian 12+, Zorin OS 18+).
+**SetupVibe** is a cross-platform automated development environment setup tool (v0.41.7). It streamlines the installation and configuration of a complete developer toolkit for macOS (12+) and major Linux distributions (Ubuntu 24.04+, Debian 12+, Zorin OS 18+).
 
 The project consists of two primary editions:
 
@@ -42,6 +42,10 @@ bash server.sh
 
 # Canonical usage (from README)
 curl -sSL desktop.setupvibe.dev | bash
+
+# Optional .NET SDK (default .NET 10; also --install-dotnet=8|9|10)
+curl -sSL desktop.setupvibe.dev | bash -s -- --install-dotnet
+curl -sSL server.setupvibe.dev | bash -s -- --manager --install-dotnet
 ```
 
 ### Testing Changes
