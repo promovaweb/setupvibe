@@ -2,7 +2,7 @@
 
 O SetupVibe instala o [Spec-Kit](https://github.com/github/spec-kit) na edição Desktop (macOS e Linux desktop) via `uv tool install specify-cli`.
 
-> Guia de ferramentas — v0.41.9
+> Guia de ferramentas — v0.41.7
 
 - **Comando:** `specify`
 - **Pacote:** `specify-cli` (PyPI)

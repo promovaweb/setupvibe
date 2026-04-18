@@ -1,6 +1,6 @@
 # SetupVibe Documentation
 
-> Automated development environment setup — v0.41.9
+> Automated development environment setup — v0.41.7
 
 SetupVibe transforms any fresh machine into a fully configured development workspace in one command. It supports two editions depending on your target. When you pass `--install-dotnet` or a .NET SDK is already detected, the interactive roadmap and final installation summary include **.NET** in the relevant step title (Desktop: Languages step; Server: AI CLI Tools).
 

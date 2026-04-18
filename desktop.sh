@@ -25,7 +25,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.9"
+VERSION="0.41.7"
 INSTALL_URL="https://desktop.setupvibe.dev"
 
 # --- ARGUMENT PARSING ---

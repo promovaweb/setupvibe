@@ -57,7 +57,7 @@ All `.md` files must follow these rules strictly:
 
 ## 🔢 Versioning Process
 
-When updating the version (e.g., from `0.41.9` to `0.42.0`), you **must** update the version string in all of the following locations:
+When updating the version (e.g., from `0.41.7` to `0.42.0`), you **must** update the version string in all of the following locations:
 
 - `desktop.sh` (the `VERSION` variable)
 - `server.sh` (the `VERSION` variable)
