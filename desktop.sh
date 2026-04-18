@@ -25,7 +25,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.7"
+VERSION="0.41.8"
 INSTALL_URL="https://desktop.setupvibe.dev"
 
 # --- ARGUMENT PARSING ---
@@ -1319,9 +1319,33 @@ step_14() {
 }
 
 
+# Adjust roadmap/summary labels when .NET install is requested or already present
+update_steps_dotnet_labels() {
+    local base="Languages (Go, Rust, Python + uv)"
+    if $INSTALL_DOTNET; then
+        STEPS[4]="${base}; .NET SDK ${DOTNET_MAJOR}.x"
+        return
+    fi
+    local dver=""
+    if [[ -x "$REAL_HOME/.dotnet/dotnet" ]]; then
+        dver=$(user_do env HOME="$REAL_HOME" PATH="$REAL_HOME/.dotnet:${PATH}" "$REAL_HOME/.dotnet/dotnet" --version 2>/dev/null | head -1 | tr -d '\r' || true)
+    fi
+    if [[ -z "$dver" ]] && user_do bash -lc 'export PATH="$HOME/.dotnet:/usr/local/bin:/usr/bin:$PATH"; command -v dotnet' &>/dev/null; then
+        dver=$(user_do bash -lc 'export PATH="$HOME/.dotnet:/usr/local/bin:/usr/bin:$PATH"; dotnet --version 2>/dev/null' | head -1 | tr -d '\r' || true)
+    fi
+    if [[ -z "$dver" ]] && command -v dotnet &>/dev/null; then
+        dver=$(dotnet --version 2>/dev/null | head -1 | tr -d '\r' || true)
+    fi
+    if [[ -n "$dver" ]]; then
+        STEPS[4]="${base} [.NET present: ${dver}]"
+    fi
+}
+
+
 # --- MAIN EXECUTION ---
 
 
+update_steps_dotnet_labels
 show_roadmap_and_wait
 configure_git_interactive
 

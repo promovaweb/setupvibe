@@ -1,6 +1,6 @@
 # SetupVibe — Server Edition
 
-> Linux server setup — v0.41.7
+> Linux server setup — v0.41.8
 
 Lean Linux-only setup for production servers. No Homebrew. Installs Docker, Ansible, GitHub CLI, networking tools, Tailscale, SSH, shell, tmux, and AI CLI tools via NodeSource Node.js. Optionally installs the .NET SDK via `--install-dotnet` (default .NET 10). Optionally configures the machine as a Docker Swarm Manager node via the `--manager` flag.
 

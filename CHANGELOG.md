@@ -4,6 +4,14 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.8] - 2026-04-18
+
+### Changed
+
+- Roadmap and installation summary now show **.NET** in the relevant step title when `--install-dotnet` is used, or when an existing **.NET SDK** is detected (Desktop step 5; Server **AI CLI Tools** step).
+
+---
+
 ## [v0.41.7] - 2026-04-18
 
 ### Added
