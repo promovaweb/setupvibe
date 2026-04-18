@@ -1,6 +1,6 @@
 # SetupVibe — Server Edition
 
-> Linux server setup — v0.41.6
+> Linux server setup — v0.41.9
 
 A lean, focused setup script for Linux servers. No Homebrew, no language ecosystems, no desktop tools. Installs only what a production server needs: Docker, Ansible, networking, shell, tmux, and AI CLI tools.
 
@@ -38,7 +38,16 @@ curl -sSL server.setupvibe.dev | bash -s -- --manager
 bash server.sh --manager
 ```
 
-The script waits for any running APT lock to clear (useful on fresh cloud VMs where `unattended-upgrades` runs at boot), shows an interactive roadmap, then asks for confirmation. It also prompts to configure Git identity if not already set. At the end of installation, if `--manager` was not passed, the script will interactively ask whether to configure the machine as a Docker Swarm Manager.
+Optional **.NET SDK** (default **.NET 10**; supported majors `8`, `9`, `10`). Compatible with `--manager`:
+
+```bash
+curl -sSL server.setupvibe.dev | bash -s -- --install-dotnet
+curl -sSL server.setupvibe.dev | bash -s -- --install-dotnet=8
+curl -sSL server.setupvibe.dev | bash -s -- --manager --install-dotnet
+bash server.sh --install-dotnet=10
+```
+
+The script waits for any running APT lock to clear (useful on fresh cloud VMs where `unattended-upgrades` runs at boot), shows an interactive roadmap, then asks for confirmation. If you pass `--install-dotnet` or a .NET SDK is already detected, the **AI CLI Tools** step in the roadmap and in the final summary includes a **.NET** note. It also prompts to configure Git identity if not already set. At the end of installation, if `--manager` was not passed, the script will interactively ask whether to configure the machine as a Docker Swarm Manager.
 
 ---
 

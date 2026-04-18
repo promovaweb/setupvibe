@@ -28,7 +28,7 @@ Distribua as mudanças nas seções padronizadas do "Keep a Changelog":
 
 Para garantir a perfeição visual e técnica do `CHANGELOG.md`:
 
-- **Cabeçalho da Versão:** Use H2 com colchetes, versão e data (AAAA-MM-DD). Ex: `## [v0.41.6] - 2026-04-05`.
+- **Cabeçalho da Versão:** Use H2 com colchetes, versão e data (AAAA-MM-DD). Ex: `## [v0.41.9] - 2026-04-05`.
 - **Mensagens:** Use bullet points `-` e tempo verbal no passado (Added, Improved, Fixed).
 - **Linting:** Após gerar o conteúdo, **você deve invocar a skill `markdown-format`** para aplicar o alinhamento de tabelas, espaçamento de blocos e o rodapé obrigatório.
 

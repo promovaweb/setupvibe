@@ -57,7 +57,7 @@ Todos los archivos `.md` deben seguir estas reglas estrictamente:
 
 ## 🔢 Proceso de Versionado
 
-Al actualizar la versión (ej: de `0.41.6` a `0.42.0`), **debes** actualizar la cadena de versión en todas las siguientes ubicaciones:
+Al actualizar la versión (ej: de `0.41.9` a `0.42.0`), **debes** actualizar la cadena de versión en todas las siguientes ubicaciones:
 
 - `desktop.sh` (variable `VERSION`)
 - `server.sh` (variable `VERSION`)

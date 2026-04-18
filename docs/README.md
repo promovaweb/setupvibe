@@ -1,8 +1,8 @@
 # SetupVibe Documentation
 
-> Automated development environment setup — v0.41.6
+> Automated development environment setup — v0.41.9
 
-SetupVibe transforms any fresh machine into a fully configured development workspace in one command. It supports two editions depending on your target:
+SetupVibe transforms any fresh machine into a fully configured development workspace in one command. It supports two editions depending on your target. When you pass `--install-dotnet` or a .NET SDK is already detected, the interactive roadmap and final installation summary include **.NET** in the relevant step title (Desktop: Languages step; Server: AI CLI Tools).
 
 | Edition     | Script       | Platforms                                            | Guides                                                                                                               |
 | ----------- | ------------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -29,6 +29,19 @@ To initialize Docker Swarm automatically after setup:
 curl -sSL server.setupvibe.dev | bash -s -- --manager
 ```
 
+To install the **.NET SDK** (default **.NET 10**; use `=8` or `=9` for other supported majors):
+
+```bash
+curl -sSL desktop.setupvibe.dev | bash -s -- --install-dotnet
+curl -sSL server.setupvibe.dev | bash -s -- --install-dotnet
+```
+
+You can combine flags on the Server edition (order does not matter), for example:
+
+```bash
+curl -sSL server.setupvibe.dev | bash -s -- --manager --install-dotnet
+```
+
 ## Edition Comparison
 
 | Feature                               | Desktop        | Server  |
@@ -51,6 +64,7 @@ curl -sSL server.setupvibe.dev | bash -s -- --manager
 | AI CLI tools                          | ✔              | ✔       |
 | PM2 auto-startup                      | ✔              | ✗       |
 | Docker Swarm Manager (`--manager`)    | ✗              | ✔       |
+| Optional .NET SDK (`--install-dotnet`) | ✔              | ✔       |
 
 ## Specialized Guides
 

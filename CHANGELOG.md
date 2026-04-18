@@ -4,6 +4,31 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.9] - 2026-04-18
+
+### Fixed
+
+- **.NET roadmap label:** Improved detection of an existing `dotnet` installation for the interactive roadmap and final summary (try `/usr/bin/dotnet`, `/usr/share/dotnet/dotnet`, and `~/.dotnet/dotnet`; use `bash -c` with `PATH` including `snap/bin` instead of relying on `bash -l`).
+
+---
+
+## [v0.41.8] - 2026-04-18
+
+### Changed
+
+- Roadmap and installation summary now show **.NET** in the relevant step title when `--install-dotnet` is used, or when an existing **.NET SDK** is detected (Desktop step 5; Server **AI CLI Tools** step).
+
+---
+
+## [v0.41.7] - 2026-04-18
+
+### Added
+
+- Optional **.NET SDK** installation via `--install-dotnet` (defaults to **.NET 10** LTS channel) and `--install-dotnet=8|9|10` on both **Desktop** and **Server** editions. Linux uses the Microsoft APT repository when available, with fallback to the official `dotnet-install.sh` script; macOS (Desktop) uses `dotnet-install.sh` under `~/.dotnet`.
+- Shell PATH support for user-local .NET (`DOTNET_ROOT`, `~/.dotnet`, `~/.dotnet/tools`) in `conf/zshrc-*.zsh` when `~/.dotnet` exists.
+
+---
+
 ## [v0.41.6] - 2026-04-05
 
 ### Added

@@ -16,7 +16,7 @@ Ao criar ou editar QUALQUER arquivo `.md`, você DEVE seguir estas regras para e
         ```markdown
         # Título do Guia
         
-        > Descrição curta — v0.41.6
+        > Descrição curta — v0.41.9
         ```
 2.  **Hierarquia de Títulos:** Use `#` para H1, `##` para H2, etc. Nunca pule níveis (ex: não pule de H1 para H3).
 3.  **Tabelas:** Alinhamento obrigatório com pipes `|` e linha separadora `|---|---|`.

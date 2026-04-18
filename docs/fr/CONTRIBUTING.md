@@ -57,7 +57,7 @@ Tous les fichiers `.md` doivent suivre strictement ces règles :
 
 ## 🔢 Processus de Versionnage
 
-Lors de la mise à jour de la version (ex : de `0.41.6` à `0.42.0`), vous **devez** mettre à jour la chaîne de version dans tous les emplacements suivants :
+Lors de la mise à jour de la version (ex : de `0.41.9` à `0.42.0`), vous **devez** mettre à jour la chaîne de version dans tous les emplacements suivants :
 
 - `desktop.sh` (variable `VERSION`)
 - `server.sh` (variable `VERSION`)

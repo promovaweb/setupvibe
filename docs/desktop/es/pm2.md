@@ -1,6 +1,6 @@
 # Guía de PM2
 >
-> Guía de gestión de procesos — v0.41.6
+> Guía de gestión de procesos — v0.41.9
 
 SetupVibe instala [PM2](https://pm2.keymetrics.io/) globalmente y lo configura para que se inicie automáticamente en la edición Desktop.
 

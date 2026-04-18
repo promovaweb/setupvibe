@@ -1,8 +1,8 @@
 # SetupVibe — Desktop Edition
 
-> Cross-platform development environment setup — v0.41.6
+> Cross-platform development environment setup — v0.41.9
 
-Cross-platform setup for macOS and Linux desktops. Installs a complete development stack in one command: languages (PHP, Ruby, Go, Rust, Python, Node.js), DevOps tools, modern Unix utilities, shell, tmux, and AI CLI tools.
+Cross-platform setup for macOS and Linux desktops. Installs a complete development stack in one command: languages (PHP, Ruby, Go, Rust, Python, Node.js; optional .NET SDK via `--install-dotnet`), DevOps tools, modern Unix utilities, shell, tmux, and AI CLI tools.
 
 ## Documentation
 

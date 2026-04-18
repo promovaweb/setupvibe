@@ -1,6 +1,6 @@
 # SetupVibe
 
-> The ultimate cross-platform development environment setup script — v0.41.6
+> The ultimate cross-platform development environment setup script — v0.41.9
 
 Installs and configures a complete development stack in one command, supporting macOS and major Linux distributions.
 
@@ -40,6 +40,14 @@ To initialize Docker Swarm automatically after setup:
 
 ```bash
 curl -sSL server.setupvibe.dev | bash -s -- --manager
+```
+
+Optional **.NET SDK** (default **.NET 10**; use `--install-dotnet=8` or `=9` for other supported majors):
+
+```bash
+curl -sSL desktop.setupvibe.dev | bash -s -- --install-dotnet
+curl -sSL server.setupvibe.dev | bash -s -- --install-dotnet
+curl -sSL server.setupvibe.dev | bash -s -- --manager --install-dotnet
 ```
 
 ## Contributing
