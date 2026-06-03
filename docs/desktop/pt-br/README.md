@@ -139,6 +139,7 @@ Instaladas via Homebrew em ambas as plataformas.
 - Baixa o `.zshrc` adequado:
   - macOS → [`conf/zshrc-macos.zsh`](../../../conf/zshrc-macos.zsh)
   - Linux → [`conf/zshrc-linux.zsh`](../../../conf/zshrc-linux.zsh)
+- Cria `~/.zshrc.local` para seus próprios aliases e configurações (nunca sobrescrito em atualizações)
 
 ### Etapa 12 — Tmux e Plugins
 
@@ -187,8 +188,9 @@ Cada plataforma recebe um `.zshrc` dedicado:
 
 | Alias      | Comando                                                                                    |
 | ---------- | ------------------------------------------------------------------------------------------ |
-| `reload`   | `source ~/.zshrc`                                                                          |
-| `zconfig`  | `nano ~/.zshrc`                                                                            |
+| `reload`     | `source ~/.zshrc && source ~/.zshrc.local`                                                 |
+| `zconfig`    | `nano ~/.zshrc`                                                                            |
+| `zlocal`     | `nano ~/.zshrc.local`                                                                      |
 | `update`   | `brew update && brew upgrade` (macOS) / `sudo apt update && sudo apt upgrade` (Linux)      |
 | `brewup`   | `brew update && brew upgrade && brew cleanup`                                              |
 | `ge`       | `gemini --approval-mode=yolo`                                                                 |

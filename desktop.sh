@@ -1054,6 +1054,11 @@ step_11() {
 
         # macOS ZSHRC
         safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/zshrc-macos.zsh "$REAL_HOME/.zshrc"
+
+        # Create ~/.zshrc.local for user customizations if it doesn't exist
+        if [ ! -f "$REAL_HOME/.zshrc.local" ]; then
+            user_do touch "$REAL_HOME/.zshrc.local"
+        fi
     else
         sys_do apt-get install -y zsh
 
@@ -1088,6 +1093,11 @@ step_11() {
 
         # Linux ZSHRC
         safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/zshrc-linux.zsh "$REAL_HOME/.zshrc"
+
+        # Create ~/.zshrc.local for user customizations if it doesn't exist
+        if [ ! -f "$REAL_HOME/.zshrc.local" ]; then
+            user_do touch "$REAL_HOME/.zshrc.local"
+        fi
         sys_do chown $REAL_USER:$REAL_USER "$REAL_HOME/.zshrc"
 
         # Ensure ~/.local/bin is in .bashrc so tools like uv are accessible in bash sessions

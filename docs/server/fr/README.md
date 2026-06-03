@@ -93,14 +93,16 @@ Paquets APT :
 - Clone `zsh-autosuggestions` et `zsh-syntax-highlighting`
 - Installe le prompt Starship dans `~/.local/bin` et applique le preset **Gruvbox Rainbow**
 - Télécharge [`conf/zshrc-server.zsh`](../../../conf/zshrc-server.zsh) vers `~/.zshrc`
+- Crée `~/.zshrc.local` pour vos propres alias et paramètres (jamais écrasé lors des mises à jour)
 - Définit ZSH comme shell par défaut via `chsh`
 
 #### Alias du Shell
 
 | Alias          | Commande                              |
 | -------------- | ------------------------------------- |
-| `reload`       | `source ~/.zshrc`                     |
-| `zconfig`      | `nano ~/.zshrc`                       |
+| `reload`       | `source ~/.zshrc && source ~/.zshrc.local` |
+| `zconfig`      | `nano ~/.zshrc`                           |
+| `zlocal`       | `nano ~/.zshrc.local`                     |
 | `update`       | `sudo apt update && sudo apt upgrade` |
 | `ge`           | `gemini --approval-mode=yolo`                                  |
 | `cc`           | `claude --permission-mode=auto --dangerously-skip-permissions` |

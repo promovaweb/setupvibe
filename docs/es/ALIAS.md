@@ -82,9 +82,15 @@ Esta é a lista exaustiva de todos os aliases configurados pelo SetupVibe em tod
 
 - **`reload`**
   - Disponibilidad: 🌐 Ambos
-  - Comando: `source ~/.zshrc`
-  - Descripción: Recarga la configuración de ZSH sin reiniciar la terminal.
+  - Comando: `source ~/.zshrc && source ~/.zshrc.local`
+  - Descripción: Recarga la configuración de ZSH y las personalizaciones locales sin reiniciar la terminal.
   - Ejemplo: `reload`
+
+- **`zlocal`**
+  - Disponibilidad: 🌐 Ambos
+  - Comando: `nano ~/.zshrc.local`
+  - Descripción: Edita el archivo de configuración personalizada de ZSH (nunca sobrescrito en actualizaciones).
+  - Ejemplo: `zlocal`
 
 - **`path`**
   - Disponibilidad: 🌐 Ambos

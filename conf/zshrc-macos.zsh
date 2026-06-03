@@ -66,8 +66,8 @@ alias spup="uv tool upgrade specify-cli"        # Atualiza o Spec-Kit para a ver
 
 # --- Shell ---
 alias zconfig="nano ~/.zshrc"                   # Edita o arquivo de configuração do ZSH
-alias reload="source ~/.zshrc"                  # Recarrega as configurações do ZSH sem reiniciar o terminal
-alias path='echo -e ${PATH//:/\\n}'             # Exibe cada entrada do PATH em uma linha separada
+alias reload="source ~/.zshrc && source ~/.zshrc.local"  # Recarrega as configurações do ZSH e as personalizadas locais sem reiniciar o terminal
+alias path='echo -e ${PATH//:/\\n}'                      # Exibe cada entrada do PATH em uma linha separada
 alias h="history | grep"                        # Busca no histórico de comandos (ex: h docker)
 alias cls="clear"                               # Limpa o terminal
 alias please="sudo"                             # Atalho amigável para sudo
@@ -362,3 +362,13 @@ alias genpass="openssl rand -base64 32"         # Gera uma senha aleatória segu
 alias envls="env | sort"                        # Lista todas as variáveis de ambiente ordenadas
 alias envg="env | grep"                         # Filtra variáveis de ambiente (ex: envg PATH)
 alias dotenv="export \$(cat .env | grep -v '^#' | xargs)" # Carrega variáveis do arquivo .env atual
+
+# --- Configurações Personalizadas ---
+alias zlocal="nano ~/.zshrc.local"              # Edita o arquivo de configurações personalizadas
+
+
+# 6. USER CUSTOM CONFIGURATIONS
+# Load custom configurations from ~/.zshrc.local if it exists
+# Use this file to add your own aliases, functions, and variables.
+# This file is never overwritten by SetupVibe updates.
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
