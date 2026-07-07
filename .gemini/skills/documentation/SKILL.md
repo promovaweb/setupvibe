@@ -11,7 +11,7 @@ Este guia define o padrão ouro para manter a documentação do SetupVibe sincro
 
 Ao criar ou editar QUALQUER arquivo `.md`, você DEVE invocar a skill **`markdown-format`** para garantir a conformidade com as regras do projeto:
 
-1.  **Cabeçalho Padrão:** Começar com H1 seguido de blockquote com a versão. Ex: `> Descrição curta — v0.41.6`.
+1.  **Cabeçalho Padrão:** Começar com H1 seguido de blockquote com a versão. Ex: `> Descrição curta — v0.41.7`.
 2.  **Linting Delegado:** Todas as regras de títulos, tabelas, code blocks, links, listas e espaçamentos são gerenciadas pela skill `markdown-format`. **Não ignore seus avisos**.
 3.  **Linting Final:** Após criar ou editar o arquivo, processe-o com a skill `markdown-format` para validar conformidade.
 

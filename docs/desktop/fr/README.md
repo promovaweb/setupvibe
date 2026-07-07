@@ -1,6 +1,6 @@
 # SetupVibe — Édition Bureau
 
-> Configuration de l'environnement de développement multiplateforme — v0.41.6
+> Configuration de l'environnement de développement multiplateforme — v0.41.7
 
 Installe et configure un stack complet de développeur en une seule commande. Supporte macOS et les principales distributions Linux.
 
@@ -29,7 +29,15 @@ Ou localement :
 bash desktop.sh
 ```
 
-Le script affiche une feuille de route interactive et demande confirmation avant de commencer. Il propose également de configurer l'identité Git si elle n'est pas déjà définie.
+**.NET SDK** facultatif (par défaut **.NET 10** ; versions majeures prises en charge `8`, `9`, `10`) :
+
+```bash
+curl -sSL desktop.setupvibe.dev | bash -s -- --install-dotnet
+curl -sSL desktop.setupvibe.dev | bash -s -- --install-dotnet=8
+bash desktop.sh --install-dotnet=10
+```
+
+Le script affiche une feuille de route interactive et demande confirmation avant de commencer. Si vous passez `--install-dotnet` ou qu'un SDK .NET est déjà détecté, l'**étape 5** dans la feuille de route et dans le récapitulatif final inclut une mention de **.NET**. Il propose également de configurer l'identité Git si elle n'est pas déjà définie.
 
 ---
 

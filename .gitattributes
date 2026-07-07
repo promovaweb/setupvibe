@@ -1,0 +1,2 @@
+# Shell scripts must use LF so bash on Linux/macOS never sees stray CR (avoids $'\r': command not found).
+*.sh text eol=lf

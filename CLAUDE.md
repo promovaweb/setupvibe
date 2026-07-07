@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-**SetupVibe** is a cross-platform automated development environment setup script (v0.41.6). It installs and configures a complete developer toolkit in one command, supporting macOS 12+ and Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+).
+**SetupVibe** is a cross-platform automated development environment setup script (v0.41.7). It installs and configures a complete developer toolkit in one command, supporting macOS 12+ and Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+).
 
 There are two editions:
 
@@ -22,6 +22,10 @@ bash server.sh
 
 # Or via curl (canonical usage)
 curl -sSL desktop.setupvibe.dev | bash
+
+# Optional .NET SDK (default .NET 10; also --install-dotnet=8|9|10)
+curl -sSL desktop.setupvibe.dev | bash -s -- --install-dotnet
+curl -sSL server.setupvibe.dev | bash -s -- --manager --install-dotnet
 ```
 
 To test changes to a script, run it directly on a target machine or VM.

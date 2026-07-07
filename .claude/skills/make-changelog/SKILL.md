@@ -27,7 +27,7 @@ Distribua as mudanças nas seções padronizadas do "Keep a Changelog":
 ## 3. Formatação e Estilo
 
 - **Cabeçalho da Versão:** Use H2 com colchetes, versão e data (AAAA-MM-DD).
-  *   *Exemplo:* `## [v0.41.6] - 2026-04-05`
+  *   *Exemplo:* `## [v0.41.7] - 2026-04-05`
 - **Mensagens:**
   *   Use o tempo verbal no passado (ex: "Added", "Improved", "Fixed").
   *   Seja conciso mas específico (ex: em vez de "Update PATH", use "Improved PATH handling for Ruby and Composer").
