@@ -889,6 +889,8 @@ step_6() {
 
 
 step_7() {
+    local node_bin
+    local node_dir
     local npm_bin
     local npm_path
     local package
@@ -931,25 +933,32 @@ step_7() {
 
     apt_do update -qq
     apt_do install -y --allow-downgrades nodejs
-    node --version | grep -Eq '^v24\.'
-    npm_bin=$(command -v npm)
+
+    # Resolve the just-installed binaries by their dpkg-owned path instead of
+    # relying on `command -v`/PATH lookups: version managers such as nvm, fnm,
+    # volta or asdf commonly place their own node ahead of /usr/bin on PATH,
+    # which would otherwise silently select the wrong Node.js version here.
+    node_bin=$(dpkg -L nodejs | grep -E '/bin/node$' | head -n1)
+    "$node_bin" --version | grep -Eq '^v24\.'
+    npm_bin=$(dpkg -L nodejs | grep -E '/bin/npm$' | head -n1)
+    node_dir=$(dirname "$node_bin")
 
     if [[ "$REAL_USER" != "root" ]]; then
         user_do mkdir -p "$REAL_HOME/.npm-global"
         user_do "$npm_bin" config set prefix "$REAL_HOME/.npm-global"
-        npm_path="$REAL_HOME/.npm-global/bin:$PATH"
+        npm_path="$REAL_HOME/.npm-global/bin:$node_dir:$PATH"
     else
-        npm_path=$PATH
+        npm_path="$node_dir:$PATH"
     fi
 
     # Remove the package deprecated by GitHub before installing its supported replacement.
-    user_do env PATH="$npm_path" "$npm_bin" uninstall -g @githubnext/github-copilot-cli >/dev/null 2>&1 || true
+    user_do env PATH="$npm_path" "$node_bin" "$npm_bin" uninstall -g @githubnext/github-copilot-cli >/dev/null 2>&1 || true
 
     for index in "${!cli_packages[@]}"; do
         package=${cli_packages[$index]}
         command_name=${cli_commands[$index]}
         echo "Installing $package..."
-        user_do env PATH="$npm_path" "$npm_bin" install --global "$package"
+        user_do env PATH="$npm_path" "$node_bin" "$npm_bin" install --global "$package"
         user_do env PATH="$npm_path" "$command_name" --version >/dev/null
     done
 
