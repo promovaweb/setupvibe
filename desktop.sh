@@ -27,7 +27,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.10"
+VERSION="0.41.11"
 PHP_VERSION="8.5"
 RUBY_VERSION="3.4.10"
 PYTHON_VERSION="3.14"
@@ -1624,6 +1624,7 @@ step_13() {
         "@anthropic-ai/claude-code"
         "@openai/codex"
         "@github/copilot"
+        "opencode-ai"
         "skills@latest"
     )
     local -a ai_commands=(
@@ -1631,6 +1632,7 @@ step_13() {
         claude
         codex
         copilot
+        opencode
         skills
     )
     local -a ai_allowed_scripts=(
@@ -1638,6 +1640,7 @@ step_13() {
         @anthropic-ai/claude-code
         @openai/codex
         @github/copilot
+        opencode-ai
         skills
     )
 

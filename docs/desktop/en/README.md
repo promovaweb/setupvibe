@@ -1,6 +1,6 @@
 # SetupVibe — Desktop Edition
 
-> Cross-platform development environment setup — v0.41.10
+> Cross-platform development environment setup — v0.41.11
 
 Installs and configures a complete developer stack in one command. Supports macOS and major Linux distributions.
 
@@ -163,6 +163,7 @@ Installs npm packages globally, and Herdr and Antigravity CLI from their officia
 | Claude Code        | `@anthropic-ai/claude-code`      |
 | OpenAI Codex       | `@openai/codex`                  |
 | GitHub Copilot CLI | `@github/copilot`                |
+| OpenCode CLI       | `opencode-ai`                    |
 | Skills CLI         | `skills`                         |
 | Herdr              | Official release manifest binary |
 | Antigravity CLI    | Official release manifest binary |

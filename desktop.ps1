@@ -11,7 +11,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'Continue'
 
-$script:Version = '0.41.10'
+$script:Version = '0.41.11'
 $script:InstallUrl = 'https://windows.setupvibe.dev'
 $script:RestartRequired = $false
 $script:RestartBeforeRetryRequired = $false
@@ -2180,6 +2180,45 @@ function Uninstall-SkillsCli {
     Write-Success 'Skills CLI was removed; installed agent skills were preserved.'
 }
 
+function Install-OpenCodeCli {
+    $npmPath = Get-NpmCommandPath
+    Invoke-NativeCommand -FilePath $npmPath -ArgumentList @('install', '--global', 'opencode-ai@latest', '--no-audit', '--no-fund')
+
+    $prefixOutput = @(& $npmPath 'config' 'get' 'prefix')
+    if ($LASTEXITCODE -ne 0 -or $prefixOutput.Count -eq 0) {
+        throw 'npm did not return its global prefix after installing OpenCode CLI.'
+    }
+    $npmPrefix = ([string]$prefixOutput[0]).Trim()
+    if ([string]::IsNullOrWhiteSpace($npmPrefix)) {
+        throw 'npm returned an empty global prefix after installing OpenCode CLI.'
+    }
+
+    $pathWasPresent = Test-PathEntry -Path $npmPrefix -Scope 'User'
+    Add-PathEntry -Path $npmPrefix -Scope 'User' -Prepend
+    Register-AiCliPath -Path $npmPrefix -WasPresent $pathWasPresent
+    Remove-Item -Path (Join-Path $npmPrefix 'opencode.ps1') -Force -ErrorAction SilentlyContinue
+
+    $opencodePath = Join-Path $npmPrefix 'opencode.cmd'
+    if (-not (Test-Path $opencodePath -PathType Leaf)) {
+        $opencodePath = Join-Path $npmPrefix 'opencode.exe'
+    }
+    if (-not (Test-Path $opencodePath -PathType Leaf)) {
+        throw "OpenCode CLI was installed, but its execution-policy-safe launcher was not found at $opencodePath."
+    }
+    Import-EnvironmentPath
+    Invoke-NativeCommand -FilePath $opencodePath -ArgumentList @('--version')
+    Assert-CommandResolvesToPath -Name 'opencode' -ExpectedPath $opencodePath
+    Write-Success 'OpenCode CLI is installed and available from the user PATH.'
+}
+
+function Uninstall-OpenCodeCli {
+    $npmCommand = Get-Command 'npm.cmd' -ErrorAction SilentlyContinue
+    if ($npmCommand) {
+        Invoke-NativeCommand -FilePath $npmCommand.Source -ArgumentList @('uninstall', '--global', 'opencode-ai')
+    }
+    Write-Success 'OpenCode CLI was removed; user configuration was preserved.'
+}
+
 function Uninstall-AntigravityCli {
     $antigravityDirectory = Join-Path $env:LOCALAPPDATA 'agy\bin'
     Remove-Item -Path (Join-Path $antigravityDirectory 'agy.exe') -Force -ErrorAction SilentlyContinue
@@ -2385,6 +2424,7 @@ if ($Uninstall) {
     Invoke-SetupStep -Name 'Claude Code' -Action { Uninstall-ClaudeCode }
     Invoke-SetupStep -Name 'Codex CLI' -Action { Uninstall-CodexCli }
     Invoke-SetupStep -Name 'Skills CLI' -Action { Uninstall-SkillsCli }
+    Invoke-SetupStep -Name 'OpenCode CLI' -Action { Uninstall-OpenCodeCli }
     Invoke-SetupStep -Name 'Antigravity CLI' -Action { Uninstall-AntigravityCli }
     Invoke-SetupStep -Name 'AI CLI PATH entries' -Action { Uninstall-AiCliPaths }
     Invoke-SetupStep -Name 'Legacy ecosystem tools' -Action { Uninstall-LegacyEcosystemTools }
@@ -2455,6 +2495,7 @@ else {
     }
     Invoke-SetupStep -Name 'Python and Node.js PATH for Claude and Codex' -Action { Install-DevelopmentRuntimePaths }
     Invoke-SetupStep -Name 'Skills CLI' -Action { Install-SkillsCli }
+    Invoke-SetupStep -Name 'OpenCode CLI' -Action { Install-OpenCodeCli }
     Invoke-SetupStep -Name 'Claude Code native CLI' -Action { Install-ClaudeCode }
     Invoke-SetupStep -Name 'Codex CLI' -Action { Install-CodexCli }
     Invoke-SetupStep -Name 'Antigravity CLI (agy)' -Action { Install-AntigravityCli }

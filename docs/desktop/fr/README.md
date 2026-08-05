@@ -1,6 +1,6 @@
 # SetupVibe — Édition Bureau
 
-> Configuration de l'environnement de développement multiplateforme — v0.41.10
+> Configuration de l'environnement de développement multiplateforme — v0.41.11
 
 Installe et configure un stack complet de développeur en une seule commande. Supporte macOS et les principales distributions Linux.
 
@@ -163,6 +163,7 @@ depuis leurs manifestes officiels de releases :
 | Claude Code        | `@anthropic-ai/claude-code`      |
 | OpenAI Codex       | `@openai/codex`                  |
 | GitHub Copilot CLI | `@github/copilot`                |
+| OpenCode CLI       | `opencode-ai`                    |
 | Skills CLI         | `skills`                         |
 | Herdr              | Binaire du manifeste officiel    |
 | Antigravity CLI    | Binaire du manifeste officiel    |

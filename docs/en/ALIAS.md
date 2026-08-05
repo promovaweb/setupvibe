@@ -1,6 +1,6 @@
 # SetupVibe Aliases
 
-> Shell environment aliases — v0.41.10
+> Shell environment aliases — v0.41.11
 
 This is the exhaustive list of all aliases configured by SetupVibe on all platforms.
 

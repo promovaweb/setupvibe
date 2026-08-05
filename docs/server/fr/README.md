@@ -1,6 +1,6 @@
 # SetupVibe — Édition Serveur
 
-> Configuration de serveur Linux — v0.41.10
+> Configuration de serveur Linux — v0.41.11
 
 Un script de configuration léger et ciblé pour les serveurs Linux. Pas de Homebrew, pas d'écosystèmes de langages, pas d'outils de bureau. Installe uniquement ce dont un serveur de production a besoin : Docker, Ansible, réseau, shell, tmux et outils AI CLI.
 
@@ -147,6 +147,7 @@ Installe **Node.js 24** depuis le dépôt APT NodeSource, installe les paquets n
 | Claude Code        | `@anthropic-ai/claude-code`      |
 | OpenAI Codex       | `@openai/codex`                  |
 | GitHub Copilot CLI | `@github/copilot`                |
+| OpenCode CLI       | `opencode-ai`                    |
 | Skills CLI         | `skills`                         |
 | Herdr              | Binaire du manifeste officiel    |
 

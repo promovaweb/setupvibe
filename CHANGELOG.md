@@ -4,6 +4,14 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.11] - 2026-08-04
+
+### Added
+
+- Added OpenCode CLI (`opencode-ai`) to the AI CLI Tools step in Desktop, Server, and Windows editions.
+
+---
+
 ## [v0.41.10] - 2026-08-03
 
 ### Fixed

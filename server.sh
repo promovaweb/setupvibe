@@ -25,7 +25,7 @@ readonly MAGENTA='\033[0;35m'
 readonly NC='\033[0m'
 
 # --- VERSION & DOWNLOADS ---
-readonly VERSION="0.41.10"
+readonly VERSION="0.41.11"
 readonly CTOP_VERSION="0.7.7"
 readonly CTOP_SHA256_AMD64="b78374734ebe3d14b6edee3d5512c911c250d7fa7f3f964cb00acd3bc5a02a09"
 readonly CTOP_SHA256_ARM64="d8d91e0fea53a8c78fa81192f078272e5a92f0ea6c4f0e38ec7c944d76e6f02f"
@@ -899,12 +899,14 @@ step_7() {
         "@anthropic-ai/claude-code"
         "@openai/codex"
         "@github/copilot"
+        "opencode-ai"
         "skills@latest"
     )
     local -a cli_commands=(
         claude
         codex
         copilot
+        opencode
         skills
     )
 

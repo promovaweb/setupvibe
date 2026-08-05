@@ -1,6 +1,6 @@
 # SetupVibe
 
-> The ultimate cross-platform development environment setup script — v0.41.10
+> The ultimate cross-platform development environment setup script — v0.41.11
 
 Installs and configures a development environment in one command, supporting Windows 11, macOS, and major Linux distributions. The Windows Edition focuses on native utilities, Python, Node.js, selected native AI CLIs, and the WSL 2 base system. The Unix Desktop Edition includes complete language ecosystems and a broader AI toolkit, while the Server Edition remains focused on operations tooling.
 
@@ -14,7 +14,7 @@ Installs and configures a development environment in one command, supporting Win
 - **Optimized Terminals:** Installs Windows Terminal on Windows and configures Tmux + TPM on Unix systems.
 - **Global Helper Scripts:** Installs Windows helper scripts in `%USERPROFILE%\.setupvibe\bin` and adds the directory to the user's `PATH`.
 - **AI Runtime Foundation:** Installs and validates Python 3.14 directly from `python.org` and Node.js 24 LTS from the official `latest-v24.x` channel on `nodejs.org`, automatically repairs missing runtime files, and exposes `python`, `pip`, `node`, `npm`, and `npx` in the Windows machine `PATH` for Claude and Codex.
-- **Native Windows AI CLIs:** Installs Claude Code through Anthropic's recommended native installer with its official npm package as a recovery path, Codex CLI through OpenAI's official standalone Windows installer, and Google Antigravity CLI as `agy`, while preserving PowerShell profiles and restricted execution policies.
+- **Native Windows AI CLIs:** Installs Claude Code through Anthropic's recommended native installer with its official npm package as a recovery path, Codex CLI through OpenAI's official standalone Windows installer, OpenCode CLI, and Google Antigravity CLI as `agy`, while preserving PowerShell profiles and restricted execution policies.
 - **Agent Skills:** Installs and validates the [Vercel Labs Skills CLI](https://github.com/vercel-labs/skills) on Desktop, Windows, and Server editions.
 - **Agent Multiplexer:** Installs and validates [Herdr](https://github.com/herdrdev/herdr) on the Unix Desktop and Server editions, with a dedicated [usage guide](docs/en/HERDR.md).
 - **Unix Antigravity CLI:** Installs Google's Antigravity CLI as `agy` on the Unix Desktop edition, resolving and SHA-512-verifying its versioned release manifest directly (the official Unix bootstrapper does not forward `--skip-aliases`/`--skip-path` to its own `agy install` step) and running `agy install --skip-aliases --skip-path` explicitly so shell profiles stay untouched.
