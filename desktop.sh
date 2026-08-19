@@ -1542,8 +1542,10 @@ step_11() {
         # `--force` was removed from `starship preset`; passing it aborts the step on
         # current releases. `-o` overwrites on its own, and clearing the target first
         # keeps older starship (which refused to overwrite) working too.
-        if [ -f "$REAL_HOME/.config/starship.toml" ]; then
-            user_do cp "$REAL_HOME/.config/starship.toml" "$REAL_HOME/.config/starship.toml.bak"
+        # Back up once only, like the sshd_config backup below: an unguarded copy would
+        # replace the user's original with our own preset on the second run.
+        if [ -f "$REAL_HOME/.config/starship.toml" ] && [ ! -e "$REAL_HOME/.config/starship.toml.bak" ]; then
+            user_do cp -p -- "$REAL_HOME/.config/starship.toml" "$REAL_HOME/.config/starship.toml.bak"
         fi
         user_do rm -f "$REAL_HOME/.config/starship.toml"
         user_do "$BREW_PREFIX/bin/starship" preset gruvbox-rainbow \
@@ -1586,8 +1588,10 @@ step_11() {
         # `--force` was removed from `starship preset`; passing it aborts the step on
         # current releases. `-o` overwrites on its own, and clearing the target first
         # keeps older starship (which refused to overwrite) working too.
-        if [ -f "$REAL_HOME/.config/starship.toml" ]; then
-            user_do cp "$REAL_HOME/.config/starship.toml" "$REAL_HOME/.config/starship.toml.bak"
+        # Back up once only, like the sshd_config backup below: an unguarded copy would
+        # replace the user's original with our own preset on the second run.
+        if [ -f "$REAL_HOME/.config/starship.toml" ] && [ ! -e "$REAL_HOME/.config/starship.toml.bak" ]; then
+            user_do cp -p -- "$REAL_HOME/.config/starship.toml" "$REAL_HOME/.config/starship.toml.bak"
         fi
         user_do rm -f "$REAL_HOME/.config/starship.toml"
         user_do "$REAL_HOME/.local/bin/starship" preset gruvbox-rainbow \
