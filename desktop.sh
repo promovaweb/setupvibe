@@ -1008,7 +1008,14 @@ step_3() {
         echo "Configuring PHP Repository..."
         if $IS_UBUNTU; then
             echo "Using Ubuntu PPA Strategy..."
-            sys_do add-apt-repository ppa:ondrej/php -y
+            # Only add the PPA when it actually publishes this Ubuntu codename.
+            # Newer releases (e.g. 26.04 resolute) ship PHP in the main archive while
+            # the PPA 404s, and the leftover source then breaks every later apt-get update.
+            if curl -fsI "https://ppa.launchpadcontent.net/ondrej/php/ubuntu/dists/${DISTRO_CODENAME}/Release" >/dev/null 2>&1; then
+                sys_do add-apt-repository ppa:ondrej/php -y
+            else
+                echo -e "${YELLOW}⚠ ondrej/php has no build for ${DISTRO_CODENAME}; using the Ubuntu archive.${NC}"
+            fi
         elif $IS_DEBIAN; then
             echo "Using Debian Sury Strategy..."
             # Sury supports Debian 12 (bookworm) and Debian 13 (trixie).
@@ -1532,8 +1539,15 @@ step_11() {
         user_do mkdir -p "$REAL_HOME/.config"
 
         echo "Applying Starship Preset: Gruvbox Rainbow..."
+        # `--force` was removed from `starship preset`; passing it aborts the step on
+        # current releases. `-o` overwrites on its own, and clearing the target first
+        # keeps older starship (which refused to overwrite) working too.
+        if [ -f "$REAL_HOME/.config/starship.toml" ]; then
+            user_do cp "$REAL_HOME/.config/starship.toml" "$REAL_HOME/.config/starship.toml.bak"
+        fi
+        user_do rm -f "$REAL_HOME/.config/starship.toml"
         user_do "$BREW_PREFIX/bin/starship" preset gruvbox-rainbow \
-            --force -o "$REAL_HOME/.config/starship.toml"
+            -o "$REAL_HOME/.config/starship.toml"
         perl -i -pe 's/╭/┌/g; s/╰/└/g; s/\x{e0b6}/\x{e0b2}/g; s/\x{e0b4}/\x{e0b0}/g' "$REAL_HOME/.config/starship.toml"
 
         # macOS ZSHRC
@@ -1569,8 +1583,15 @@ step_11() {
         user_do mkdir -p "$REAL_HOME/.config"
 
         echo "Applying Starship Preset: Gruvbox Rainbow..."
+        # `--force` was removed from `starship preset`; passing it aborts the step on
+        # current releases. `-o` overwrites on its own, and clearing the target first
+        # keeps older starship (which refused to overwrite) working too.
+        if [ -f "$REAL_HOME/.config/starship.toml" ]; then
+            user_do cp "$REAL_HOME/.config/starship.toml" "$REAL_HOME/.config/starship.toml.bak"
+        fi
+        user_do rm -f "$REAL_HOME/.config/starship.toml"
         user_do "$REAL_HOME/.local/bin/starship" preset gruvbox-rainbow \
-            --force -o "$REAL_HOME/.config/starship.toml"
+            -o "$REAL_HOME/.config/starship.toml"
         perl -i -pe 's/╭/┌/g; s/╰/└/g; s/\x{e0b6}/\x{e0b2}/g; s/\x{e0b4}/\x{e0b0}/g' "$REAL_HOME/.config/starship.toml"
 
         # Linux ZSHRC
