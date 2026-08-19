@@ -832,6 +832,11 @@ step_5() {
     user_do mkdir -p "$REAL_HOME/.config"
 
     echo "Applying Starship Preset: Gruvbox Rainbow..."
+    # Older starship refuses to overwrite an existing config and, under `set -e`, that
+    # aborts the whole run; current starship overwrites it silently and destroys a
+    # hand-written config. Preserve it once, then clear the target so both behave.
+    backup_file_once "$REAL_HOME/.config/starship.toml"
+    user_do rm -f "$REAL_HOME/.config/starship.toml"
     user_do "$starship_bin" preset gruvbox-rainbow -o "$REAL_HOME/.config/starship.toml"
     user_do sed -i 's/╭/┌/g; s/╰/└/g' "$REAL_HOME/.config/starship.toml"
 

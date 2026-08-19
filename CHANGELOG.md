@@ -19,6 +19,12 @@ All notable changes to **SetupVibe** are documented in this file.
 - Added Moonshot AI's Kimi Code CLI (`@moonshot-ai/kimi-code`) to the Unix Desktop edition's AI CLI Tools step, installed and validated globally via npm alongside Claude Code, Codex, and Copilot CLI.
 - Enabled tmux extended keys (`extended-keys on` and `terminal-features '*:extkeys'`) in both `tmux-desktop.conf` and `tmux-server.conf`, so modifier+key combinations like `Shift+Enter` and `Ctrl+Arrow` reach TUI apps such as Claude Code, Codex, Kimi Code, and Neovim instead of being swallowed by tmux.
 
+### Fixed
+
+- Fixed the Shell step aborting on current starship releases, which removed `--force` from `starship preset` and reject it as an unexpected argument. In the Desktop edition the step died on that line before `.zshrc` was written, leaving the user with no shell configuration at all. `desktop.sh` and `omarchy.sh` no longer pass the flag, and the Desktop and Server editions preserve an existing `~/.config/starship.toml` before clearing it, so the step also succeeds on older starship, which refused to overwrite an existing file.
+- Fixed the Desktop edition adding `ppa:ondrej/php` on Ubuntu releases the PPA does not publish, such as 26.04 (resolute). The unusable source made every later `apt-get update` exit non-zero, marking unrelated steps as failed and leaving the machine with a broken APT source after the run. `desktop.sh` now probes the PPA for the running codename and falls back to the Ubuntu archive when it is absent.
+- Fixed the Server edition destroying a hand-written `~/.config/starship.toml` without a backup, and aborting the whole run on starship releases that refused to overwrite it.
+
 ---
 
 ## [v0.41.10] - 2026-08-03
