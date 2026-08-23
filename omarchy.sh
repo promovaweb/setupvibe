@@ -371,7 +371,9 @@ write_starship_config() {
 
     user_do mkdir -p "$setupvibe_dir"
     if [[ ! -f "$starship_config" ]]; then
-        user_do starship preset gruvbox-rainbow --force -o "$starship_config"
+        # `--force` was removed from `starship preset` and now aborts the step; the
+        # `! -f` guard above already means there is nothing to overwrite.
+        user_do starship preset gruvbox-rainbow -o "$starship_config"
         user_do sed -i 's/╭/┌/g; s/╰/└/g; s///g; s///g' "$starship_config"
     else
         echo "Configuração Starship do SetupVibe já existe; mantendo personalizações."
