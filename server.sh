@@ -308,6 +308,17 @@ case "$ORIGINAL_DISTRO_ID" in
         DISTRO_ID=ubuntu
         DISTRO_CODENAME=$UBUNTU_BASE_CODENAME
         ;;
+    linuxmint)
+        ID_LIKE=$(os_release_value ID_LIKE)
+        if [[ "$ID_LIKE" =~ debian ]]; then
+            DISTRO_ID=debian
+            DEBIAN_BASE_CODENAME=$(os_release_value DEBIAN_CODENAME)
+            [[ -n "$DEBIAN_BASE_CODENAME" ]] && DISTRO_CODENAME=$DEBIAN_BASE_CODENAME
+        else
+            DISTRO_ID=ubuntu
+            DISTRO_CODENAME=$UBUNTU_BASE_CODENAME
+        fi
+        ;;
     *)
         die "Unsupported distribution: ${OS_PRETTY_NAME:-$ORIGINAL_DISTRO_ID}."
         ;;
@@ -328,6 +339,15 @@ case "$ORIGINAL_DISTRO_ID" in
     zorin)
         dpkg --compare-versions "$DISTRO_VERSION" ge 18 ||
             die "Zorin OS 18 or newer is required."
+        ;;
+    linuxmint)
+        if [[ "$DISTRO_ID" == "debian" ]]; then
+            dpkg --compare-versions "$DISTRO_VERSION" ge 6 ||
+                die "LMDE 6 or newer is required."
+        else
+            dpkg --compare-versions "$DISTRO_VERSION" ge 22 ||
+                die "Linux Mint 22 or newer is required."
+        fi
         ;;
 esac
 
@@ -713,7 +733,7 @@ step_2() {
     if $IS_UBUNTU; then
         echo "Using the official Ansible Ubuntu PPA..."
         apt_do install -y software-properties-common
-        sys_do add-apt-repository --yes --update ppa:ansible/ansible
+        sys_do add-apt-repository -y ppa:ansible/ansible
         apt_do install -y ansible
     elif $IS_DEBIAN; then
         echo "Using the Debian ansible-core package..."
