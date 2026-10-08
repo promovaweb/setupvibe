@@ -904,7 +904,7 @@ step_1() {
         echo "Installing Build Essentials & Tmux..."
         sys_do apt-get install -y build-essential git wget unzip fontconfig curl sshpass \
             libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm \
-            libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
+            libncurses-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
             libyaml-dev autoconf bison procps file tmux ffmpeg imagemagick cron
 
         # Adding Charmbracelet Repo (needed for Glow)
