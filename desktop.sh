@@ -180,6 +180,40 @@ ${CRON_DISK}"
     fi
 }
 
+# --- SETUPVIBE FIX: idempotent APT helpers (skip existing, dedupe conflicts) ---
+apt_uri_exists() {
+    local uri="$1"
+    grep -rqsF -- "$uri" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null
+}
+apt_dedupe_conflicts() {
+    if [[ -f /etc/apt/sources.list.d/nodesource.list && -f /etc/apt/sources.list.d/nodesource.sources ]]; then
+        if grep -qs "deb.nodesource.com" /etc/apt/sources.list.d/nodesource.sources 2>/dev/null; then
+            echo "Removing duplicate nodesource.sources (Signed-By conflict, keeping nodesource.list)..."
+            sys_do rm -f -- /etc/apt/sources.list.d/nodesource.sources
+        fi
+    fi
+    local f
+    for f in /etc/apt/sources.list.d/*.sources; do
+        [[ -e "$f" ]] || continue
+        if grep -qs "deb.nodesource.com\|download.docker.com\|repo.charm.sh\|packages.sury.org\|cli.github.com" "$f" 2>/dev/null; then
+            local base="${f%.sources}.list"
+            if [[ -f "$base" ]]; then
+                echo "Removing duplicate DEB822 source: $f (already have $base)..."
+                sys_do rm -f -- "$f"
+            fi
+        fi
+    done
+}
+apt_update() {
+    apt_dedupe_conflicts
+    if ! sys_do apt-get update -qq; then
+        echo -e "${RED}apt-get update failed. Diagnostics:${NC}"
+        sys_do apt-get update 2>&1 | head -n 20 || true
+        echo -e "${YELLOW}Hint: sudo rm -f /etc/apt/sources.list.d/nodesource.sources && sudo apt-get update${NC}"
+        return 1
+    fi
+}
+
 if ! tty >/dev/null 2>&1 </dev/tty; then
     die "An interactive terminal is required to run desktop.sh."
 fi
@@ -209,6 +243,7 @@ if [[ "$(uname -s)" == "Linux" ]]; then
     done
     unset source_file
 
+    apt_dedupe_conflicts
     sys_do apt-get update -y -qq
     APT_BOOTSTRAP_PACKAGES=(
         gnupg
@@ -865,17 +900,22 @@ step_1() {
         echo "Base tools via Homebrew will be installed after Homebrew is set up (Step 3)..."
     else
         echo "Updating APT..."
-        sys_do apt-get update -qq
+        apt_update
         echo "Installing Build Essentials & Tmux..."
         sys_do apt-get install -y build-essential git wget unzip fontconfig curl sshpass \
             libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev llvm \
-            libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
+            libncurses-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
             libyaml-dev autoconf bison procps file tmux ffmpeg imagemagick cron
 
         # Adding Charmbracelet Repo (needed for Glow)
-        install_key "https://repo.charm.sh/apt/gpg.key" "/etc/apt/keyrings/charm.gpg"
-        echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sys_do tee /etc/apt/sources.list.d/charm.list
-        sys_do apt-get update -qq
+        apt_dedupe_conflicts
+        if apt_uri_exists "https://repo.charm.sh/apt"; then
+            echo "Charm repo already configured — skipping."
+        else
+            install_key "https://repo.charm.sh/apt/gpg.key" "/etc/apt/keyrings/charm.gpg"
+            echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sys_do tee /etc/apt/sources.list.d/charm.list
+        fi
+        apt_update
     fi
 }
 
@@ -1016,13 +1056,18 @@ step_3() {
             case "$DISTRO_CODENAME" in
                 forky|sid|experimental) PHP_CODENAME="trixie" ;;
             esac
-            install_key "https://packages.sury.org/php/apt.gpg" "/etc/apt/keyrings/php.gpg"
-            echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ $PHP_CODENAME main" | sys_do tee /etc/apt/sources.list.d/php.list
+            apt_dedupe_conflicts
+            if apt_uri_exists "https://packages.sury.org/php/"; then
+                echo "PHP Sury repo already configured — skipping."
+            else
+                install_key "https://packages.sury.org/php/apt.gpg" "/etc/apt/keyrings/php.gpg"
+                echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ $PHP_CODENAME main" | sys_do tee /etc/apt/sources.list.d/php.list
+            fi
         else
             echo -e "${YELLOW}⚠ Unknown Linux distribution. Skipping PHP repository configuration.${NC}"
         fi
         
-        sys_do apt-get update -qq
+        apt_update
         echo "Installing PHP $PHP_VERSION & Core Extensions..."
         sys_do apt-get install -y \
             "php${PHP_VERSION}" "php${PHP_VERSION}-cli" "php${PHP_VERSION}-common" "php${PHP_VERSION}-dev" \
@@ -1243,9 +1288,14 @@ step_6() {
         user_do curl -fsSL https://bun.sh/install | bash
     else
         echo "Setup NodeSource..."
-        install_key "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" "/etc/apt/keyrings/nodesource.gpg"
-        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sys_do tee /etc/apt/sources.list.d/nodesource.list
-        sys_do apt-get update -qq
+        apt_dedupe_conflicts
+        if apt_uri_exists "https://deb.nodesource.com/node_24.x"; then
+            echo "NodeSource already configured — skipping source creation (avoids Signed-By conflicts)."
+        else
+            install_key "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" "/etc/apt/keyrings/nodesource.gpg"
+            echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sys_do tee /etc/apt/sources.list.d/nodesource.list
+        fi
+        apt_update
         sys_do apt-get install -y nodejs
 
         # Configure npm globals for the target user, even when the installer runs through sudo.
@@ -1308,10 +1358,15 @@ step_7() {
             esac
         fi
 
-        install_key "https://download.docker.com/linux/$DISTRO_ID/gpg" "/etc/apt/keyrings/docker.gpg"
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DOCKER_CODENAME stable" | sys_do tee /etc/apt/sources.list.d/docker.list
+        apt_dedupe_conflicts
+        if apt_uri_exists "https://download.docker.com/linux/$DISTRO_ID"; then
+            echo "Docker repo already configured — skipping."
+        else
+            install_key "https://download.docker.com/linux/$DISTRO_ID/gpg" "/etc/apt/keyrings/docker.gpg"
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DOCKER_CODENAME stable" | sys_do tee /etc/apt/sources.list.d/docker.list
+        fi
         
-        sys_do apt-get update -qq
+        apt_update
         sys_do apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-buildx-plugin
         sys_do usermod -aG docker "$REAL_USER"
         
@@ -1332,10 +1387,14 @@ step_7() {
 
 
         # GitHub CLI
-        wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sys_do tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
-        sys_do chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sys_do tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-        sys_do apt-get update -qq && sys_do apt-get install -y gh
+        if ! apt_uri_exists "https://cli.github.com/packages"; then
+            wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sys_do tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+            sys_do chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sys_do tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        else
+            echo "GitHub CLI repo already configured — skipping."
+        fi
+        apt_update && sys_do apt-get install -y gh
     fi
 
     # Portainer Setup (Both macOS & Linux)
