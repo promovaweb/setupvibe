@@ -1264,7 +1264,10 @@ step_6() {
     npm_path="$npm_path/bin:$PATH"
 
     echo "Installing pnpm..."
-    user_do env PATH="$npm_path" "$npm_bin" install -g pnpm npm@latest
+    # NOTE: never append npm@latest here — npm refuses (EEXIST) to overwrite
+    # its own binary when npm came from the Node distribution instead of npm
+    # (see #53). Node already ships npm; upgrading it is not this installer's job.
+    user_do env PATH="$npm_path" "$npm_bin" install -g pnpm
 
     echo "Installing PM2..."
     user_do env PATH="$npm_path" "$npm_bin" install -g pm2
@@ -1625,6 +1628,7 @@ step_13() {
     local command_name
     local allowed_scripts
     local index
+    local -a failed=()
     local -a ai_packages=(
         "agentlytics"
         "@anthropic-ai/claude-code"
@@ -1662,19 +1666,45 @@ step_13() {
         package=${ai_packages[$index]}
         command_name=${ai_commands[$index]}
         allowed_scripts=${ai_allowed_scripts[$index]}
+        # Ownership query uses the bare name: `npm ls -g skills@latest`
+        # exits 1 even when installed, while `npm ls -g skills` exits 0.
+        # Strip a version tag suffix, but never a leading scope.
+        query_name=$package
+        if [[ "${package:1}" == *"@"* ]]; then
+            query_name="${package%@*}"
+        fi
         echo "Installing $package..."
-        user_do env PATH="$npm_path" "$npm_bin" install -g \
-            --allow-scripts="$allowed_scripts" "$package"
-        if [[ "$package" == "agentlytics" ]]; then
-            user_do env \
-                AGENTLYTICS_ROOT="$npm_root/agentlytics" \
-                PATH="$npm_path" \
-                node -e \
-                'const Database = require(process.env.AGENTLYTICS_ROOT + "/node_modules/better-sqlite3"); const db = new Database(":memory:"); db.close();'
+        if foreign_bin=$(user_do bash -c "command -v $command_name" 2>/dev/null); then
+            if ! user_do env PATH="$npm_path" "$npm_bin" ls --global "$query_name" &>/dev/null; then
+                echo -e "${YELLOW}⚠ $command_name already provided by another manager ($foreign_bin) — skipping npm install (never --force).${NC}"
+                if user_do env PATH="$npm_path" "$command_name" --version >/dev/null 2>&1; then
+                    continue
+                fi
+                failed+=("$command_name (foreign binary broken)")
+                continue
+            fi
+        fi
+        if user_do env PATH="$npm_path" "$npm_bin" install -g \
+            --allow-scripts="$allowed_scripts" "$package"; then
+            if [[ "$package" == "agentlytics" ]]; then
+                user_do env \
+                    AGENTLYTICS_ROOT="$npm_root/agentlytics" \
+                    PATH="$npm_path" \
+                    node -e \
+                    'const Database = require(process.env.AGENTLYTICS_ROOT + "/node_modules/better-sqlite3"); const db = new Database(":memory:"); db.close();' \
+                    || failed+=("$command_name (validation)")
+            else
+                user_do env PATH="$npm_path" "$command_name" --version >/dev/null \
+                    || failed+=("$command_name (validation)")
+            fi
         else
-            user_do env PATH="$npm_path" "$command_name" --version >/dev/null
+            failed+=("$command_name (install)")
         fi
     done
+
+    if (( ${#failed[@]} > 0 )); then
+        echo -e "${RED}✘ AI CLI tools with failures (continuing with Herdr/Antigravity/Spec-Kit): ${failed[*]}${NC}"
+    fi
 
     echo "Installing Herdr..."
     install_herdr
@@ -1687,6 +1717,11 @@ step_13() {
         user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool install specify-cli"
     else
         user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool upgrade specify-cli" 2>/dev/null || true
+    fi
+
+    if (( ${#failed[@]} > 0 )); then
+        echo -e "${RED}✘ AI CLI tools with failures: ${failed[*]}${NC}"
+        return 1
     fi
 }
 
