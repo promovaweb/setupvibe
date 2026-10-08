@@ -4,6 +4,15 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- Fixed `desktop.sh` step 6 (`JavaScript`) aborting with `EEXIST` when npm was provided by the Node distribution instead of npm: npm refuses to overwrite a binary it does not own, so `npm install -g pnpm npm@latest` died on `npm` itself before `pnpm`/`PM2` were verified. The step now installs only `pnpm` (and `pm2` separately); upgrading npm is not the installer's job ([#53](https://github.com/promovaweb/setupvibe/issues/53)).
+- Fixed `desktop.sh` step 13 (`AI CLI Tools`) aborting on the first failing package: one collision (e.g. `EEXIST` on `claude` from the native installer) silently skipped every later package. The loop now attempts all seven tools, collects failures, still installs Herdr/Antigravity/Spec-Kit, and reports the failed tools at the end ([#53](https://github.com/promovaweb/setupvibe/issues/53)).
+
+---
+
 ## [v0.41.11] - 2026-08-21
 
 ### Added
