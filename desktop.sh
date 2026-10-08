@@ -1666,7 +1666,24 @@ step_13() {
         package=${ai_packages[$index]}
         command_name=${ai_commands[$index]}
         allowed_scripts=${ai_allowed_scripts[$index]}
+        # Ownership query uses the bare name: `npm ls -g skills@latest`
+        # exits 1 even when installed, while `npm ls -g skills` exits 0.
+        # Strip a version tag suffix, but never a leading scope.
+        query_name=$package
+        if [[ "${package:1}" == *"@"* ]]; then
+            query_name="${package%@*}"
+        fi
         echo "Installing $package..."
+        if foreign_bin=$(user_do bash -c "command -v $command_name" 2>/dev/null); then
+            if ! user_do env PATH="$npm_path" "$npm_bin" ls --global "$query_name" &>/dev/null; then
+                echo -e "${YELLOW}⚠ $command_name already provided by another manager ($foreign_bin) — skipping npm install (never --force).${NC}"
+                if user_do env PATH="$npm_path" "$command_name" --version >/dev/null 2>&1; then
+                    continue
+                fi
+                failed+=("$command_name (foreign binary broken)")
+                continue
+            fi
+        fi
         if user_do env PATH="$npm_path" "$npm_bin" install -g \
             --allow-scripts="$allowed_scripts" "$package"; then
             if [[ "$package" == "agentlytics" ]]; then
