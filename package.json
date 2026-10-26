@@ -1,0 +1,25 @@
+{
+  "name": "setupvibe-development",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "cargo build --locked",
+    "test": "cargo build --locked && node --test --test-concurrency=1 tests/*.test.mjs",
+    "check": "cargo fmt --check && cargo clippy --locked -- -D warnings",
+    "test:integration": "cargo build --locked && node --test --test-concurrency=1 tests/integration/*.mjs",
+    "capture:tui": "cargo build --locked && node scripts/capture-tui.mjs",
+    "bootstrap:generate": "node scripts/distribution.mjs bootstrap",
+    "bootstrap:check": "node scripts/distribution.mjs check && bash -n desktop.sh && bash -n server.sh && shellcheck desktop.sh server.sh",
+    "package": "node scripts/distribution.mjs package",
+    "build:linux": "node scripts/build-linux.mjs",
+    "docs:generate": "cargo build --locked && node scripts/generate-manual.mjs",
+    "docs:check": "cargo build --locked && node scripts/generate-manual.mjs --check && node scripts/validate-docs.mjs"
+  },
+  "devDependencies": {
+    "@xterm/headless": "^5.5.0",
+    "playwright": "^1.63.0"
+  }
+}

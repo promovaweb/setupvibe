@@ -1,0 +1,5 @@
+{
+  "image": "portainer/portainer-ce:lts",
+  "port": 9443,
+  "data": "/data"
+}

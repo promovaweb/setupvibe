@@ -1,0 +1,15 @@
+{
+  "image": "redis:7",
+  "port": 6379,
+  "data": "/data",
+  "cmd": [
+    "redis-server",
+    "--appendonly",
+    "yes"
+  ],
+  "health": [
+    "CMD",
+    "redis-cli",
+    "ping"
+  ]
+}

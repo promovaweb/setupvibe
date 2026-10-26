@@ -1,0 +1,1845 @@
+[
+  {
+    "path": "",
+    "usage": "setupvibe [OPTIONS] [COMMAND]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version",
+      "version"
+    ],
+    "children": [
+      "tui",
+      "collector",
+      "metrics",
+      "docker",
+      "service",
+      "swarm",
+      "git",
+      "gh",
+      "portainer",
+      "herdr",
+      "codex",
+      "claude",
+      "antigravity",
+      "opencode",
+      "kimi",
+      "ansible",
+      "tailscale",
+      "updates",
+      "doctor",
+      "state",
+      "operation",
+      "version",
+      "catalog",
+      "component"
+    ]
+  },
+  {
+    "path": "tui",
+    "usage": "setupvibe tui [OPTIONS]",
+    "options": [
+      "snapshot",
+      "edition",
+      "width",
+      "height",
+      "output",
+      "dry-run",
+      "tab",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "collector",
+    "usage": "setupvibe collector [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "help",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "update",
+      "configure",
+      "status",
+      "start",
+      "stop",
+      "restart",
+      "render",
+      "run"
+    ]
+  },
+  {
+    "path": "collector install",
+    "usage": "setupvibe collector install [OPTIONS]",
+    "options": [
+      "scope",
+      "edition",
+      "interval",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "collector update",
+    "usage": "setupvibe collector update [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "collector configure",
+    "usage": "setupvibe collector configure [OPTIONS] --interval <INTERVAL>",
+    "options": [
+      "interval",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "collector status",
+    "usage": "setupvibe collector status [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "collector start",
+    "usage": "setupvibe collector start [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "collector stop",
+    "usage": "setupvibe collector stop [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "collector restart",
+    "usage": "setupvibe collector restart [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "collector render",
+    "usage": "setupvibe collector render [OPTIONS]",
+    "options": [
+      "platform",
+      "edition",
+      "scope",
+      "interval",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "collector run",
+    "usage": "setupvibe collector run [OPTIONS]",
+    "options": [
+      "interval",
+      "edition",
+      "once",
+      "output",
+      "samples",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "metrics",
+    "usage": "setupvibe metrics [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "current",
+      "history"
+    ]
+  },
+  {
+    "path": "metrics current",
+    "usage": "setupvibe metrics current [OPTIONS]",
+    "options": [
+      "scope",
+      "edition",
+      "id",
+      "limit",
+      "output",
+      "dry-run",
+      "offset",
+      "max-age",
+      "non-interactive",
+      "help",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "metrics history",
+    "usage": "setupvibe metrics history [OPTIONS]",
+    "options": [
+      "scope",
+      "edition",
+      "id",
+      "limit",
+      "output",
+      "dry-run",
+      "offset",
+      "max-age",
+      "non-interactive",
+      "from",
+      "yes",
+      "data-dir",
+      "to",
+      "after",
+      "timeout",
+      "no-color",
+      "snapshot-id",
+      "help",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "docker",
+    "usage": "setupvibe docker [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "docker install",
+    "usage": "setupvibe docker install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "docker verify",
+    "usage": "setupvibe docker verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "docker update",
+    "usage": "setupvibe docker update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "service",
+    "usage": "setupvibe service [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "help",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "list",
+      "inspect",
+      "logs",
+      "start",
+      "stop",
+      "restart"
+    ]
+  },
+  {
+    "path": "service list",
+    "usage": "setupvibe service list [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "service inspect",
+    "usage": "setupvibe service inspect [OPTIONS] <ID>",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "service logs",
+    "usage": "setupvibe service logs [OPTIONS] <ID>",
+    "options": [
+      "since",
+      "edition",
+      "follow",
+      "output",
+      "tail",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "service start",
+    "usage": "setupvibe service start [OPTIONS] <ID>",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "service stop",
+    "usage": "setupvibe service stop [OPTIONS] <ID>",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "service restart",
+    "usage": "setupvibe service restart [OPTIONS] <ID>",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "swarm",
+    "usage": "setupvibe swarm [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "status",
+      "init",
+      "join"
+    ]
+  },
+  {
+    "path": "swarm status",
+    "usage": "setupvibe swarm status [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "swarm init",
+    "usage": "setupvibe swarm init [OPTIONS] --advertise-addr <ADVERTISE_ADDR>",
+    "options": [
+      "advertise-addr",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "swarm join",
+    "usage": "setupvibe swarm join [OPTIONS] --manager <MANAGER>",
+    "options": [
+      "manager",
+      "edition",
+      "token-stdin",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "git",
+    "usage": "setupvibe git [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "git install",
+    "usage": "setupvibe git install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "git verify",
+    "usage": "setupvibe git verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "git update",
+    "usage": "setupvibe git update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "gh",
+    "usage": "setupvibe gh [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "gh install",
+    "usage": "setupvibe gh install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "gh verify",
+    "usage": "setupvibe gh verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "gh update",
+    "usage": "setupvibe gh update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "portainer",
+    "usage": "setupvibe portainer [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "portainer install",
+    "usage": "setupvibe portainer install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "portainer verify",
+    "usage": "setupvibe portainer verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "portainer update",
+    "usage": "setupvibe portainer update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "herdr",
+    "usage": "setupvibe herdr [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "herdr install",
+    "usage": "setupvibe herdr install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "herdr verify",
+    "usage": "setupvibe herdr verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "herdr update",
+    "usage": "setupvibe herdr update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "codex",
+    "usage": "setupvibe codex [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "codex install",
+    "usage": "setupvibe codex install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "codex verify",
+    "usage": "setupvibe codex verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "codex update",
+    "usage": "setupvibe codex update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "claude",
+    "usage": "setupvibe claude [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "claude install",
+    "usage": "setupvibe claude install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "claude verify",
+    "usage": "setupvibe claude verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "claude update",
+    "usage": "setupvibe claude update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "antigravity",
+    "usage": "setupvibe antigravity [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "antigravity install",
+    "usage": "setupvibe antigravity install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "antigravity verify",
+    "usage": "setupvibe antigravity verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "antigravity update",
+    "usage": "setupvibe antigravity update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "opencode",
+    "usage": "setupvibe opencode [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "opencode install",
+    "usage": "setupvibe opencode install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "opencode verify",
+    "usage": "setupvibe opencode verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "opencode update",
+    "usage": "setupvibe opencode update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "kimi",
+    "usage": "setupvibe kimi [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "kimi install",
+    "usage": "setupvibe kimi install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "kimi verify",
+    "usage": "setupvibe kimi verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "kimi update",
+    "usage": "setupvibe kimi update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "ansible",
+    "usage": "setupvibe ansible [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "ansible install",
+    "usage": "setupvibe ansible install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "ansible verify",
+    "usage": "setupvibe ansible verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "ansible update",
+    "usage": "setupvibe ansible update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "tailscale",
+    "usage": "setupvibe tailscale [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "install",
+      "verify",
+      "update"
+    ]
+  },
+  {
+    "path": "tailscale install",
+    "usage": "setupvibe tailscale install [OPTIONS]",
+    "options": [
+      "role",
+      "edition",
+      "option",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "tailscale verify",
+    "usage": "setupvibe tailscale verify [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "tailscale update",
+    "usage": "setupvibe tailscale update [OPTIONS]",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "updates",
+    "usage": "setupvibe updates [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "list",
+      "apply"
+    ]
+  },
+  {
+    "path": "updates list",
+    "usage": "setupvibe updates list [OPTIONS] [IDS]...",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "updates apply",
+    "usage": "setupvibe updates apply [OPTIONS] <IDS>...",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "doctor",
+    "usage": "setupvibe doctor [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "state",
+    "usage": "setupvibe state [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "init",
+      "status",
+      "reconcile",
+      "backup"
+    ]
+  },
+  {
+    "path": "state init",
+    "usage": "setupvibe state init [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "state status",
+    "usage": "setupvibe state status [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "state reconcile",
+    "usage": "setupvibe state reconcile [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "state backup",
+    "usage": "setupvibe state backup [OPTIONS] --destination <DESTINATION>",
+    "options": [
+      "destination",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "operation",
+    "usage": "setupvibe operation [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "list",
+      "show"
+    ]
+  },
+  {
+    "path": "operation list",
+    "usage": "setupvibe operation list [OPTIONS]",
+    "options": [
+      "limit",
+      "edition",
+      "offset",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "operation show",
+    "usage": "setupvibe operation show [OPTIONS] <ID>",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "version",
+    "usage": "setupvibe version [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "catalog",
+    "usage": "setupvibe catalog [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "help",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "list",
+      "show",
+      "validate"
+    ]
+  },
+  {
+    "path": "catalog list",
+    "usage": "setupvibe catalog list [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "catalog show",
+    "usage": "setupvibe catalog show [OPTIONS] <ID>",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "catalog validate",
+    "usage": "setupvibe catalog validate [OPTIONS]",
+    "options": [
+      "file",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "component",
+    "usage": "setupvibe component [OPTIONS] <COMMAND>",
+    "options": [
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "help",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": [
+      "inspect",
+      "verify",
+      "list",
+      "install",
+      "update"
+    ]
+  },
+  {
+    "path": "component inspect",
+    "usage": "setupvibe component inspect [OPTIONS] <ID>",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "component verify",
+    "usage": "setupvibe component verify [OPTIONS] <ID>",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "component list",
+    "usage": "setupvibe component list [OPTIONS]",
+    "options": [
+      "help",
+      "edition",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "component install",
+    "usage": "setupvibe component install [OPTIONS] [IDS]...",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  },
+  {
+    "path": "component update",
+    "usage": "setupvibe component update [OPTIONS] [IDS]...",
+    "options": [
+      "option",
+      "edition",
+      "help",
+      "output",
+      "dry-run",
+      "non-interactive",
+      "yes",
+      "data-dir",
+      "timeout",
+      "no-color",
+      "target-version"
+    ],
+    "children": []
+  }
+]

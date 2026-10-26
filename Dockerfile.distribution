@@ -1,0 +1,11 @@
+# Build nativo musl. Execute em Linux amd64 ou arm64; não pressupõe emulação.
+FROM rust:1.94.1-alpine3.23@sha256:77237dd363a0b127bb5ef532c2d64c0deb380b738e43a9c4bdac73398d6d0a08 AS build
+RUN apk add --no-cache build-base
+WORKDIR /build
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+COPY catalog ./catalog
+RUN cargo build --locked --release && mkdir /artifacts && cp target/release/setupvibe /artifacts/setupvibe-desktop
+RUN cargo build --locked --release --features server-default && cp target/release/setupvibe /artifacts/setupvibe-server
+FROM scratch AS artifacts
+COPY --from=build /artifacts/ /

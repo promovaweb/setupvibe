@@ -1,0 +1,1090 @@
+{
+  "schema_version": 1,
+  "catalog_version": "2.0.0-alpha.1",
+  "categories": {
+    "languages": "Linguagens",
+    "tools": "Ferramentas",
+    "assistants": "Assistentes",
+    "containers": "Containers",
+    "services": "Serviços",
+    "network": "Rede",
+    "system": "Sistema"
+  },
+  "templates": [
+    "portainer-server",
+    "portainer-agent",
+    "postgresql",
+    "redis",
+    "mailpit",
+    "collector-service"
+  ],
+  "components": [
+    {
+      "id": "git",
+      "name": "Git",
+      "category": "tools",
+      "editions": [
+        "desktop",
+        "server"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "system",
+          "package": "git"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "brew",
+          "package": "git"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "gh",
+      "name": "GitHub CLI",
+      "category": "tools",
+      "editions": [
+        "desktop",
+        "server"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "system",
+          "package": "gh"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "brew",
+          "package": "gh"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "docker",
+      "name": "Docker",
+      "category": "containers",
+      "editions": [
+        "desktop",
+        "server"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "system",
+          "package": "docker-ce"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "brew",
+          "package": "docker-desktop"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "portainer",
+      "name": "Portainer CE",
+      "category": "containers",
+      "editions": [
+        "desktop",
+        "server"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "docker",
+          "package": "portainer/portainer-ce:lts"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "docker",
+          "package": "portainer/portainer-ce:lts"
+        }
+      ],
+      "dependencies": [
+        "docker"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {
+        "role": {
+          "type": "choice",
+          "values": [
+            "server",
+            "agent"
+          ],
+          "default": "server"
+        },
+        "port": {
+          "type": "integer",
+          "min": 1024,
+          "max": 65535,
+          "default": 9443
+        },
+        "bind": {
+          "type": "choice",
+          "values": [
+            "127.0.0.1",
+            "0.0.0.0"
+          ],
+          "default": "127.0.0.1"
+        },
+        "deployment": {
+          "type": "choice",
+          "values": [
+            "auto",
+            "standalone",
+            "swarm"
+          ],
+          "default": "auto"
+        }
+      },
+      "template_refs": [
+        "portainer-server",
+        "portainer-agent"
+      ]
+    },
+    {
+      "id": "tailscale",
+      "name": "Tailscale",
+      "category": "network",
+      "editions": [
+        "desktop",
+        "server"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "system",
+          "package": "tailscale"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "brew",
+          "package": "tailscale"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "collector",
+      "name": "Coletor nativo",
+      "category": "system",
+      "editions": [
+        "desktop",
+        "server"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "native",
+          "package": "collector"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "native",
+          "package": "collector"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {
+        "interval": {
+          "type": "integer",
+          "min": 1,
+          "max": 3600,
+          "default": 5
+        }
+      },
+      "template_refs": [
+        "collector-service"
+      ]
+    },
+    {
+      "id": "mise",
+      "name": "mise",
+      "category": "tools",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "mise"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "brew",
+          "package": "mise"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "homebrew",
+      "name": "Homebrew",
+      "category": "tools",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "homebrew"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "homebrew"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "herdr",
+      "name": "Herdr",
+      "category": "tools",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "herdr"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "herdr"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "ansible",
+      "name": "Ansible",
+      "category": "tools",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "system",
+          "package": "ansible-core"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "brew",
+          "package": "ansible"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "codex",
+      "name": "Codex",
+      "category": "assistants",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "codex"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "codex"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "claude",
+      "name": "Claude Code",
+      "category": "assistants",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "claude"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "claude"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "antigravity",
+      "name": "Antigravity",
+      "category": "assistants",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "antigravity"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "antigravity"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "opencode",
+      "name": "OpenCode",
+      "category": "assistants",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "opencode"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "opencode"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "kimi",
+      "name": "Kimi",
+      "category": "assistants",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "kimi"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "vendor",
+          "package": "kimi"
+        }
+      ],
+      "dependencies": [],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "category": "languages",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "node"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "node"
+        }
+      ],
+      "dependencies": [
+        "mise"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "category": "languages",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "python"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "python"
+        }
+      ],
+      "dependencies": [
+        "mise"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "go",
+      "name": "Go",
+      "category": "languages",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "go"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "go"
+        }
+      ],
+      "dependencies": [
+        "mise"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "category": "languages",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "rust"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "rust"
+        }
+      ],
+      "dependencies": [
+        "mise"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "php",
+      "name": "Php",
+      "category": "languages",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "php"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "php"
+        }
+      ],
+      "dependencies": [
+        "mise"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "ruby",
+      "name": "Ruby",
+      "category": "languages",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "ruby"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "ruby"
+        }
+      ],
+      "dependencies": [
+        "mise"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "java",
+      "name": "Java",
+      "category": "languages",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "java"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "java"
+        }
+      ],
+      "dependencies": [
+        "mise"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "bun",
+      "name": "Bun",
+      "category": "languages",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "bun"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "mise",
+          "package": "bun"
+        }
+      ],
+      "dependencies": [
+        "mise"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {},
+      "template_refs": []
+    },
+    {
+      "id": "postgresql",
+      "name": "PostgreSQL",
+      "category": "services",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "docker",
+          "package": "postgres:17"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "docker",
+          "package": "postgres:17"
+        }
+      ],
+      "dependencies": [
+        "docker"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {
+        "port": {
+          "type": "integer",
+          "min": 1024,
+          "max": 65535,
+          "default": 5432
+        },
+        "bind": {
+          "type": "choice",
+          "values": [
+            "127.0.0.1",
+            "0.0.0.0"
+          ],
+          "default": "127.0.0.1"
+        }
+      },
+      "template_refs": [
+        "postgresql"
+      ]
+    },
+    {
+      "id": "redis",
+      "name": "Redis",
+      "category": "services",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "docker",
+          "package": "redis:7"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "docker",
+          "package": "redis:7"
+        }
+      ],
+      "dependencies": [
+        "docker"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {
+        "port": {
+          "type": "integer",
+          "min": 1024,
+          "max": 65535,
+          "default": 6379
+        },
+        "bind": {
+          "type": "choice",
+          "values": [
+            "127.0.0.1",
+            "0.0.0.0"
+          ],
+          "default": "127.0.0.1"
+        }
+      },
+      "template_refs": [
+        "redis"
+      ]
+    },
+    {
+      "id": "mailpit",
+      "name": "Mailpit",
+      "category": "services",
+      "editions": [
+        "desktop"
+      ],
+      "platforms": [
+        {
+          "os": "linux",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "docker",
+          "package": "axllent/mailpit:v1"
+        },
+        {
+          "os": "macos",
+          "architectures": [
+            "x86_64",
+            "aarch64"
+          ],
+          "manager": "docker",
+          "package": "axllent/mailpit:v1"
+        }
+      ],
+      "dependencies": [
+        "docker"
+      ],
+      "operations": [
+        "install",
+        "verify",
+        "update"
+      ],
+      "options": {
+        "port": {
+          "type": "integer",
+          "min": 1024,
+          "max": 65535,
+          "default": 8025
+        },
+        "smtp-port": {
+          "type": "integer",
+          "min": 1024,
+          "max": 65535,
+          "default": 1025
+        },
+        "bind": {
+          "type": "choice",
+          "values": [
+            "127.0.0.1",
+            "0.0.0.0"
+          ],
+          "default": "127.0.0.1"
+        }
+      },
+      "template_refs": [
+        "mailpit"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "workspace_id": "9007154145",
+  "list_id": "1400510000002240",
+  "document_id": "8cdwgz1-16513",
+  "parent_page_id": "8cdwgz1-28593",
+  "pages": [
+    {
+      "title": "01. Produto e requisitos",
+      "file": "docs/development/PRODUCT.md",
+      "page_id": "8cdwgz1-28613"
+    },
+    {
+      "title": "02. Edições e compatibilidade",
+      "file": "docs/development/COMPATIBILITY.md",
+      "page_id": "8cdwgz1-28633"
+    },
+    {
+      "title": "03. Instalação e distribuição",
+      "file": "docs/development/DISTRIBUTION.md",
+      "page_id": "8cdwgz1-28653"
+    },
+    {
+      "title": "04. Arquitetura técnica",
+      "file": "docs/development/ARCHITECTURE.md",
+      "page_id": "8cdwgz1-28673"
+    },
+    {
+      "title": "05. Catálogo JSON embarcado",
+      "file": "docs/development/CATALOG.md",
+      "page_id": "8cdwgz1-28693"
+    },
+    {
+      "title": "06. TUI e navegação",
+      "file": "docs/development/TUI.md",
+      "page_id": "8cdwgz1-28713"
+    },
+    {
+      "title": "07. CLI e automação",
+      "file": "docs/development/CLI.md",
+      "page_id": "8cdwgz1-28733"
+    },
+    {
+      "title": "08. Instalação e atualizações",
+      "file": "docs/development/ADAPTERS.md",
+      "page_id": "8cdwgz1-28753"
+    },
+    {
+      "title": "09. Aplicativos essenciais",
+      "file": "docs/development/APPLICATIONS.md",
+      "page_id": "8cdwgz1-28773"
+    },
+    {
+      "title": "10. Docker, Swarm e serviços",
+      "file": "docs/development/DOCKER.md",
+      "page_id": "8cdwgz1-28793"
+    },
+    {
+      "title": "11. SQLite e estado local",
+      "file": "docs/development/STATE.md",
+      "page_id": "8cdwgz1-28813"
+    },
+    {
+      "title": "12. Coletor e métricas",
+      "file": "docs/development/METRICS.md",
+      "page_id": "8cdwgz1-28833"
+    },
+    {
+      "title": "13. Integração com agentes",
+      "file": "docs/development/SUPERVISION-AGENTS.md",
+      "page_id": "8cdwgz1-28853"
+    },
+    {
+      "title": "14. Tailscale",
+      "file": "docs/development/TAILSCALE.md",
+      "page_id": "8cdwgz1-28873"
+    },
+    {
+      "title": "15. Validação e implementação",
+      "file": "docs/development/ACCEPTANCE.md",
+      "page_id": "8cdwgz1-28893"
+    }
+  ]
+}

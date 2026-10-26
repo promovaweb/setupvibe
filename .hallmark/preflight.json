@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-22",
+  "surface": "terminal Ratatui 0.29 / Crossterm 0.28",
+  "contract": "Hub: TUI-DESIGN-SYSTEM.md",
+  "reference": "Specsfy TUI",
+  "macrostructure": "Workbench",
+  "theme": "contrato de terminal do Hub",
+  "font": "monospace configurada no terminal",
+  "audience": "desenvolvedores e operadores de ambientes",
+  "scope": "Desktop e Server; seis abas, revisão e acompanhamento",
+  "user_direction": "Implementar sem novas perguntas; seguir o contrato visual existente",
+  "web_rules": "CSS, fontes web e rotação de navegação não se aplicam ao shell terminal obrigatório"
+}

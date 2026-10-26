@@ -1,0 +1,11 @@
+{
+  "image": "postgres:17",
+  "port": 5432,
+  "data": "/var/lib/postgresql/data",
+  "health": [
+    "CMD",
+    "pg_isready",
+    "-U",
+    "postgres"
+  ]
+}

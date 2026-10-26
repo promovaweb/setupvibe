@@ -1,0 +1,67 @@
+name: Verificar SetupVibe 2
+on:
+  pull_request:
+    branches: [v2]
+  push:
+    branches: [v2]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+        with:
+          toolchain: 1.94.1
+          components: rustfmt, clippy
+      - run: npm ci
+      - run: npm run check
+      - run: npm run bootstrap:check
+      - run: npm test
+      - run: npm run docs:check
+  artifacts:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+          - runner: macos-15-intel
+            target: x86_64-apple-darwin
+          - runner: macos-14
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '14.0'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+        with:
+          toolchain: 1.94.1
+      - if: runner.os == 'Linux'
+        run: node scripts/build-linux.mjs
+      - if: runner.os == 'macOS'
+        run: cargo build --locked --release --target ${{ matrix.target }}
+      - if: runner.os == 'macOS'
+        run: node scripts/distribution.mjs package desktop ${{ matrix.target }} target/${{ matrix.target }}/release/setupvibe
+      - if: runner.os == 'Linux'
+        run: node --test tests/integration/distribution.mjs
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: setupvibe-${{ matrix.target }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14

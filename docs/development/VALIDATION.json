@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-22",
+  "version": "2.0.0-alpha.1",
+  "branch": "v2",
+  "git_published": false,
+  "environment": {
+    "os": "Debian 13",
+    "architecture": "x86_64",
+    "rust": "1.94.1",
+    "node": "26.8.1"
+  },
+  "checks": [
+    {
+      "command": "npm run check",
+      "passed": true
+    },
+    {
+      "command": "npm run bootstrap:check",
+      "passed": true
+    },
+    {
+      "command": "npm test",
+      "passed": 105,
+      "failed": 0
+    },
+    {
+      "command": "node --test tests/integration/vendors.mjs",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "command": "node --test --test-concurrency=1 tests/integration/debian.mjs tests/integration/docker.mjs tests/integration/supervisor.mjs tests/integration/tailscale.mjs",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "command": "npm run build:linux",
+      "passed": true
+    },
+    {
+      "command": "node --test tests/integration/distribution.mjs",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "command": "npm run capture:tui",
+      "passed": true
+    },
+    {
+      "command": "actionlint 1.7.12",
+      "passed": true
+    },
+    {
+      "command": "markdownlint recursivo, incluindo .codex e .claude",
+      "passed": true
+    },
+    {
+      "command": "npm run docs:check",
+      "passed": true,
+      "entries": 97,
+      "leaf_commands": 75,
+      "parsed_examples": 375,
+      "markdown_files": 39
+    },
+    {
+      "command": "Hub: npm run validar:estrutura",
+      "passed": true
+    },
+    {
+      "command": "Hub: sync:blog:check, sync:ebooks:check, sync:changelogs:check",
+      "passed": true,
+      "pending_changes": 0
+    },
+    {
+      "command": "Hub: npm run validar:markdown",
+      "passed": false,
+      "scope": "Falhas anteriores em skills editoriais/Hallmark e ebooks-check-*.md, fora desta alteração. Markdown do SetupVibe e arquivos Hub alterados nesta tarefa aprovados separadamente."
+    }
+  ],
+  "artifacts": [
+    {
+      "schema_version": 1,
+      "version": "2.0.0-alpha.1",
+      "edition": "desktop",
+      "target": "x86_64-unknown-linux-musl",
+      "sha256": "823f6323217d6d41e9f8c15cf49291e075dcdea3fdbedc6ee12c4ccb02ed88b0",
+      "size": 7298256
+    },
+    {
+      "schema_version": 1,
+      "version": "2.0.0-alpha.1",
+      "edition": "server",
+      "target": "x86_64-unknown-linux-musl",
+      "sha256": "4058648877ef63b4648802a09cdaeb10b819fc87f0877e01c5794897285d6243",
+      "size": 7298256
+    }
+  ],
+  "not_executed": [
+    "macOS físico Intel/ARM",
+    "Linux arm64",
+    "Antigravity: CPU disponível sem PCLMUL",
+    "publicação Git e endpoints desktop.setupvibe.dev/server.setupvibe.dev"
+  ]
+}

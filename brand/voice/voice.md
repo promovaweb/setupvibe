@@ -19,7 +19,6 @@ comunicação pública.
 | --- | --- | --- | --- |
 | SetupVibe | `SetupVibe` | Setup Vibe, setup-vibe | Preserve a caixa e a união do nome. |
 | Desktop | `Desktop Edition` | versão completa, instalação padrão | Use para macOS, Linux desktop e WSL2. |
-| Windows | `Windows Edition (Beta)` | Desktop para Windows, versão estável | Mantenha o estado Beta explícito. |
 | Server | `Server Edition` | modo servidor, versão mínima | Use para a edição Linux voltada à operação. |
 | script | script | instalador mágico, comando universal | O arquivo é público e precisa ser revisado. |
 | ambiente | ambiente de desenvolvimento | máquina perfeita, stack pronta | Nomeie a parte configurada quando houver possibilidade de ambiguidade. |
@@ -65,7 +64,7 @@ executar novamente.
 
 **Anúncio público:**
 
-> SetupVibe separa a preparação do ambiente em edições para Desktop, Windows e
+> SetupVibe separa a preparação do ambiente em edições para Desktop e
 > Server. Escolha a edição, revise o script e valide o resultado.
 
 ## Evite e prefira
@@ -90,10 +89,10 @@ executar novamente.
 
 ## Idioma
 
-O inglês é o idioma principal do repositório e dos comandos. Materiais públicos
+Português do Brasil é o idioma do repositório e da interface. Materiais públicos
 podem usar Português do Brasil, inglês, espanhol ou francês, mas nomes de
 edição, comandos, caminhos, variáveis, versões e identificadores permanecem
 iguais em todas as traduções.
 
-Não traduza `Desktop Edition`, `Windows Edition (Beta)`, `Server Edition`,
+Não traduza `Desktop Edition`, `Server Edition`,
 nomes de ferramentas, comandos ou caminhos. Traduza a explicação ao redor.

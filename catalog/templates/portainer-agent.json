@@ -1,0 +1,4 @@
+{
+  "image": "portainer/agent:lts",
+  "port": 9001
+}

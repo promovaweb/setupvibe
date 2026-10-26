@@ -1,0 +1,236 @@
+{
+  "date": "2026-10-22",
+  "workspace_id": "9007154145",
+  "document_id": "8cdwgz1-16513",
+  "all_pages_read_back": true,
+  "all_tasks_have_dates_comments_and_time": true,
+  "pages": [
+    {
+      "page_id": "8cdwgz1-28613",
+      "name": "01. Produto e requisitos",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 5420
+    },
+    {
+      "page_id": "8cdwgz1-28633",
+      "name": "02. Edições e compatibilidade",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 4794
+    },
+    {
+      "page_id": "8cdwgz1-28653",
+      "name": "03. Instalação e distribuição",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 9117
+    },
+    {
+      "page_id": "8cdwgz1-28673",
+      "name": "04. Arquitetura técnica",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 6230
+    },
+    {
+      "page_id": "8cdwgz1-28693",
+      "name": "05. Catálogo JSON embarcado",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 5915
+    },
+    {
+      "page_id": "8cdwgz1-28713",
+      "name": "06. TUI e navegação",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 10759
+    },
+    {
+      "page_id": "8cdwgz1-28733",
+      "name": "07. CLI e automação",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 151630
+    },
+    {
+      "page_id": "8cdwgz1-28753",
+      "name": "08. Instalação e atualizações",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 6444
+    },
+    {
+      "page_id": "8cdwgz1-28773",
+      "name": "09. Aplicativos essenciais",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 6702
+    },
+    {
+      "page_id": "8cdwgz1-28793",
+      "name": "10. Docker, Swarm e serviços",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 11948
+    },
+    {
+      "page_id": "8cdwgz1-28813",
+      "name": "11. SQLite e estado local",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 5271
+    },
+    {
+      "page_id": "8cdwgz1-28833",
+      "name": "12. Coletor e métricas",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 8668
+    },
+    {
+      "page_id": "8cdwgz1-28853",
+      "name": "13. Integração com agentes",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 9849
+    },
+    {
+      "page_id": "8cdwgz1-28873",
+      "name": "14. Tailscale",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 4997
+    },
+    {
+      "page_id": "8cdwgz1-28893",
+      "name": "15. Validação e implementação",
+      "parent": "8cdwgz1-28593",
+      "content_verified": true,
+      "chars": 11468
+    },
+    {
+      "page_id": "8cdwgz1-28593",
+      "name": "Visão Geral da Versão 2.0",
+      "parent": null,
+      "content_verified": true,
+      "chars": 11479
+    }
+  ],
+  "tasks": [
+    {
+      "id": "17tr6jh0pmc",
+      "name": "SetupVibe 2 | Implementação 01. Consolidar contratos e preparar a branch v2",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1792652400000",
+      "time_spent_ms": 275023
+    },
+    {
+      "id": "17tr6jh0pmd",
+      "name": "SetupVibe 2 | Implementação 02. Implementar catálogo embarcado e planejador",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1792652400000",
+      "time_spent_ms": 206862
+    },
+    {
+      "id": "17tr6jh0pme",
+      "name": "SetupVibe 2 | Implementação 03. Implementar estado SQLite e reconciliação",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1792738800000",
+      "time_spent_ms": 285256
+    },
+    {
+      "id": "17tr6jh0pmf",
+      "name": "SetupVibe 2 | Implementação 04. Implementar CLI e contratos de automação",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1792738800000",
+      "time_spent_ms": 308579
+    },
+    {
+      "id": "17tr6jh0pmg",
+      "name": "SetupVibe 2 | Implementação 05. Implementar adaptadores e atualizações",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1792825200000",
+      "time_spent_ms": 548603
+    },
+    {
+      "id": "17tr6jh0pmh",
+      "name": "SetupVibe 2 | Implementação 06. Implementar aplicativos essenciais",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1792825200000",
+      "time_spent_ms": 649557
+    },
+    {
+      "id": "17tr6jh0pmj",
+      "name": "SetupVibe 2 | Implementação 07. Implementar Docker, Swarm e serviços",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1792911600000",
+      "time_spent_ms": 1624231
+    },
+    {
+      "id": "17tr6jh0pmk",
+      "name": "SetupVibe 2 | Implementação 08. Implementar Tailscale restrito",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1792911600000",
+      "time_spent_ms": 390384
+    },
+    {
+      "id": "17tr6jh0pmm",
+      "name": "SetupVibe 2 | Implementação 09. Implementar coletor e métricas",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1792998000000",
+      "time_spent_ms": 884148
+    },
+    {
+      "id": "17tr6jh0pmn",
+      "name": "SetupVibe 2 | Implementação 10. Implementar supervisão e consultas de agentes",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1792998000000",
+      "time_spent_ms": 676438
+    },
+    {
+      "id": "17tr6jh0pmp",
+      "name": "SetupVibe 2 | Implementação 11. Implementar TUI completa",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1793084400000",
+      "time_spent_ms": 1184603
+    },
+    {
+      "id": "17tr6jh0pmq",
+      "name": "SetupVibe 2 | Implementação 12. Implementar bootstrap e distribuição",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1793084400000",
+      "time_spent_ms": 534269
+    },
+    {
+      "id": "17tr6jh0pmr",
+      "name": "SetupVibe 2 | Implementação 13. Validar integração e cenários de aceitação",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1793170800000",
+      "time_spent_ms": 727179
+    },
+    {
+      "id": "17tr6jh0pmt",
+      "name": "SetupVibe 2 | Implementação 14. Atualizar documentação e auditar entrega v2",
+      "status": "concluido",
+      "start_date": "1792652400000",
+      "due_date": "1793170800000",
+      "time_spent_ms": 1211110
+    }
+  ],
+  "total_time_ms": 9506242
+}

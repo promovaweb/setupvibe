@@ -1,0 +1,12 @@
+[
+  {
+    "date": "2026-10-22",
+    "macrostructure": "Workbench",
+    "theme": "contrato de terminal do Hub",
+    "enrichment": "none",
+    "brief": "Gestão de ambientes com revisão antes de executar",
+    "critique": {"philosophy": 4, "hierarchy": 4, "execution": 4, "specificity": 5, "restraint": 5, "variety": 3},
+    "verification": "87 testes; quatro capturas revistas; geometria e PTY em 80x24, 129x44 e 160x50; contraste AA dos pares de texto",
+    "limits": "Sem promessa de equivalência de teclado entre todos os emuladores; macOS físico pendente"
+  }
+]

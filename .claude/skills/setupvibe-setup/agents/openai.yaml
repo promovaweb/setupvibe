@@ -1,4 +1,0 @@
-interface:
-  display_name: "Configurar o SetupVibe"
-  short_description: "Prepara e valida o ambiente local"
-  default_prompt: "Use $setupvibe-setup para escolher a edição, executar o SetupVibe e conferir o ambiente local."

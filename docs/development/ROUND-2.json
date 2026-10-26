@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-23",
+  "version": "2.0.0-alpha.1",
+  "branch": "v2",
+  "task_id": "17tr6jh3777",
+  "tests": {
+    "passed": 110,
+    "failed": 0
+  },
+  "distribution_integration": {
+    "passed": 5,
+    "failed": 0,
+    "platforms": [
+      "Debian 12 amd64",
+      "Debian 13 amd64",
+      "Ubuntu 24.04 amd64"
+    ],
+    "editions": [
+      "desktop",
+      "server"
+    ]
+  },
+  "documentation": {
+    "entries": 97,
+    "commands": 75,
+    "parsed_examples": 375,
+    "markdown_files": 40,
+    "local_anchors_checked": true
+  },
+  "checks": [
+    "fmt",
+    "clippy",
+    "docs:generate",
+    "docs:check",
+    "bootstrap:check",
+    "Markdown recursivo",
+    "Hub validar:estrutura",
+    "Hub sync:blog:check",
+    "Hub sync:ebooks:check",
+    "Hub sync:changelogs:check"
+  ],
+  "artifacts": [
+    {
+      "schema_version": 1,
+      "version": "2.0.0-alpha.1",
+      "edition": "desktop",
+      "target": "x86_64-unknown-linux-musl",
+      "sha256": "fde308e1edab5af3bd31af6dd5705874dd16570d978d9e08cfa1951d6062bb86",
+      "size": 7269584
+    },
+    {
+      "schema_version": 1,
+      "version": "2.0.0-alpha.1",
+      "edition": "server",
+      "target": "x86_64-unknown-linux-musl",
+      "sha256": "29ae2c7b4fbafa85e4e53ef15749980d14e919e414c003fb650794cb68d68e28",
+      "size": 7269584
+    }
+  ],
+  "not_executed": [
+    "macOS nativo",
+    "Linux ARM",
+    "publicação Git/release/website"
+  ],
+  "baseline": "VALIDATION.json preserva a primeira rodada. As integrações de fornecedores e supervisão não foram repetidas nesta rodada."
+}

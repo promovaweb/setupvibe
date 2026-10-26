@@ -1,0 +1,8 @@
+**
+!Cargo.toml
+!Cargo.lock
+!src
+!src/**
+!catalog
+!catalog/**
+!Dockerfile.distribution

@@ -1,0 +1,13 @@
+{
+  "image": "axllent/mailpit:v1",
+  "port": 8025,
+  "data": "/data",
+  "env": [
+    "MP_DATABASE=/data/mailpit.db"
+  ],
+  "health": [
+    "CMD",
+    "/mailpit",
+    "readyz"
+  ]
+}

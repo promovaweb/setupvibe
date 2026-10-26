@@ -1,15 +1,17 @@
 # Descrição de marca — SetupVibe
 
+> Referência da v2 em desenvolvimento. Consulte os contratos para disponibilidade real.
+
 ## Posicionamento
 
 SetupVibe é um projeto open source que instala e configura ambientes de
-desenvolvimento por meio de scripts públicos, separados por sistema e função.
-As edições Desktop, Windows (Beta) e Server registram a preparação da máquina
+desenvolvimento por meio de uma aplicação Rust com CLI e TUI, separadas por edição.
+As edições Desktop e Server registram a preparação da máquina
 em rotinas que podem ser lidas, executadas e validadas.
 
 O território da marca não é “um comando mágico” nem “uma máquina igual para
 todos”. É a preparação verificável do ambiente antes do projeto: escolher a
-edição correta, revisar o que será alterado, executar o script e conferir
+edição correta, revisar o que será alterado, executar o plano e conferir
 versões, caminhos, permissões e serviços.
 
 ## Promessa e tagline
@@ -23,14 +25,14 @@ versões, caminhos, permissões e serviços.
 > Prepare. Revise. Desenvolva.
 
 Os três verbos representam a sequência esperada: preparar a base, revisar o
-script e o resultado, e só então iniciar o trabalho no projeto.
+plano e o resultado, e só então iniciar o trabalho no projeto.
 
 ## Descrições institucionais
 
 **Curta — bios e catálogos:**
 
-> SetupVibe prepara ambientes de desenvolvimento com scripts públicos para
-> Desktop, Windows e Server.
+> SetupVibe prepara ambientes de desenvolvimento com código aberto para
+> Desktop e Server.
 
 **Média — README e apresentações:**
 
@@ -44,10 +46,10 @@ script e o resultado, e só então iniciar o trabalho no projeto.
 > Preparar uma máquina de desenvolvimento exige configurar o shell, os
 > runtimes, as CLIs, os containers, os processos, a rede e as permissões.
 > Comandos isolados deixam diferenças difíceis de revisar entre máquinas que
-> atendem ao mesmo trabalho. O SetupVibe registra essa preparação em scripts
-> públicos e a divide em três edições. A Desktop atende macOS, Linux e WSL2; a
-> Windows (Beta) atende o Windows 11 nativo; e a Server atende máquinas Linux
-> de operação. A edição precisa ser escolhida, o script precisa ser revisado e
+> atendem ao mesmo trabalho. O SetupVibe registra essa preparação em planos
+> e a divide em duas edições. A Desktop tem Linux e macOS como alvos; a Server
+> tem Linux como alvo
+> de operação. A edição precisa ser escolhida, o plano precisa ser revisado e
 > o resultado precisa ser conferido.
 
 ## Personalidade
@@ -58,7 +60,7 @@ script e o resultado, e só então iniciar o trabalho no projeto.
 | Revisável | Expõe scripts, limites e verificações posteriores | Trata execução remota como confiança automática |
 | Direta | Começa pela ação ou pelo estado atual | Usa introduções promocionais antes da instrução |
 | Cautelosa | Avisa sobre permissões, backup e impacto antes do comando | Promete execução sem falhas ou compatibilidade absoluta |
-| Multiplataforma | Nomeia diferenças entre Desktop, Windows e Server | Apresenta as edições como se fossem equivalentes |
+| Multiplataforma | Nomeia diferenças entre Desktop e Server | Apresenta as edições como se fossem equivalentes |
 
 ## O que o SetupVibe não é
 
