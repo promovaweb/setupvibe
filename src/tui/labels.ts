@@ -1,0 +1,3 @@
+/** Traduz estados de máquina para mensagens da interface sem alterar contratos JSON. */
+const labels:Record<string,string>={external:'External installation preserved','awaiting-index':'Waiting for APT index','awaiting-dependencies':"Waiting for dependencies",'awaiting-manager':"Waiting for mise",running:"Running",succeeded:"Completed",failed:"Failed",cancelled:"Cancelled",interrupted:"Interrupted",current:"Already current",install:"Install",update:"Update",'operation-started':"Operation started",'step-started':"Step started",'step-finished':"Step finished",'operation-finished':"Operation finished"};
+export function stateLabel(value:string):string{return labels[value]??value;}

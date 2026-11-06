@@ -1,5 +1,13 @@
 # SetupVibe
 
+## Nova geração v2: Bun e OpenTUI
+
+A geração v2 foi planejada em 4 de novembro de 2026. Leia [V2-PLAN.md](V2-PLAN.md)
+antes de trabalhar na nova geração. O runtime escolhido é Bun, com TypeScript
+e OpenTUI. Implementação, testes e documentação detalhada estão pendentes.
+As orientações e os comandos abaixo descrevem os scripts da geração publicada
+herdados da main. Eles não representam uma implementação Bun entregue.
+
 > The ultimate cross-platform development environment setup script — v0.41.11
 
 Installs and configures a development environment in one command, supporting Windows 11, macOS, major Linux distributions and Omarchy 4. The Windows Edition focuses on native utilities, Python, Node.js, selected native AI CLIs, and the WSL 2 base system. The Unix Desktop Edition includes complete language ecosystems and a broader AI toolkit, the Server Edition remains focused on operations tooling, and the Omarchy edition adds only the SetupVibe layer that is not already present in the operating system.

@@ -1,0 +1,30 @@
+SetupVibe: development environment                                                                  
+Environment: linux/x64 · Desktop                                                                    
+                                                                                                    
+                                                                                                    
+ Home   Resources   Services   Metrics   History   About                                            
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                                  │
+│ SetupVibe 2.0.0-dev.1 · running process                                                          │
+│ Bun · TypeScript · OpenTUI · Promovaweb                                                          │
+│ Type UPDATE and press Enter                                                                      │
+│ Update review                                                                                    │
+│ Current: 2.0.0-dev.1                                                                             │
+│ Requested: 2.0.0                                                                                 │
+│                                                                                                  │
+│ SHA-256:                                                                                         │
+│ bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb                                 │
+│                                                                                                  │
+│ Install directory:                                                                               │
+│ /isolated/setupvibe                                                                              │
+│                                                                                                  │
+│ The previous executable and launcher will be preserved.                                          │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│ [ C Confirm ]  [ Esc Back ]                                                                      │
+│                                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+Confirmation required · type UPDATE                                                                 
+Enter Confirm · Esc Back                                                                            
+^Q Quit · Esc Back · ? Help                                                                         

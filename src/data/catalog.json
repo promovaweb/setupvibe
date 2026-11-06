@@ -1,0 +1,425 @@
+[
+  {
+    "id": "git",
+    "name": "Git",
+    "category": "tools",
+    "manager": "system",
+    "package": "git",
+    "dependencies": [],
+    "editions": [
+      "desktop",
+      "server"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "gh",
+    "name": "GitHub CLI",
+    "category": "tools",
+    "manager": "official",
+    "package": "cli/cli",
+    "dependencies": [
+      "git"
+    ],
+    "editions": [
+      "desktop",
+      "server"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "docker",
+    "name": "Docker",
+    "category": "services",
+    "manager": "system",
+    "package": "docker",
+    "dependencies": [],
+    "editions": [
+      "desktop",
+      "server"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "portainer",
+    "name": "Portainer",
+    "category": "services",
+    "manager": "docker",
+    "package": "portainer/portainer-ce",
+    "dependencies": [
+      "docker"
+    ],
+    "editions": [
+      "desktop",
+      "server"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "tailscale",
+    "name": "Tailscale",
+    "category": "networking",
+    "manager": "system",
+    "package": "tailscale",
+    "dependencies": [],
+    "editions": [
+      "desktop",
+      "server"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "collector",
+    "name": "SetupVibe Collector",
+    "category": "metrics",
+    "manager": "internal",
+    "package": "collector",
+    "dependencies": [],
+    "editions": [
+      "desktop",
+      "server"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "mise",
+    "name": "mise",
+    "category": "runtimes",
+    "manager": "official",
+    "package": "mise",
+    "dependencies": [],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "homebrew",
+    "name": "Homebrew",
+    "category": "tools",
+    "manager": "official",
+    "package": "homebrew",
+    "dependencies": [],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "darwin"
+    ]
+  },
+  {
+    "id": "node",
+    "name": "Node.js",
+    "category": "runtimes",
+    "manager": "mise",
+    "package": "node",
+    "dependencies": [
+      "mise"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "python",
+    "name": "Python",
+    "category": "runtimes",
+    "manager": "mise",
+    "package": "python",
+    "dependencies": [
+      "mise"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "go",
+    "name": "Go",
+    "category": "runtimes",
+    "manager": "mise",
+    "package": "go",
+    "dependencies": [
+      "mise"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "rust",
+    "name": "Rust",
+    "category": "runtimes",
+    "manager": "mise",
+    "package": "rust",
+    "dependencies": [
+      "mise"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "php",
+    "name": "PHP",
+    "category": "runtimes",
+    "manager": "mise",
+    "package": "php",
+    "dependencies": [
+      "mise"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "ruby",
+    "name": "Ruby",
+    "category": "runtimes",
+    "manager": "mise",
+    "package": "ruby",
+    "dependencies": [
+      "mise"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "java",
+    "name": "Java",
+    "category": "runtimes",
+    "manager": "mise",
+    "package": "java",
+    "dependencies": [
+      "mise"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "bun",
+    "name": "Bun",
+    "category": "runtimes",
+    "manager": "mise",
+    "package": "bun",
+    "dependencies": [
+      "mise"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "codex",
+    "name": "Codex",
+    "category": "applications",
+    "manager": "official",
+    "package": "@openai/codex",
+    "dependencies": [
+      "bun"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "claude",
+    "name": "Claude Code",
+    "category": "applications",
+    "manager": "official",
+    "package": "claude-code",
+    "dependencies": [],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "antigravity",
+    "name": "Antigravity",
+    "category": "applications",
+    "manager": "official",
+    "package": "antigravity",
+    "dependencies": [],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "opencode",
+    "name": "OpenCode",
+    "category": "applications",
+    "manager": "official",
+    "package": "anomalyco/opencode",
+    "dependencies": [],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "kimi",
+    "name": "Kimi",
+    "category": "applications",
+    "manager": "official",
+    "package": "kimi",
+    "dependencies": [],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "herdr",
+    "name": "Herdr",
+    "category": "applications",
+    "manager": "official",
+    "package": "herdr",
+    "dependencies": [],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "ansible",
+    "name": "Ansible",
+    "category": "applications",
+    "manager": "official",
+    "package": "ansible",
+    "dependencies": [],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "postgresql",
+    "name": "PostgreSQL",
+    "category": "services",
+    "manager": "docker",
+    "package": "postgres",
+    "dependencies": [
+      "docker"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "redis",
+    "name": "Redis",
+    "category": "services",
+    "manager": "docker",
+    "package": "redis",
+    "dependencies": [
+      "docker"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  },
+  {
+    "id": "mailpit",
+    "name": "Mailpit",
+    "category": "services",
+    "manager": "docker",
+    "package": "axllent/mailpit",
+    "dependencies": [
+      "docker"
+    ],
+    "editions": [
+      "desktop"
+    ],
+    "systems": [
+      "linux",
+      "darwin"
+    ]
+  }
+]

@@ -1,0 +1,40 @@
+SetupVibe: development environment
+Environment: linux/x64 · Desktop
+
+
+ Home   Resources   Services   Metrics   History   About
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                                                     │
+│ SetupVibe 2.0.0-dev.1 · running process                                                                             │
+│ Bun · TypeScript · OpenTUI · Promovaweb                                                                             │
+│  ▶ Check update                                                                                                     │
+│    Choose a fixed release version                                                                                   │
+│    Review rollback                                                                                                  │
+│    Use the recorded previous release without network                                                                │
+│ Error: Install SetupVibe with the bootstrap before updating this copy.                                              │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│                                                                                                                     │
+│ [ Esc Back ]                                                                                                        │
+│                                                                                                                     │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+Software updates · error
+U Update · R Rollback · Tab Focus · PgUp PgDn Scroll · ? Help
+^Q Quit · Esc Back · ? Help

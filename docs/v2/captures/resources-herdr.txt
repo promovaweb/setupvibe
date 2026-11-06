@@ -1,0 +1,42 @@
+SetupVibe: development environment
+Environment: linux/x64 · Desktop
+
+
+ Home   Resources   Services   Metrics   History   About
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                  │
+│ Search resources… (/ to search)                                                  │
+│ [ Install ]  [ Uninstall ]  [ Execute action ]                                   │
+│  ▶ Git                    Git                                                    │
+│    tools               █  tools                                                  │
+│    GitHub CLI                                                                    │
+│    tools                  Manager: system                                        │
+│    Docker                 Dependencies: none                                     │
+│    services                                                                      │
+│    Portainer              [Not selected]                                         │
+│    services                                                                      │
+│    Tailscale              Enter: select                                          │
+│    networking             V: application or runtime version                      │
+│    SetupVibe Collector    G: configure service                                   │
+│    metrics                D: expand details                                      │
+│    mise                   P: review plan                                         │
+│    runtimes                                                                      │
+│    Node.js                0 selected resource(s)                                 │
+│    runtimes                                                                      │
+│    Python                                                                        │
+│    runtimes                                                                      │
+│    Go                                                                            │
+│    runtimes                                                                      │
+│    Rust                                                                          │
+│    runtimes                                                                      │
+│    PHP                                                                           │
+│    runtimes                                                                      │
+│    Ruby                                                                          │
+│    runtimes                                                                      │
+│    Java                                                                          │
+│    runtimes                                                                      │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+Resources · local query
+I Install · U Uninstall · X Execute · Enter Select · / Search
+^Q Quit · Esc Home · ? Help

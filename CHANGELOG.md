@@ -4,6 +4,19 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.1] - 2026-11-06
+
+### Added
+
+- Starts the SetupVibe 2 rewrite on the `v2` branch with Bun, TypeScript and OpenTUI: CLI, catalog, planning, execution, collector, bootstrap and release build scripts, with tests.
+- Adds the V2 plan (`V2-PLAN.md`) and the v2 documentation in `docs/v2/`.
+
+### Changed
+
+- Updates `AGENTS.md`, `CLAUDE.md`, `DEBIAN.md` and `README.md` for the v2 development flow.
+
+---
+
 ## [v0.41.11] - 2026-08-21
 
 ### Added

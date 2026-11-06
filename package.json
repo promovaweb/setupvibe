@@ -1,0 +1,22 @@
+{
+  "name": "setupvibe",
+  "version": "2.0.0-dev.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun src/cli.ts",
+    "check": "tsc --noEmit",
+    "test": "bun test",
+    "build": "bun build --compile src/cli.ts --outfile dist/setupvibe",
+    "collector": "bun src/collector.ts",
+    "build:collector": "bun build --compile src/collector.ts --outfile dist/setupvibe-collector",
+    "build:release": "node scripts/build-release.mjs"
+  },
+  "dependencies": {
+    "@opentui/core": "0.8.2"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.14",
+    "typescript": "5.9.3"
+  }
+}

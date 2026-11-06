@@ -361,3 +361,179 @@ efetivo do serviço ficou sem caminhos duplicados. Também passaram as
 validações de versões dos ecossistemas, CLIs de IA, `tldr` via `tlrc`, checksum
 e propriedade do `ctop`, binding SQLite do Agentlytics e saída antecipada do
 Desktop sem TTY.
+
+## Validação PostgreSQL da geração Bun
+
+No Debian 13 x64 com Docker 29.7.2, o instalador v2 criou PostgreSQL 18 por
+digest, com arquivo de senha 0600 e volume exclusivo. A conexão TCP autenticou
+e os dados persistiram após reinício. O teste removeu seus recursos.
+
+O entrypoint da imagem inicia um servidor temporário acessível por socket.
+`pg_isready` sem host pode retornar sucesso antes da disponibilidade TCP.
+O teste v2 usa `pg_isready -h 127.0.0.1` antes de autenticar com psql.
+Essa verificação ainda não está integrada ao controle de serviços da TUI.
+
+O teste negativo recusou senha incorreta após o plano definir autenticação
+host SCRAM em POSTGRES_INITDB_ARGS e POSTGRES_HOST_AUTH_METHOD. A configuração
+local por socket permanece trust dentro do container. Uma conexão bem-sucedida
+sem esse teste negativo não comprova autenticação por senha.
+
+## Validação Portainer Server da geração Bun
+
+No Debian 13 x64, o instalador v2 criou Portainer Server por digest em container
+e volume exclusivos. A API HTTPS respondeu e preservou a identidade da
+instância após reinício. Os recursos do teste foram removidos.
+
+O socket Docker montado era um proxy restrito a GET/HEAD de ping, versão e
+info. Métodos de escrita e upgrades foram recusados; uma chamada de criação
+de container recebeu HTTP 403. O teste não comprova administração completa
+do daemon, configuração de administrador, Agent ou Swarm.
+
+## Validação Swarm da geração Bun
+
+O teste `tests/swarm-integration.test.ts` inicializou um manager real em daemon
+Docker-in-Docker descartável, com imagem oficial por digest. O ambiente interno
+usou vfs, rede externa desabilitada, socket Unix próprio e nenhum mount do host.
+Não houve publicação de portas. O container privilegiado foi usado apenas no
+teste, conforme o procedimento de Docker aninhado.
+
+Cluster e nó mantiveram suas identidades após reiniciar o daemon interno. A
+reexecução retornou `current`; outro banco não pôde adotar o cluster. O estado
+Swarm do daemon do host permaneceu igual. Container e volumes do teste foram
+removidos. Essa execução valida manager único em loopback, sem comprovar
+comunicação entre nós, quórum ou tráfego overlay.
+
+## Validação do coletor Bun com user manager real
+
+O teste `tests/collector-systemd-integration.test.ts` usa a imagem construída
+por `tests/fixtures/systemd/Dockerfile`, com Debian 13 por digest. O container
+tem systemd como PID 1 e inicia `user@1000.service`. Os comandos do produto
+rodam como usuário 1000 com HOME, XDG_RUNTIME_DIR e endereço do bus de sessão
+explícitos, todos internos ao container.
+
+Os binários compilados da CLI e do coletor foram copiados para o ambiente.
+A execução verificou unidade habilitada e ativa, produção de métricas,
+reinício automático após SIGKILL do processo principal e parada sem exclusão
+dos dados. Após a falha, exigiu novo PID e avanço do cursor de amostras. O ambiente não monta arquivos nem sockets do host,
+não publica portas e não tem rede externa. Container e volumes próprios são
+removidos no encerramento; a imagem local de teste permanece no cache.
+
+O mesmo teste cobre agora o coletor dedicado e `setupvibe --collector`, com
+30 verificações no total. No modo embutido, o ambiente recebe somente o
+executável compilado principal, sem Bun instalado nem binário dedicado do
+coletor. A unidade usa `--collector` antes do intervalo; comandos de gravação
+e controle recebem `--embedded`. Os dois modos passaram na coleta,
+reinicialização após falha e parada com preservação das métricas.
+
+A homologação passa agora por `preview-install-collector` e `install-collector`,
+começando sem o diretório da unidade. A prévia não cria esse diretório; a
+instalação o cria, registra a unidade e ativa o user service. Uma segunda
+instalação reutiliza a unidade registrada. Os modos dedicado e embutido
+passaram com 32 verificações, sem recursos de teste restantes no host.
+
+## Docker APT na geração Bun
+
+Docker também possui fornecedor APT na geração Bun. O cenário real em Debian
+13 x64 passou com 22 verificações, incluindo manifesto e prévia que anuncia
+Docker ausente como dependência. O pacote docker-cli é separado no Debian 13
+e precisa ser instalado explicitamente ao usar --no-install-recommends.
+O verificador exige unidade ativa, daemon local e integridade dos pacotes.
+Vfs e bridge desabilitada foram usados somente no contêiner aninhado.
+Consulte [Docker Engine v2](docs/v2/DOCKER.md) para comandos e limites.
+
+## Git APT na geração Bun
+
+A v2 oferece git-info, preview-git e install-git para Debian/Ubuntu.
+O fornecedor preserva Git externo, instala somente após confirmação e
+registra a versão global apenas depois de verificar pacote e executável.
+A remoção global ainda não está implementada. Consulte o contrato e os
+comandos em [Git por APT](docs/v2/DESENVOLVIMENTO.md#git-por-apt).
+
+O teste real em Debian 13 x64 parte sem Git nem índices APT. Ele passou na
+instalação e reexecução do pacote 1:2.47.3-0+deb13u1, preservando .gitconfig
+e reconhecendo uma instalação externa sem criar estado. O teste não executa
+APT no host nem usa volumes ou portas do host. O verificador roda como
+processo principal do contêiner; assim, dispensa docker exec quando o /tmp
+do daemon está cheio.
+
+Imagens mínimas excluem documentação, traduções e metadados lintian.
+O fornecedor aceita essas ausências específicas na verificação do dpkg,
+mas recusa executáveis ausentes ou qualquer arquivo com conteúdo alterado.
+O resultado não homologa sudo ou outras distribuições e arquiteturas.
+
+## Distribuição Bun e OpenTUI sem dependências do projeto
+
+O empacotador de release produz Linux glibc x64 baseline e ARM64, além dos
+alvos macOS. O teste de distribuição executou o artefato Linux x64 em
+Debian 13 com TTY, sem Bun, fontes ou node_modules no contêiner. A TUI abriu
+e encerrou com Ctrl+Q. O ambiente não tem rede nem mounts ou portas do host.
+
+Esse teste comprova o carregamento dos assets OpenTUI embutidos nessa
+plataforma; não homologa todos os instaladores ou outras versões Debian.
+Comandos de build, metadados e teste estão em
+[Artefatos de distribuição](docs/v2/DESENVOLVIMENTO.md#artefatos-de-distribuição-por-plataforma).
+
+## Bootstrap por HTTPS na v2
+
+O build gera install.sh com versão e hashes fixados. O teste real em Debian 13
+x64 confirmou instalação e reexecução, preparação de curl/ca-certificates por
+--install-dependencies, verificação TLS e recusa de checksum ou bytes alterados.
+Os comandos externos, diretórios ocupados e ancestrais com links foram
+preservados ou recusados. SIGTERM durante download encerrou curl, limpou o
+staging e o lock próprios e manteve current apontando para a versão anterior.
+
+O launcher Server conservou o catálogo restrito sem exigir --server em cada
+chamada. Os 32 checks internos usam HTTPS local com CA de teste, sem ignorar
+a verificação de certificados. Não houve instalação ou APT no host.
+Detalhes, parâmetros e limites estão em
+[Bootstrap](docs/v2/DESENVOLVIMENTO.md#bootstrap-gerado-com-hashes-fixados).
+
+Esse teste não cobre sudo, falha elétrica/SIGKILL, outras distribuições ou
+arquiteturas. A integração com o atualizador compartilha recibos e journal;
+recuperação automática de lock após SIGKILL continua pendente.
+
+## PATH em novos shells Bash e Zsh
+
+O bootstrap agora integra PATH por padrão, com --no-path para pular e --shell
+para escolher Bash/Zsh. O executável verificado implementa preview-path,
+install-path, preview-remove-path e remove-path. Perfis têm backup privado e
+blocos registrados. A instalação acrescenta bytes, sem substituir o inode;
+a remoção mantém texto externo e preserva modo, dono, grupo, ACLs e atributos
+estendidos com cópia nativa, validada no Linux como root e usuário comum.
+A execução correspondente no macOS continua pendente.
+
+O primeiro teste em Docker revelou que abrir um perfil da imagem para escrita
+pode provocar copy-up no OverlayFS. A verificação passou a conferir os bytes
+pelo descritor novo e compará-lo ao caminho atual, mantendo a recusa de
+conteúdo alterado. O bootstrap passou em Debian 13 x64 com 45 verificações,
+incluindo resolução em Bash de login/interativo, reexecução, --no-path e
+remoção sem afetar a instalação Server. Não houve edição de perfis do host.
+
+Testes locais exercitaram Bash e Zsh, ZDOTDIR, nomes com espaços e aspas,
+concorrência, perfis modificados após a prévia e retomada de operações
+canceladas. Detalhes e limites:
+[PATH persistente](docs/v2/DESENVOLVIMENTO.md#path-persistente-e-remoção-dos-blocos-registrados).
+
+## Atualização do próprio executável e metadados de perfis
+
+A CLI oferece preview-update/update e preview-rollback/rollback.
+A consulta exige versão fixa no release HTTPS oficial; aplicação exige
+--confirm. Marcador, launcher e hashes precisam corresponder ao bootstrap.
+O mesmo journal participa de trocas de versão feitas pelo bootstrap e pela
+CLI. rollback usa o artefato anterior em cache e não precisa de rede.
+
+O teste compilou duas versões em cópia descartável e passou com 39 verificações
+em Debian 13 x64. Cobriu certificado não confiável, prévia sem escrita,
+cancelamento da consulta, checksum inválido, preservação da versão anterior,
+edição Server, journal pendente e rollback depois de desligar o servidor.
+Também conferiu troca pelo bootstrap seguida de rollback pela CLI.
+Não houve instalação de ferramentas ou alteração de perfis no host.
+
+O teste separado de ACL/xattr passou com 16 verificações como root e tester,
+usuário 1000 do contêiner. A remoção de PATH manteve os metadados e o conteúdo.
+Uma falha simulada de cp preservou o arquivo original; restaurar a ferramenta
+permitiu retomar a remoção. Linux usa atributos explícitos no cp e recusa
+publicar a substituição quando essa cópia falha.
+
+Detalhes e comandos:
+[Atualização e rollback](docs/v2/DESENVOLVIMENTO.md#atualização-e-rollback-do-próprio-setupvibe).

@@ -1,5 +1,33 @@
 # CLAUDE.md
 
+## Nova geração v2: Bun e OpenTUI
+
+A geração v2 foi planejada em 4 de novembro de 2026. Leia [V2-PLAN.md](V2-PLAN.md)
+antes de trabalhar na nova geração. O runtime escolhido é Bun, com TypeScript
+e OpenTUI. A implementação está em andamento; consulte `docs/v2/` para os
+fluxos disponíveis, testes e pendências.
+As orientações e os comandos abaixo descrevem os scripts da geração publicada
+herdados da main. Eles não representam uma implementação Bun entregue.
+
+## Idioma das interfaces da v2
+
+Por orientação do usuário, comandos, subcomandos, opções, parâmetros e valores
+de controle da CLI devem usar inglês. Toda a TUI também usa inglês, incluindo
+navegação, campos, ajuda, atalhos descritos, confirmações, estados e erros.
+Campos e estados padronizados da saída JSON também usam inglês. Mensagens
+vindas do núcleo seguem a mesma regra quando chegam à CLI ou à TUI.
+Exemplos canônicos: `--confirm`, `--install-dependencies` e `--events`.
+Confirmações digitadas usam `INSTALL`, `UNINSTALL`, `EXECUTE`, `INITIALIZE`, `UPDATE` e `ROLLBACK`.
+
+A aba de componentes se chama `Resources`. Ela oferece seleção de recursos,
+ações `Install` e `Uninstall` e o botão `Execute action`. Desinstalação exige
+propriedade confirmada e revisão explícita do que será removido ou preservado.
+
+Essa regra prevalece sobre o padrão de português do Hub para essas interfaces.
+Documentação técnica, comentários de código e conversa permanecem em português
+do Brasil, preservando os comandos em inglês. Novas implementações e testes
+devem verificar o contrato em inglês, sem introduzir comandos em português.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## What This Project Is
@@ -106,9 +134,9 @@ commands.
 | `docs/server/en/README.md`  | Server edition documentation (9 steps)                            |
 | `docs/windows/en/README.md` | Windows edition (Beta) documentation                              |
 | `docs/omarchy/README.md`    | Omarchy 4 additive edition documentation                          |
-| `docs/en/EXECUTABLES.md`    | Executable helper script documentation (shared by Unix editions) |
-| `docs/desktop/en/tmux.md`   | Tmux plugin and keybinding reference (shared by Unix editions)   |
-| `docs/desktop/en/pm2.md`    | PM2 command and configuration reference (shared by Unix editions)|
+| `docs/en/EXECUTABLES.md`    | Executable helper script documentation (shared by Unix editions)  |
+| `docs/desktop/en/tmux.md`   | Tmux plugin and keybinding reference (shared by Unix editions)    |
+| `docs/desktop/en/pm2.md`    | PM2 command and configuration reference (shared by Unix editions) |
 
 ### `brand/` Directory
 
@@ -117,22 +145,22 @@ identity. It contains light and dark logo variants, PNG fallback, design
 tokens, local webfonts, brand description, voice guide, usage rules, and the
 publication checklist.
 
-| Path | Content |
-| --- | --- |
-| `brand/README.md` | Brand overview and governance |
-| `brand/description.md` | Positioning, promise, tagline, and institutional descriptions |
-| `brand/logo/icon.svg` | Canonical vector symbol |
-| `brand/logo/icon.png` | Raster fallback |
-| `brand/logo/logo-light.svg` | Horizontal signature for light surfaces |
-| `brand/logo/logo-dark.svg` | Horizontal signature for dark surfaces |
-| `brand/logo/logotype.svg` | Compatibility alias for the light signature |
-| `brand/logo/LOGO.md` | Construction and usage contract |
-| `brand/colors/palette.json` | Editable color source |
-| `brand/global.css` | Webfonts and semantic CSS tokens |
-| `brand/tailwind-theme.js` | Tailwind CSS theme extension |
-| `brand/typography/README.md` | Web typography guide |
-| `brand/voice/voice.md` | Operational voice and terminology |
-| `brand/checklist.md` | Brand Gate for publication |
+| Path                         | Content                                                       |
+| ---------------------------- | ------------------------------------------------------------- |
+| `brand/README.md`            | Brand overview and governance                                 |
+| `brand/description.md`       | Positioning, promise, tagline, and institutional descriptions |
+| `brand/logo/icon.svg`        | Canonical vector symbol                                       |
+| `brand/logo/icon.png`        | Raster fallback                                               |
+| `brand/logo/logo-light.svg`  | Horizontal signature for light surfaces                       |
+| `brand/logo/logo-dark.svg`   | Horizontal signature for dark surfaces                        |
+| `brand/logo/logotype.svg`    | Compatibility alias for the light signature                   |
+| `brand/logo/LOGO.md`         | Construction and usage contract                               |
+| `brand/colors/palette.json`  | Editable color source                                         |
+| `brand/global.css`           | Webfonts and semantic CSS tokens                              |
+| `brand/tailwind-theme.js`    | Tailwind CSS theme extension                                  |
+| `brand/typography/README.md` | Web typography guide                                          |
+| `brand/voice/voice.md`       | Operational voice and terminology                             |
+| `brand/checklist.md`         | Brand Gate for publication                                    |
 
 Update the relevant normative file whenever a public asset, tagline,
 description, or voice rule changes. Do not create divergent logo copies inside
@@ -155,9 +183,9 @@ Configuration files deployed by the scripts to the user's home directory:
 
 Executable helper scripts deployed by the installers to `~/.setupvibe/bin`:
 
-| File          | Deployed to                     | Purpose                                                                                                                      |
+| File          | Deployed to                      | Purpose                                                                                                                      |
 | ------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `ssh_copy_id` | `~/.setupvibe/bin/ssh_copy_id`  | Copies the local public SSH key to a remote server using `--host`, `--user`, and optional `--pass` or hidden password prompt |
+| `ssh_copy_id` | `~/.setupvibe/bin/ssh_copy_id`   | Copies the local public SSH key to a remote server using `--host`, `--user`, and optional `--pass` or hidden password prompt |
 
 ## Key Scripting Patterns
 

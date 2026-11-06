@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "textual-tui": {
+      "source": "aperepel/textual-tui-skill",
+      "sourceType": "github",
+      "skillPath": "skill/SKILL.md",
+      "computedHash": "ca19865c5b4dc9984a7dc2dd813de0f241ac7d212f853250e3a61df19433ef06"
+    },
+    "tui-design": {
+      "source": "pageton/tui-design-skill",
+      "sourceType": "github",
+      "skillPath": "skills/tui-design/SKILL.md",
+      "computedHash": "e650655cba1ab3b31a03f96ddfa23b7f36d3e18e2bd41ac221988ff51dfadfe0"
+    }
+  }
+}
