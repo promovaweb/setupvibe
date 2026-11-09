@@ -1,6 +1,6 @@
 # SetupVibe Aliases
 
-> Shell environment aliases — v0.41.11
+> Shell environment aliases — v0.41.12
 
 This is the exhaustive list of all aliases configured by SetupVibe on all platforms.
 
@@ -749,25 +749,25 @@ This is the exhaustive list of all aliases configured by SetupVibe on all platfo
   ## Portainer
 
   - **`portainer-start`**
-  - Availability: 🌐 Both
+  - Availability: 🖥️ Desktop
   - Command: `docker compose -f ~/.setupvibe/portainer-compose.yml up -d`
   - Description: Starts the Portainer container.
   - Example: `portainer-start`
 
   - **`portainer-stop`**
-  - Availability: 🌐 Both
+  - Availability: 🖥️ Desktop
   - Command: `docker compose -f ~/.setupvibe/portainer-compose.yml stop`
   - Description: Stops the Portainer container.
   - Example: `portainer-stop`
 
   - **`portainer-restart`**
-  - Availability: 🌐 Both
+  - Availability: 🖥️ Desktop
   - Command: `docker compose -f ~/.setupvibe/portainer-compose.yml restart`
   - Description: Restarts the Portainer container.
   - Example: `portainer-restart`
 
   - **`portainer-update`**
-  - Availability: 🌐 Both
+  - Availability: 🖥️ Desktop
   - Command: `docker compose -f ~/.setupvibe/portainer-compose.yml pull && docker compose -f ~/.setupvibe/portainer-compose.yml up -d`
   - Description: Updates the Portainer image and restarts it.
   - Example: `portainer-update`

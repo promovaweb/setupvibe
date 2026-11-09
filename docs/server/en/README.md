@@ -1,6 +1,6 @@
 # SetupVibe — Server Edition
 
-> Linux server setup — v0.41.11
+> Linux server setup — v0.41.12
 
 A lean, focused setup script for Linux servers. No Homebrew, no language ecosystems, no desktop tools. Installs only what a production server needs: Docker, Ansible, networking, shell, tmux, and AI CLI tools.
 
@@ -73,8 +73,6 @@ Installs via APT:
 - Debian → `ansible-core` from APT
 
 **GitHub CLI (`gh`)** — via the official GitHub APT repo
-
-**Portainer CE** — runs on the `lts` image channel and exposes HTTPS on port `9443`; legacy HTTP port `9000` and optional Edge Agent port `8000` are not opened
 
 ### Step 3 — Network, Monitoring & Tailscale
 

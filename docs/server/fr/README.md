@@ -1,6 +1,6 @@
 # SetupVibe — Édition Serveur
 
-> Configuration de serveur Linux — v0.41.11
+> Configuration de serveur Linux — v0.41.12
 
 Un script de configuration léger et ciblé pour les serveurs Linux. Pas de Homebrew, pas d'écosystèmes de langages, pas d'outils de bureau. Installe uniquement ce dont un serveur de production a besoin : Docker, Ansible, réseau, shell, tmux et outils AI CLI.
 
@@ -73,8 +73,6 @@ Installe via APT :
 - Debian → `ansible-core` depuis APT
 
 **GitHub CLI (`gh`)** — via le dépôt APT officiel de GitHub
-
-**Portainer CE** — utilise le canal d'image `lts` et expose HTTPS sur le port `9443` ; le port HTTP historique `9000` et le port optionnel `8000` pour Edge Agent ne sont pas ouverts
 
 ### Étape 3 — Réseau, Surveillance et Tailscale
 

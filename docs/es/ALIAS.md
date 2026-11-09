@@ -1,6 +1,6 @@
 # Aliases de SetupVibe
 
-> Aliases del entorno de shell — v0.41.11
+> Aliases del entorno de shell — v0.41.12
 
 Esta é a lista exaustiva de todos os aliases configurados pelo SetupVibe em todas as plataformas.
 
@@ -749,25 +749,25 @@ Esta é a lista exaustiva de todos os aliases configurados pelo SetupVibe em tod
 ## Portainer
 
 - **`portainer-start`**
-  - Disponibilidad: 🌐 Ambos
+  - Disponibilidad: 🖥️ Desktop
   - Comando: `docker compose -f ~/.setupvibe/portainer-compose.yml up -d`
   - Descripción: Inicia el contenedor de Portainer.
   - Ejemplo: `portainer-start`
 
 - **`portainer-stop`**
-  - Disponibilidad: 🌐 Ambos
+  - Disponibilidad: 🖥️ Desktop
   - Comando: `docker compose -f ~/.setupvibe/portainer-compose.yml stop`
   - Descripción: Detiene el contenedor de Portainer.
   - Ejemplo: `portainer-stop`
 
 - **`portainer-restart`**
-  - Disponibilidad: 🌐 Ambos
+  - Disponibilidad: 🖥️ Desktop
   - Comando: `docker compose -f ~/.setupvibe/portainer-compose.yml restart`
   - Descripción: Reinicia el contenedor de Portainer.
   - Ejemplo: `portainer-restart`
 
 - **`portainer-update`**
-  - Disponibilidad: 🌐 Ambos
+  - Disponibilidad: 🖥️ Desktop
   - Comando: `docker compose -f ~/.setupvibe/portainer-compose.yml pull && docker compose -f ~/.setupvibe/portainer-compose.yml up -d`
   - Descripción: Actualiza la imagen y reinicia Portainer.
   - Ejemplo: `portainer-update`

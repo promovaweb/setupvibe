@@ -155,12 +155,6 @@ alias dcbuild="docker compose build --no-cache" # Reconstrói as imagens sem cac
 alias dcpull="docker compose pull"              # Atualiza imagens dos serviços do compose
 alias dcexec="docker compose exec"              # Executa comando em serviço (ex: dcexec app bash)
 
-# --- Portainer ---
-alias portainer-restart="docker compose -f ~/.setupvibe/portainer-compose.yml restart"
-alias portainer-update="docker compose -f ~/.setupvibe/portainer-compose.yml pull && docker compose -f ~/.setupvibe/portainer-compose.yml up -d"
-alias portainer-start="docker compose -f ~/.setupvibe/portainer-compose.yml up -d"
-alias portainer-stop="docker compose -f ~/.setupvibe/portainer-compose.yml stop"
-
 # --- Monitoring ---
 alias update="sudo apt update && sudo apt upgrade" # Atualiza os pacotes do sistema via APT
 alias apti="sudo apt install"                   # Instala um pacote via APT (ex: apti htop)

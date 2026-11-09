@@ -25,7 +25,7 @@ readonly MAGENTA='\033[0;35m'
 readonly NC='\033[0m'
 
 # --- VERSION & DOWNLOADS ---
-readonly VERSION="0.41.11"
+readonly VERSION="0.41.12"
 readonly CTOP_VERSION="0.7.7"
 readonly CTOP_SHA256_AMD64="b78374734ebe3d14b6edee3d5512c911c250d7fa7f3f964cb00acd3bc5a02a09"
 readonly CTOP_SHA256_ARM64="d8d91e0fea53a8c78fa81192f078272e5a92f0ea6c4f0e38ec7c944d76e6f02f"
@@ -732,22 +732,6 @@ step_2() {
     apt_do update -qq
     apt_do install -y gh
     gh --version >/dev/null
-
-    echo "Configuring Portainer..."
-    sys_do install -d -o "$REAL_USER" -g "$REAL_GROUP" -m 0755 \
-        "$REAL_HOME/.setupvibe" \
-        "$REAL_HOME/.setupvibe/portainer_data"
-    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/portainer-compose.yml "$REAL_HOME/.setupvibe/portainer-compose.yml"
-
-    if sys_do docker info >/dev/null 2>&1; then
-        echo "Starting Portainer..."
-        sys_do docker compose -f "$REAL_HOME/.setupvibe/portainer-compose.yml" pull
-        sys_do docker compose -f "$REAL_HOME/.setupvibe/portainer-compose.yml" up -d
-        echo -e "${GREEN}✔ Portainer is running at https://localhost:9443${NC}"
-    else
-        echo -e "${RED}✘ Docker is installed but its daemon is unavailable.${NC}" >&2
-        return 1
-    fi
 }
 
 

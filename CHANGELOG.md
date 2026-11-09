@@ -4,6 +4,18 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.12] - 2026-11-09
+
+### Removed
+
+- Removed Portainer from the Server edition. `server.sh` no longer downloads `portainer-compose.yml` or starts the Portainer container, and `zshrc-server.zsh` no longer defines the `portainer-*` aliases. Portainer stays in the Desktop and Omarchy editions.
+
+### Fixed
+
+- Synchronized the `omarchy.sh` version with the other installers.
+
+---
+
 ## [v0.41.11] - 2026-08-21
 
 ### Added
