@@ -9,9 +9,9 @@ set -Eeuo pipefail
 # shell Bash, Starship, mise, Tmux, Docker, ferramentas Unix, fontes, aliases,
 # funções, Neovim, Herdr e CLIs de IA.
 
-VERSION="0.41.16"
+VERSION="0.41.17"
 OMARCHY_MAJOR="4"
-SETUPVIBE_RAW="https://raw.githubusercontent.com/promovaweb/setupvibe/main"
+SETUPVIBE_RAW="https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}"
 
 BOLD='\033[1m'
 RED='\033[0;31m'
@@ -258,7 +258,7 @@ configure_python_go_rust() {
     fi
 
     if ! user_do bash -lc "command -v cronboard >/dev/null 2>&1"; then
-        user_do uv tool install git+https://github.com/antoniorodr/cronboard
+        user_do uv tool install cronboard
     fi
 
     # O pacote do sistema continua sendo a base dos runtimes. mise só entra

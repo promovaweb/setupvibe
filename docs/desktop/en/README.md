@@ -1,6 +1,6 @@
 # SetupVibe — Desktop Edition
 
-> Cross-platform development environment setup — v0.41.16
+> Cross-platform development environment setup — v0.41.17
 
 Installs and configures a complete developer stack in one command. Supports macOS and major Linux distributions.
 
@@ -138,7 +138,7 @@ Installed via Homebrew on both platforms.
 - Installs ZSH (Linux via APT; already default on macOS)
 - Installs Oh My Zsh (unattended)
 - Clones `zsh-autosuggestions` and `zsh-syntax-highlighting` plugins
-- Installs Nerd Fonts: **FiraCode** and **JetBrains Mono** (Homebrew Cask on macOS; v3.4.0 downloaded to `~/.local/share/fonts` on Linux)
+- Installs Nerd Fonts: **FiraCode** and **JetBrains Mono** (Homebrew Cask on macOS; v3.5.1 downloaded to `~/.local/share/fonts` on Linux)
 - Installs Starship prompt and applies the **Gruvbox Rainbow** preset
 - Downloads helper scripts from [`bin/`](../../../bin) to `~/.setupvibe/bin`; see [Executables](../../en/EXECUTABLES.md)
 - Downloads the appropriate `.zshrc`:

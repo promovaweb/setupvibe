@@ -11,7 +11,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'Continue'
 
-$script:Version = '0.41.16'
+$script:Version = '0.41.17'
 $script:InstallUrl = 'https://windows.setupvibe.dev'
 $script:ElevationScriptUrl = 'https://raw.githubusercontent.com/promovaweb/setupvibe/v{0}/desktop.ps1' -f $script:Version
 $script:RestartRequired = $false
@@ -2284,7 +2284,8 @@ function Install-WindowsUtilities {
             }
             else {
                 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-                $downloadUrl = "https://raw.githubusercontent.com/promovaweb/setupvibe/windows/{0}" -f $utility.Path
+                # Same release tag as this script, so the utilities match the installer.
+                $downloadUrl = "https://raw.githubusercontent.com/promovaweb/setupvibe/v{0}/{1}" -f $script:Version, $utility.Path
                 $webClient = New-Object Net.WebClient
                 try {
                     $webClient.DownloadFile($downloadUrl, $temporaryPath)

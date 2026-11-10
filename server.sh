@@ -25,7 +25,15 @@ readonly MAGENTA='\033[0;35m'
 readonly NC='\033[0m'
 
 # --- VERSION & DOWNLOADS ---
-readonly VERSION="0.41.16"
+# Primary fingerprints of the APT signing keys. GitHub CLI and Docker publish
+# theirs; NodeSource's was read from its HTTPS key URL on
+# 2026-11-10. A rotated key makes install_repository_key fail loudly instead of trusting
+# whatever the URL serves; update the fingerprint after checking the vendor.
+readonly APT_KEY_FPR_NODESOURCE="6F71F525282841EEDAF851B42F59B5F99B1BE0B4"
+readonly APT_KEY_FPR_DOCKER="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
+readonly APT_KEY_FPR_GHCLI_1="2C6106201985B60E6C7AC87323F3D4EA75716059"
+readonly APT_KEY_FPR_GHCLI_2="7F38BBB59D064DBCB3D84D725612B36462313325"
+readonly VERSION="0.41.17"
 readonly CTOP_VERSION="0.7.7"
 readonly CTOP_SHA256_AMD64="b78374734ebe3d14b6edee3d5512c911c250d7fa7f3f964cb00acd3bc5a02a09"
 readonly CTOP_SHA256_ARM64="d8d91e0fea53a8c78fa81192f078272e5a92f0ea6c4f0e38ec7c944d76e6f02f"
@@ -376,10 +384,39 @@ LAST_STEP_OK=true
 # --- UI & LOGIC FUNCTIONS ---
 
 # Install and validate a repository signing key.
+# Succeed only when every primary key in the file is one of the expected
+# fingerprints (and there is at least one key).
+verify_key_fingerprints() {
+    local key_file=$1
+    shift
+    local fpr
+    local found
+    local -a actual=()
+
+    mapfile -t actual < <(gpg --batch --show-keys --with-colons "$key_file" 2>/dev/null |
+        awk -F: '$1 == "pub" { want = 1; next } $1 == "fpr" && want { print $10; want = 0 } $1 == "sub" { want = 0 }')
+    (( ${#actual[@]} > 0 )) || return 1
+
+    for fpr in "${actual[@]}"; do
+        found=false
+        local expected
+        for expected in "$@"; do
+            [[ "$fpr" == "$expected" ]] && found=true
+        done
+        if ! $found; then
+            echo -e "${RED}✘ Unexpected signing key fingerprint: $fpr${NC}" >&2
+            return 1
+        fi
+    done
+}
+
+# install_repository_key URL DEST FORMAT FINGERPRINT... : FORMAT is raw or
+# dearmor; every primary key in the download must match a FINGERPRINT.
 install_repository_key() {
     local url=$1
     local dest=$2
     local format=${3:-raw}
+    shift 3
     local downloaded
     local prepared
 
@@ -391,7 +428,7 @@ install_repository_key() {
 
     if ! curl_download "$url" "$downloaded" ||
         ! validate_download "$downloaded" 100 ||
-        ! gpg --batch --show-keys "$downloaded" >/dev/null 2>&1; then
+        ! verify_key_fingerprints "$downloaded" "$@"; then
         rm -f -- "$downloaded"
         echo -e "${RED}✘ Failed to download or validate repository key: $url${NC}" >&2
         return 1
@@ -537,7 +574,13 @@ safe_download() {
     dest_dir=$(dirname "$dest")
     user_do mkdir -p "$dest_dir"
 
-    sys_do install -o "$REAL_USER" -g "$REAL_GROUP" -m 0644 "$tmp" "$dest"
+    # Write into the user's home as the user. A root write there could follow a
+    # symlink the user swapped in between mkdir and install (DEBIAN.md).
+    if ! sys_do chown "$REAL_USER:$REAL_GROUP" "$tmp" ||
+        ! user_do install -m 0644 "$tmp" "$dest"; then
+        rm -f -- "$tmp"
+        return 1
+    fi
     rm -f -- "$tmp"
     echo -e "${GREEN}✔ Downloaded: $dest${NC}"
 }
@@ -555,11 +598,11 @@ backup_file_once() {
 
 install_setupvibe_bin() {
     echo "Installing SetupVibe helper scripts..."
-    sys_do install -d -o "$REAL_USER" -g "$REAL_GROUP" -m 0755 \
-        "$REAL_HOME/.setupvibe" \
-        "$REAL_HOME/.setupvibe/bin"
+    # Created as the user: a root install -d would chown the target of a symlink
+    # the user placed at that path.
+    user_do mkdir -p "$REAL_HOME/.setupvibe/bin"
     user_do rm -f "$REAL_HOME/.setupvibe/bin/sshcopykey"
-    if ! safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/bin/ssh_copy_id "$REAL_HOME/.setupvibe/bin/ssh_copy_id" 500; then
+    if ! safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/bin/ssh_copy_id "$REAL_HOME/.setupvibe/bin/ssh_copy_id" 500; then
         return 1
     fi
     user_do chmod +x "$REAL_HOME/.setupvibe/bin/ssh_copy_id"
@@ -572,6 +615,7 @@ install_herdr() {
     local herdr_tmp_dir
     local manifest_tmp
     local binary_tmp
+    local herdr_sha256
 
     case "$ARCH_RAW" in
         amd64)
@@ -607,15 +651,26 @@ install_herdr() {
         return 1
     }
 
-    if ! safe_download "$herdr_url" "$binary_tmp" 100000; then
+    # latest.json publishes a SHA-256 per platform; the Antigravity install
+    # already checks its manifest checksum the same way.
+    herdr_sha256=$(jq -er \
+        --arg target "$herdr_target" \
+        '.sha256[$target] | select(test("^[0-9a-f]{64}$"))' \
+        "$manifest_tmp") || {
+        echo -e "${RED}✘ Herdr manifest has no SHA-256 for: $herdr_target${NC}"
+        user_do rm -f -- "$manifest_tmp"
+        user_do rmdir -- "$herdr_tmp_dir"
+        return 1
+    }
+
+    if ! safe_download "$herdr_url" "$binary_tmp" 100000 "$herdr_sha256"; then
         user_do rm -f -- "$manifest_tmp"
         user_do rmdir -- "$herdr_tmp_dir"
         return 1
     fi
 
-    sys_do install -d -o "$REAL_USER" -g "$REAL_GROUP" -m 0755 "$REAL_HOME/.local/bin"
-    sys_do install -o "$REAL_USER" -g "$REAL_GROUP" -m 0755 \
-        "$binary_tmp" "$REAL_HOME/.local/bin/herdr"
+    user_do mkdir -p "$REAL_HOME/.local/bin"
+    user_do install -m 0755 "$binary_tmp" "$REAL_HOME/.local/bin/herdr"
     user_do rm -f -- "$manifest_tmp" "$binary_tmp"
     user_do rmdir -- "$herdr_tmp_dir"
 
@@ -689,7 +744,8 @@ step_2() {
     install_repository_key \
         "https://download.docker.com/linux/$DISTRO_ID/gpg" \
         /etc/apt/keyrings/docker.asc \
-        raw
+        raw \
+        "$APT_KEY_FPR_DOCKER"
     printf '%s\n' \
         "Types: deb" \
         "URIs: https://download.docker.com/linux/$DISTRO_ID" \
@@ -726,7 +782,8 @@ step_2() {
     install_repository_key \
         https://cli.github.com/packages/githubcli-archive-keyring.gpg \
         /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-        raw
+        raw \
+        "$APT_KEY_FPR_GHCLI_1" "$APT_KEY_FPR_GHCLI_2"
     echo "deb [arch=$ARCH_RAW signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" |
         sys_do tee /etc/apt/sources.list.d/github-cli.list >/dev/null
     apt_do update -qq
@@ -825,7 +882,7 @@ step_5() {
     user_do sed -i 's/╭/┌/g; s/╰/└/g' "$REAL_HOME/.config/starship.toml"
 
     backup_file_once "$REAL_HOME/.zshrc"
-    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/zshrc-server.zsh "$REAL_HOME/.zshrc"
+    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/conf/zshrc-server.zsh "$REAL_HOME/.zshrc"
     if [ ! -f "$REAL_HOME/.zshrc.local" ]; then
         user_do touch "$REAL_HOME/.zshrc.local"
     fi
@@ -855,14 +912,26 @@ step_6() {
 
     echo "Downloading tmux-server.conf..."
     backup_file_once "$REAL_HOME/.tmux.conf"
-    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/tmux-server.conf "$REAL_HOME/.tmux.conf"
+    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/conf/tmux-server.conf "$REAL_HOME/.tmux.conf"
 
     if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then
         sys_do mkdir -p /root/.tmux/plugins
         if [[ -f /root/.tmux.conf && ! -e /root/.tmux.conf.pre-setupvibe ]]; then
             sys_do cp -p /root/.tmux.conf /root/.tmux.conf.pre-setupvibe
         fi
-        sys_do cp "$REAL_HOME/.tmux.conf" /root/.tmux.conf
+        local root_tmux_tmp
+        # Root downloads its own copy. Copying $REAL_HOME/.tmux.conf would let the
+        # user change the file between the download and the copy.
+        root_tmux_tmp=$(mktemp)
+        if curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
+            --retry 3 --connect-timeout 10 --max-time 60 \
+            "https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/conf/tmux-server.conf" --output "$root_tmux_tmp" &&
+            [[ -s "$root_tmux_tmp" ]] && ! head -1 "$root_tmux_tmp" | grep -qi "<!doctype\|<html"; then
+            sys_do install -o root -g root -m 0644 "$root_tmux_tmp" /root/.tmux.conf
+        else
+            echo -e "${YELLOW}⚠ Could not download the root tmux configuration.${NC}"
+        fi
+        rm -f -- "$root_tmux_tmp"
         # Root gets its own TPM clone. A symlink into the user's home would let
         # that user change code that root's tmux runs.
         if [[ -L /root/.tmux/plugins/tpm ]]; then
@@ -880,7 +949,6 @@ step_6() {
     fi
 
     sys_do chown -R "$REAL_USER:$REAL_GROUP" "$REAL_HOME/.tmux"
-    sys_do chown "$REAL_USER:$REAL_GROUP" "$REAL_HOME/.tmux.conf"
 
     echo "Existing tmux sessions were preserved; the new config applies to new sessions."
 }
@@ -916,7 +984,8 @@ step_7() {
     install_repository_key \
         https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
         /etc/apt/keyrings/nodesource.gpg \
-        dearmor
+        dearmor \
+        "$APT_KEY_FPR_NODESOURCE"
     printf '%s\n' \
         "Types: deb" \
         "URIs: https://deb.nodesource.com/node_24.x" \

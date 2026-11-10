@@ -1,6 +1,6 @@
 # SetupVibe — Server Edition
 
-> Linux server setup — v0.41.16
+> Linux server setup — v0.41.17
 
 Lean Linux-only setup for production servers. No Homebrew, no language ecosystems. Installs Docker, Ansible, GitHub CLI, networking tools, Tailscale, SSH, shell, tmux, Herdr, AI CLI tools, and the Vercel Labs Skills CLI via NodeSource Node.js. It preserves the existing SSH authentication policy, stops on the first failed step, and optionally configures the machine as a Docker Swarm Manager through `--manager` and `--advertise-addr`.
 

@@ -4,6 +4,29 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.17] - 2026-11-10
+
+### Security
+
+- APT repository keys are checked against pinned primary fingerprints before they are installed, in the Desktop (Charm, Sury, NodeSource, Docker, GitHub CLI) and Server (NodeSource, Docker, GitHub CLI) editions. GitHub CLI and Docker publish their fingerprints; the Charm, Sury and NodeSource ones were read from their HTTPS key URLs on 2026-11-10. A rotated or substituted key now fails the step instead of being trusted. The Desktop GitHub CLI key no longer comes from an unchecked `wget | tee`, which could also write an empty keyring.
+- Herdr is checked against the SHA-256 that `herdr.dev/latest.json` publishes for each platform, in the Desktop and Server editions.
+- The Linux Composer installer is checked against the SHA-384 published at `composer.github.io/installer.sig` before it runs, as the official instructions require.
+- Downloads into the user's home are written by the user, not by root, in the Desktop and Server editions, so a symlink the user swaps in cannot redirect a root write. The Server edition also creates `~/.setupvibe` and `~/.local/bin` as the user instead of with a root `install -d`, which would change the owner of a symlink target. The root `chown` that followed the downloads of `.zshrc`, `.tmux.conf` and `ecosystem.config.js` is gone: without `-h` it followed a symlink the user could put in place of the file.
+- Root downloads its own `/root/.tmux.conf` instead of copying the user's file.
+- The Unix editions download their `conf/` and `bin/` files, and the Windows edition its utilities, from the release tag of the running version instead of `main` or the stale `windows` branch, so every file matches the installer that is running.
+
+### Changed
+
+- PM2 starts the installed `agentlytics` binary instead of `npx agentlytics`, which resolved the package again on every restart without a pinned version. The ecosystem file looks in `~/.npm-global/bin` first, because the sudo `secure_path` drops it from the PATH that PM2 sees.
+- Cronboard is installed from PyPI instead of the HEAD of its Git repository, and the Rust network tools are installed with `cargo install --locked`.
+- Updated Nerd Fonts to 3.5.1, with the SHA-256 of each archive pinned.
+
+### Fixed
+
+- Fixed the Linux cleanup step deleting every `*.zip` and `*.tar.gz` file in `/tmp` as root, including other users' files. Go and Nerd Fonts now download into a private directory under `~/.setupvibe/tmp`, and the cleanup removes only that directory.
+
+---
+
 ## [v0.41.16] - 2026-11-10
 
 ### Added

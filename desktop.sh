@@ -27,12 +27,24 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.16"
+VERSION="0.41.17"
 PHP_VERSION="8.5"
 RUBY_VERSION="3.4.12"
 PYTHON_VERSION="3.14"
 GO_VERSION="1.26.11"
-NERD_FONTS_VERSION="3.4.0"
+# Primary fingerprints of the APT signing keys. GitHub CLI and Docker publish
+# theirs; Charm, Sury and NodeSource were read from their HTTPS key URLs on
+# 2026-11-10. A rotated key makes install_key fail loudly instead of trusting
+# whatever the URL serves; update the fingerprint after checking the vendor.
+APT_KEY_FPR_CHARM="ED927B38BE981E53CA09153D03BBF595D4DFD35C"
+APT_KEY_FPR_SURY="15058500A0235D97F5D10063B188E2B695BD4743"
+APT_KEY_FPR_NODESOURCE="6F71F525282841EEDAF851B42F59B5F99B1BE0B4"
+APT_KEY_FPR_DOCKER="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
+APT_KEY_FPR_GHCLI_1="2C6106201985B60E6C7AC87323F3D4EA75716059"
+APT_KEY_FPR_GHCLI_2="7F38BBB59D064DBCB3D84D725612B36462313325"
+NERD_FONTS_VERSION="3.5.1"
+NERD_FONTS_FIRACODE_SHA256="239395baf60c89b2eaf4862b6b09db0ef95605cd3e8eef51c00345822a81a665"
+NERD_FONTS_JETBRAINSMONO_SHA256="fab782a66f7d3019da64f6572db9fc5d3a4bcb19f9fa13e2d8a62e3693d6396e"
 CTOP_VERSION="0.7.7"
 CTOP_SHA256_AMD64="b78374734ebe3d14b6edee3d5512c911c250d7fa7f3f964cb00acd3bc5a02a09"
 CTOP_SHA256_ARM64="d8d91e0fea53a8c78fa81192f078272e5a92f0ea6c4f0e38ec7c944d76e6f02f"
@@ -463,9 +475,38 @@ fi
 # --- UI & LOGIC FUNCTIONS ---
 
 # Helper to install GPG keys safely
+# Succeed only when every primary key in the file is one of the expected
+# fingerprints (and there is at least one key).
+verify_key_fingerprints() {
+    local key_file=$1
+    shift
+    local fpr
+    local found
+    local -a actual=()
+
+    mapfile -t actual < <("$GPG_CMD" --batch --show-keys --with-colons "$key_file" 2>/dev/null |
+        awk -F: '$1 == "pub" { want = 1; next } $1 == "fpr" && want { print $10; want = 0 } $1 == "sub" { want = 0 }')
+    (( ${#actual[@]} > 0 )) || return 1
+
+    for fpr in "${actual[@]}"; do
+        found=false
+        local expected
+        for expected in "$@"; do
+            [[ "$fpr" == "$expected" ]] && found=true
+        done
+        if ! $found; then
+            echo -e "${RED}✘ Unexpected signing key fingerprint: $fpr${NC}" >&2
+            return 1
+        fi
+    done
+}
+
+# install_key URL DEST FINGERPRINT... : download a repository key, check its
+# primary fingerprints and install it under /etc/apt/keyrings.
 install_key() {
     local url=$1
     local dest=$2
+    shift 2
     local source_tmp
     local key_tmp
 
@@ -482,6 +523,15 @@ install_key() {
         echo -e "${RED}✘ Failed to download key from $url${NC}"
         rm -f -- "$source_tmp" "$key_tmp"
         return 1
+    fi
+
+    if (( $# > 0 )); then
+        if [[ -z "$GPG_CMD" ]] || ! command -v "$GPG_CMD" >/dev/null 2>&1 ||
+            ! verify_key_fingerprints "$source_tmp" "$@"; then
+            echo -e "${RED}✘ The key from $url does not match the expected fingerprint.${NC}"
+            rm -f -- "$source_tmp" "$key_tmp"
+            return 1
+        fi
     fi
 
     # Prefer a binary keyring when GPG is available.
@@ -704,9 +754,14 @@ safe_download() {
             rm -f -- "$tmp"
             return 1
         fi
-    elif ! sys_do install -o "$REAL_USER" -g "$REAL_GROUP" -m 0644 "$tmp" "$dest"; then
-        rm -f -- "$tmp"
-        return 1
+    else
+        # Write into the user's home as the user. A root write there could follow a
+        # symlink the user swapped in between mkdir and install (DEBIAN.md).
+        if ! sys_do chown "$REAL_USER:$REAL_GROUP" "$tmp" ||
+            ! user_do install -m 0644 "$tmp" "$dest"; then
+            rm -f -- "$tmp"
+            return 1
+        fi
     fi
     rm -f -- "$tmp"
 
@@ -719,7 +774,7 @@ install_setupvibe_bin() {
     echo "Installing SetupVibe helper scripts..."
     user_do mkdir -p "$REAL_HOME/.setupvibe/bin"
     user_do rm -f "$REAL_HOME/.setupvibe/bin/sshcopykey"
-    if ! safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/bin/ssh_copy_id "$REAL_HOME/.setupvibe/bin/ssh_copy_id" 500; then
+    if ! safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/bin/ssh_copy_id "$REAL_HOME/.setupvibe/bin/ssh_copy_id" 500; then
         return 1
     fi
     user_do chmod +x "$REAL_HOME/.setupvibe/bin/ssh_copy_id"
@@ -736,6 +791,7 @@ install_herdr() {
     local herdr_tmp_dir
     local manifest_tmp
     local binary_tmp
+    local herdr_sha256
 
     if $IS_MACOS; then
         herdr_os=macos
@@ -777,19 +833,26 @@ install_herdr() {
         return 1
     }
 
-    if ! safe_download "$herdr_url" "$binary_tmp" 100000; then
+    # latest.json publishes a SHA-256 per platform; the Antigravity install
+    # already checks its manifest checksum the same way.
+    herdr_sha256=$(jq -er \
+        --arg target "$herdr_target" \
+        '.sha256[$target] | select(test("^[0-9a-f]{64}$"))' \
+        "$manifest_tmp") || {
+        echo -e "${RED}✘ Herdr manifest has no SHA-256 for: $herdr_target${NC}"
+        user_do rm -f -- "$manifest_tmp"
+        user_do rmdir -- "$herdr_tmp_dir"
+        return 1
+    }
+
+    if ! safe_download "$herdr_url" "$binary_tmp" 100000 "$herdr_sha256"; then
         user_do rm -f -- "$manifest_tmp"
         user_do rmdir -- "$herdr_tmp_dir"
         return 1
     fi
 
     user_do mkdir -p "$REAL_HOME/.local/bin"
-    if $IS_MACOS; then
-        user_do install -m 0755 "$binary_tmp" "$REAL_HOME/.local/bin/herdr"
-    else
-        sys_do install -o "$REAL_USER" -g "$REAL_GROUP" -m 0755 \
-            "$binary_tmp" "$REAL_HOME/.local/bin/herdr"
-    fi
+    user_do install -m 0755 "$binary_tmp" "$REAL_HOME/.local/bin/herdr"
     user_do rm -f -- "$manifest_tmp" "$binary_tmp"
     user_do rmdir -- "$herdr_tmp_dir"
 
@@ -961,8 +1024,7 @@ install_antigravity() {
         user_do install -m 0755 "$antigravity_tmp_dir/antigravity" "$REAL_HOME/.local/bin/agy"
         user_do xattr -d com.apple.quarantine "$REAL_HOME/.local/bin/agy" 2>/dev/null || true
     else
-        sys_do install -o "$REAL_USER" -g "$REAL_GROUP" -m 0755 \
-            "$antigravity_tmp_dir/antigravity" "$REAL_HOME/.local/bin/agy"
+        user_do install -m 0755 "$antigravity_tmp_dir/antigravity" "$REAL_HOME/.local/bin/agy"
     fi
     user_do rm -f -- "$manifest_tmp" "$payload_tmp" "$antigravity_tmp_dir/antigravity"
     user_do rmdir -- "$antigravity_tmp_dir"
@@ -994,7 +1056,7 @@ step_1() {
         if apt_uri_exists "https://repo.charm.sh/apt"; then
             echo "Charm repo already configured — skipping."
         else
-            install_key "https://repo.charm.sh/apt/gpg.key" "/etc/apt/keyrings/charm.gpg"
+            install_key "https://repo.charm.sh/apt/gpg.key" "/etc/apt/keyrings/charm.gpg" "$APT_KEY_FPR_CHARM"
             echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sys_do tee /etc/apt/sources.list.d/charm.list
         fi
         apt_update
@@ -1149,7 +1211,7 @@ step_3() {
             if apt_uri_exists "https://packages.sury.org/php/"; then
                 echo "PHP Sury repo already configured — skipping."
             else
-                install_key "https://packages.sury.org/php/apt.gpg" "/etc/apt/keyrings/php.gpg"
+                install_key "https://packages.sury.org/php/apt.gpg" "/etc/apt/keyrings/php.gpg" "$APT_KEY_FPR_SURY"
                 echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ $PHP_CODENAME main" | sys_do tee /etc/apt/sources.list.d/php.list
             fi
         else
@@ -1181,8 +1243,23 @@ step_3() {
         export PATH="$REAL_HOME/.local/bin:$PATH"
         if ! command -v composer &>/dev/null && [ ! -f "$REAL_HOME/.local/bin/composer" ]; then
             echo "Installing Composer to $REAL_HOME/.local/bin..."
-            user_do mkdir -p "$REAL_HOME/.local/bin"
-            curl -sS https://getcomposer.org/installer | user_do php -- --install-dir="$REAL_HOME/.local/bin" --filename=composer
+            local composer_tmp_dir
+            local composer_sig
+            user_do mkdir -p "$REAL_HOME/.local/bin" "$REAL_HOME/.setupvibe/tmp"
+            composer_tmp_dir=$(user_do mktemp -d "$REAL_HOME/.setupvibe/tmp/composer.XXXXXX")
+            # Official procedure: check the installer against the published SHA-384
+            # before running it (https://getcomposer.org/download/).
+            if ! composer_sig=$(curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --max-time 30 \
+                    https://composer.github.io/installer.sig) ||
+                [[ ! "$composer_sig" =~ ^[0-9a-f]{96}$ ]] ||
+                ! safe_download https://getcomposer.org/installer "$composer_tmp_dir/composer-setup.php" 1000 ||
+                [[ "$(sha384sum "$composer_tmp_dir/composer-setup.php" | awk '{print $1}')" != "$composer_sig" ]]; then
+                echo -e "${RED}✘ Composer installer could not be downloaded or failed its SHA-384 check.${NC}"
+                user_do rm -rf -- "$composer_tmp_dir"
+                return 1
+            fi
+            user_do php "$composer_tmp_dir/composer-setup.php" --install-dir="$REAL_HOME/.local/bin" --filename=composer
+            user_do rm -rf -- "$composer_tmp_dir"
             user_do chmod +x "$REAL_HOME/.local/bin/composer"
         else
             user_do bash -c "export PATH=\"$REAL_HOME/.local/bin:\$PATH\"; composer self-update" 2>/dev/null || true
@@ -1334,18 +1411,19 @@ step_5() {
                     ;;
             esac
 
-            user_do mkdir -p "$REAL_HOME/.local"
-            safe_download "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH_GO}.tar.gz" /tmp/go.tar.gz 10000000 || return 1
-
-            if [[ "$(sha256sum /tmp/go.tar.gz | awk '{print $1}')" != "$GO_SHA256" ]]; then
-                echo -e "${RED}✘ Go archive checksum verification failed.${NC}"
-                rm -f /tmp/go.tar.gz
+            user_do mkdir -p "$REAL_HOME/.local" "$REAL_HOME/.setupvibe/tmp"
+            # A private temporary directory instead of a predictable name in /tmp.
+            local go_tmp_dir
+            go_tmp_dir=$(user_do mktemp -d "$REAL_HOME/.setupvibe/tmp/go.XXXXXX")
+            if ! safe_download "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH_GO}.tar.gz" \
+                "$go_tmp_dir/go.tar.gz" 10000000 "$GO_SHA256"; then
+                user_do rm -rf -- "$go_tmp_dir"
                 return 1
             fi
 
             user_do rm -rf "$REAL_HOME/.local/go"
-            user_do tar -C "$REAL_HOME/.local" -xzf /tmp/go.tar.gz
-            rm -f /tmp/go.tar.gz
+            user_do tar -C "$REAL_HOME/.local" -xzf "$go_tmp_dir/go.tar.gz"
+            user_do rm -rf -- "$go_tmp_dir"
         fi
         unset INSTALLED_GO_VERSION GO_SHA256
         export PATH="$REAL_HOME/.local/go/bin:$PATH"
@@ -1360,7 +1438,7 @@ step_5() {
 
         echo "Installing Cronboard (Cron TUI)..."
         if ! user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v cronboard" &> /dev/null; then
-            user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool install git+https://github.com/antoniorodr/cronboard"
+            user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool install cronboard"
         fi
 
         cron_ensure
@@ -1385,7 +1463,7 @@ step_6() {
         if apt_uri_exists "https://deb.nodesource.com/node_24.x"; then
             echo "NodeSource already configured — skipping source creation (avoids Signed-By conflicts)."
         else
-            install_key "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" "/etc/apt/keyrings/nodesource.gpg"
+            install_key "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key" "/etc/apt/keyrings/nodesource.gpg" "$APT_KEY_FPR_NODESOURCE"
             echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sys_do tee /etc/apt/sources.list.d/nodesource.list
         fi
         apt_update
@@ -1458,7 +1536,7 @@ step_7() {
         if apt_uri_exists "https://download.docker.com/linux/$DISTRO_ID"; then
             echo "Docker repo already configured — skipping."
         else
-            install_key "https://download.docker.com/linux/$DISTRO_ID/gpg" "/etc/apt/keyrings/docker.gpg"
+            install_key "https://download.docker.com/linux/$DISTRO_ID/gpg" "/etc/apt/keyrings/docker.gpg" "$APT_KEY_FPR_DOCKER"
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO_ID $DOCKER_CODENAME stable" | sys_do tee /etc/apt/sources.list.d/docker.list
         fi
         
@@ -1484,8 +1562,9 @@ step_7() {
 
         # GitHub CLI
         if ! apt_uri_exists "https://cli.github.com/packages"; then
-            wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sys_do tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
-            sys_do chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+            install_key https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+                /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+                "$APT_KEY_FPR_GHCLI_1" "$APT_KEY_FPR_GHCLI_2"
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sys_do tee /etc/apt/sources.list.d/github-cli.list > /dev/null
         else
             echo "GitHub CLI repo already configured — skipping."
@@ -1496,7 +1575,7 @@ step_7() {
     # Portainer Setup (Both macOS & Linux)
     echo "Configuring Portainer..."
     user_do mkdir -p "$REAL_HOME/.setupvibe/portainer_data"
-    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/portainer-compose.yml "$REAL_HOME/.setupvibe/portainer-compose.yml"
+    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/conf/portainer-compose.yml "$REAL_HOME/.setupvibe/portainer-compose.yml"
     if $IS_LINUX; then
         sys_do chown -R "$REAL_USER:$REAL_GROUP" "$REAL_HOME/.setupvibe"
     fi
@@ -1561,7 +1640,8 @@ step_9() {
         echo "Installing Network Tools (Rust)..."
         for tool in bandwhich gping trippy rustscan; do
             if ! command -v $tool &> /dev/null; then
-                user_do cargo install $tool
+                # --locked uses the lockfile the release was tested with.
+                user_do cargo install --locked $tool
             fi
         done
         
@@ -1582,7 +1662,7 @@ step_9() {
         echo "Installing Network Tools (Rust)..."
         for tool in bandwhich gping trippy rustscan; do
             if ! user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; command -v $tool" &> /dev/null; then
-                 user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; cargo install $tool"
+                 user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; cargo install --locked $tool"
             fi
         done
 
@@ -1701,7 +1781,7 @@ step_11() {
         perl -i -pe 's/╭/┌/g; s/╰/└/g; s/\x{e0b6}/\x{e0b2}/g; s/\x{e0b4}/\x{e0b0}/g' "$REAL_HOME/.config/starship.toml"
 
         # macOS ZSHRC
-        safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/zshrc-macos.zsh "$REAL_HOME/.zshrc"
+        safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/conf/zshrc-macos.zsh "$REAL_HOME/.zshrc"
         if [ ! -f "$REAL_HOME/.zshrc.local" ]; then
             user_do touch "$REAL_HOME/.zshrc.local"
         fi
@@ -1716,11 +1796,19 @@ step_11() {
         git_ensure "https://github.com/zsh-users/zsh-syntax-highlighting" "$REAL_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
 
         echo "Installing Nerd Fonts $NERD_FONTS_VERSION (FiraCode & JetBrains Mono)..."
-        user_do mkdir -p "$REAL_HOME/.local/share/fonts"
-        safe_download "https://github.com/ryanoasis/nerd-fonts/releases/download/v${NERD_FONTS_VERSION}/FiraCode.zip" /tmp/FiraCode.zip 1000000 || return 1
-        user_do unzip -o -q /tmp/FiraCode.zip -d "$REAL_HOME/.local/share/fonts"
-        safe_download "https://github.com/ryanoasis/nerd-fonts/releases/download/v${NERD_FONTS_VERSION}/JetBrainsMono.zip" /tmp/JetBrainsMono.zip 1000000 || return 1
-        user_do unzip -o -q /tmp/JetBrainsMono.zip -d "$REAL_HOME/.local/share/fonts"
+        user_do mkdir -p "$REAL_HOME/.local/share/fonts" "$REAL_HOME/.setupvibe/tmp"
+        local fonts_tmp_dir
+        fonts_tmp_dir=$(user_do mktemp -d "$REAL_HOME/.setupvibe/tmp/fonts.XXXXXX")
+        if ! safe_download "https://github.com/ryanoasis/nerd-fonts/releases/download/v${NERD_FONTS_VERSION}/FiraCode.zip" \
+            "$fonts_tmp_dir/FiraCode.zip" 1000000 "$NERD_FONTS_FIRACODE_SHA256" ||
+            ! safe_download "https://github.com/ryanoasis/nerd-fonts/releases/download/v${NERD_FONTS_VERSION}/JetBrainsMono.zip" \
+                "$fonts_tmp_dir/JetBrainsMono.zip" 1000000 "$NERD_FONTS_JETBRAINSMONO_SHA256"; then
+            user_do rm -rf -- "$fonts_tmp_dir"
+            return 1
+        fi
+        user_do unzip -o -q "$fonts_tmp_dir/FiraCode.zip" -d "$REAL_HOME/.local/share/fonts"
+        user_do unzip -o -q "$fonts_tmp_dir/JetBrainsMono.zip" -d "$REAL_HOME/.local/share/fonts"
+        user_do rm -rf -- "$fonts_tmp_dir"
         sys_do chown -R "$REAL_USER:$REAL_GROUP" "$REAL_HOME/.local"
         user_do fc-cache -f >/dev/null
 
@@ -1747,11 +1835,10 @@ step_11() {
         perl -i -pe 's/╭/┌/g; s/╰/└/g; s/\x{e0b6}/\x{e0b2}/g; s/\x{e0b4}/\x{e0b0}/g' "$REAL_HOME/.config/starship.toml"
 
         # Linux ZSHRC
-        safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/zshrc-linux.zsh "$REAL_HOME/.zshrc"
+        safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/conf/zshrc-linux.zsh "$REAL_HOME/.zshrc"
         if [ ! -f "$REAL_HOME/.zshrc.local" ]; then
             user_do touch "$REAL_HOME/.zshrc.local"
         fi
-        sys_do chown "$REAL_USER:$REAL_GROUP" "$REAL_HOME/.zshrc"
 
         # Ensure ~/.local/bin is in .bashrc so tools like uv are accessible in bash sessions
         if ! grep -q '\.local/bin' "$REAL_HOME/.bashrc" 2>/dev/null; then
@@ -1770,12 +1857,24 @@ step_12() {
     git_ensure "https://github.com/tmux-plugins/tpm" "$REAL_HOME/.tmux/plugins/tpm"
 
     echo "Downloading tmux-desktop.conf..."
-    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/tmux-desktop.conf "$REAL_HOME/.tmux.conf"
+    safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/conf/tmux-desktop.conf "$REAL_HOME/.tmux.conf"
 
     # Also install to /root if running as root with a different REAL_HOME
     if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then
+        local root_tmux_tmp
         mkdir -p /root/.tmux/plugins
-        cp "$REAL_HOME/.tmux.conf" /root/.tmux.conf
+        # Root downloads its own copy. Copying $REAL_HOME/.tmux.conf would let the
+        # user change the file between the download and the copy.
+        root_tmux_tmp=$(mktemp)
+        if curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
+            --retry 3 --connect-timeout 10 --max-time 60 \
+            "https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/conf/tmux-desktop.conf" --output "$root_tmux_tmp" &&
+            [[ -s "$root_tmux_tmp" ]] && ! head -1 "$root_tmux_tmp" | grep -qi "<!doctype\|<html"; then
+            install -o root -g root -m 0644 "$root_tmux_tmp" /root/.tmux.conf
+        else
+            echo -e "${YELLOW}⚠ Could not download the root tmux configuration.${NC}"
+        fi
+        rm -f -- "$root_tmux_tmp"
         # Root gets its own TPM clone. A symlink into the user's home would let
         # that user change code that root's tmux runs.
         [[ -L /root/.tmux/plugins/tpm ]] && rm -f -- /root/.tmux/plugins/tpm
@@ -1788,7 +1887,6 @@ step_12() {
 
     if $IS_LINUX; then
         sys_do chown -R "$REAL_USER:$REAL_GROUP" "$REAL_HOME/.tmux" 2>/dev/null || true
-        sys_do chown "$REAL_USER:$REAL_GROUP" "$REAL_HOME/.tmux.conf" 2>/dev/null || true
     fi
 
     echo "Restarting tmux to apply new config..."
@@ -1918,7 +2016,7 @@ step_14() {
         brew_cmd cleanup --prune=all
 
         echo "Cleaning SetupVibe temporary files..."
-        rm -f /tmp/FiraCode.zip /tmp/JetBrainsMono.zip /tmp/go.tar.gz /tmp/ctop /tmp/starship 2>/dev/null || true
+        rm -rf -- "$REAL_HOME/.setupvibe/tmp" 2>/dev/null || true
     else
         echo "Cleaning APT cache and orphaned packages..."
         sys_do apt-get autoremove -y -qq
@@ -1927,7 +2025,9 @@ step_14() {
         sys_do rm -rf /var/lib/apt/lists/*
 
         echo "Cleaning temp and log junk..."
-        sys_do rm -rf /tmp/*.tar.gz /tmp/*.zip /tmp/ctop /tmp/starship 2>/dev/null || true
+        # Only SetupVibe's own temporary directory: a /tmp/*.zip glob as root also
+        # deleted other users' files.
+        user_do rm -rf -- "$REAL_HOME/.setupvibe/tmp" 2>/dev/null || true
         sys_do journalctl --vacuum-time=7d 2>/dev/null || true
 
         echo "Cleaning user caches..."
@@ -2018,10 +2118,7 @@ EOF
         user_do "$pm2_bin" set pm2:log_date_format "YYYY-MM-DD HH:mm:ss"
 
         echo "Downloading PM2 ecosystem configuration..."
-        safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/main/conf/ecosystem.config.js "$REAL_HOME/ecosystem.config.js"
-        if $IS_LINUX; then
-            sys_do chown "$REAL_USER:$REAL_GROUP" "$REAL_HOME/ecosystem.config.js"
-        fi
+        safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/conf/ecosystem.config.js "$REAL_HOME/ecosystem.config.js"
         
         echo "Starting PM2 applications from ecosystem file..."
         user_do "$pm2_bin" start "$REAL_HOME/ecosystem.config.js"

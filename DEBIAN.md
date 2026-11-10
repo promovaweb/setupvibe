@@ -133,7 +133,12 @@ Não baixe como root para um nome previsível em `/tmp` e depois execute
 mas impede a remoção do arquivo criado por root; `mv` pode criar o destino e
 ainda retornar erro ao tentar remover a origem.
 
-Use `mktemp` e finalize com `sys_do install -o "$REAL_USER" -g "$REAL_GROUP"`.
+Use `mktemp`, passe o arquivo para `REAL_USER` com `chown` e finalize com
+`user_do install`. Escrever como root dentro da home do usuário permite seguir
+um symlink trocado pelo usuário entre o `mkdir` e o `install`; o mesmo vale
+para `install -d -o` em diretórios da home. Downloads temporários ficam em
+`$REAL_HOME/.setupvibe/tmp`, nunca com nome previsível em `/tmp`, e a limpeza
+remove só esse diretório.
 O binário `ctop` deve ser verificado com o checksum correspondente à
 arquitetura antes de ser instalado em `~/.local/bin/ctop`.
 
@@ -231,6 +236,11 @@ docker exec -it --user tester setupvibe-debian-desktop \
 docker exec --user tester setupvibe-debian-server \
     sudo bash /workspace/server.sh --yes
 ```
+
+Os scripts baixam os arquivos de `conf/` e `bin/` da tag da versão em execução
+(`v${VERSION}`), não do checkout montado. Para testar uma mudança nesses
+arquivos antes da release, copie o arquivo alterado para o destino dentro do
+container depois da etapa correspondente, ou publique a versão e teste pela tag.
 
 O mount somente para leitura garante que o instalador não modifica
 acidentalmente o checkout. Estado instalado e logs permanecem dentro do

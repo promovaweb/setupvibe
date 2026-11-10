@@ -125,12 +125,13 @@ Use `-IdentityFile` quando quiser selecionar explicitamente outro par. Se arquiv
 
 ## Instalação Manual
 
-Baixe o núcleo e o lançador da branch `windows`:
+Baixe o núcleo e o lançador da tag da versão atual do SetupVibe:
 
 ```powershell
 $destino = "$env:USERPROFILE\Downloads\ssh_copy_id"
 New-Item -ItemType Directory -Force -Path $destino | Out-Null
-$base = 'https://raw.githubusercontent.com/promovaweb/setupvibe/windows/utils/windows/ssh_copy_id'
+$versao = '0.41.17'
+$base = "https://raw.githubusercontent.com/promovaweb/setupvibe/v$versao/utils/windows/ssh_copy_id"
 Invoke-WebRequest -Uri "$base/ssh_copy_id.ps1" -OutFile "$destino\ssh_copy_id.ps1"
 Invoke-WebRequest -Uri "$base/ssh_copy_id.cmd" -OutFile "$destino\ssh_copy_id.cmd"
 Set-Location $destino

@@ -1,6 +1,6 @@
 # SetupVibe — Edición Escritorio
 
-> Configuración de entorno de desarrollo multiplataforma — v0.41.16
+> Configuración de entorno de desarrollo multiplataforma — v0.41.17
 
 Instala y configura un stack de desarrollo completo en un solo comando. Soporta macOS y las principales distribuciones de Linux.
 
@@ -137,7 +137,7 @@ Instaladas mediante Homebrew en ambas plataformas.
 - Instala ZSH (Linux vía APT; ya por defecto en macOS)
 - Instala Oh My Zsh (sin intervención)
 - Clona los plugins `zsh-autosuggestions` y `zsh-syntax-highlighting`
-- Instala Nerd Fonts: **FiraCode** y **JetBrains Mono** (Homebrew Cask en macOS; descarga v3.4.0 a `~/.local/share/fonts` en Linux)
+- Instala Nerd Fonts: **FiraCode** y **JetBrains Mono** (Homebrew Cask en macOS; descarga v3.5.1 a `~/.local/share/fonts` en Linux)
 - Instala el prompt Starship y aplica el preset **Gruvbox Rainbow**
 - Descarga scripts auxiliares desde [`bin/`](../../../bin) a `~/.setupvibe/bin`; consulta [Ejecutables](../../es/EXECUTABLES.md)
 - Descarga el `.zshrc` adecuado:
