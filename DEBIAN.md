@@ -321,10 +321,22 @@ em `starship.toml.bak`, apagar o destino e aplicar o preset com `-o`, sem
 Máquinas com Docker, NodeSource, Charm, Sury ou GitHub CLI já configurados
 podem ter o mesmo repositório em um `.list` e em um `.sources` DEB822 com
 `Signed-By` diferente, e o `apt-get update` falha com `Conflicting values set
-for option Signed-By`. O Desktop pula o repositório cujo endereço já está
-registrado e remove o `.sources` que duplica um `.list` do SetupVibe. No
-Ubuntu 24.04 ou mais novo, use `libncurses-dev`, porque `libncurses5-dev` não
-tem candidato.
+for option Signed-By`. O Desktop pula o repositório cujo endereço já aparece
+numa linha ativa de outro arquivo. Quando o conflito já existe, ele remove só
+a própria cópia (`charm.list`, `php.list`, `nodesource.list`, `docker.list` ou
+`github-cli.list`) e preserva o arquivo do usuário ou de outro gerenciador,
+como o `docker.sources` do guia oficial do Docker. Linhas comentadas e arquivos
+`.save` não contam. No Ubuntu 24.04 ou mais novo, use `libncurses-dev`, porque
+`libncurses5-dev` não tem candidato.
+
+### Arquivos do root que o usuário comum não pode alterar
+
+Quando o instalador roda como root com outro `REAL_HOME`, o `/root/.tmux.conf`
+executa o TPM a cada sessão do tmux do root. Por isso o root recebe um clone
+próprio do TPM em `/root/.tmux/plugins/tpm`. Um symlink para o TPM do usuário
+deixaria esse usuário alterar código que o root executa. Pelo mesmo motivo, o
+Server instala o zoxide pelo APT em vez de rodar como root o `install.sh` de um
+branch sem versão fixada.
 
 Cada etapa adicionava novamente os mesmos diretórios ao `PATH`, o que gerava
 uma variável enorme na unidade systemd do PM2. Diretórios gerenciados devem ser

@@ -25,7 +25,7 @@ readonly MAGENTA='\033[0;35m'
 readonly NC='\033[0m'
 
 # --- VERSION & DOWNLOADS ---
-readonly VERSION="0.41.15"
+readonly VERSION="0.41.16"
 readonly CTOP_VERSION="0.7.7"
 readonly CTOP_SHA256_AMD64="b78374734ebe3d14b6edee3d5512c911c250d7fa7f3f964cb00acd3bc5a02a09"
 readonly CTOP_SHA256_ARM64="d8d91e0fea53a8c78fa81192f078272e5a92f0ea6c4f0e38ec7c944d76e6f02f"
@@ -649,11 +649,11 @@ step_1() {
     apt_do install -y \
         ca-certificates curl file figlet fontconfig fzf git gnupg iproute2 jq \
         logrotate nano procps psmisc rsyslog sshpass tmux unzip wget \
-        cron
+        cron zoxide
 
-    echo "Installing or updating zoxide..."
-    run_remote_script user https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh
-    user_do "$REAL_HOME/.local/bin/zoxide" --version >/dev/null
+    # zoxide comes from the distribution archive. The upstream install.sh came
+    # from an unpinned branch and ran as root on the usual VPS run.
+    zoxide --version >/dev/null
 
     cron_ensure
 }
@@ -863,14 +863,19 @@ step_6() {
             sys_do cp -p /root/.tmux.conf /root/.tmux.conf.pre-setupvibe
         fi
         sys_do cp "$REAL_HOME/.tmux.conf" /root/.tmux.conf
-        if [[ -d "$REAL_HOME/.tmux/plugins/tpm" ]]; then
-            if [[ -L /root/.tmux/plugins/tpm ]]; then
-                sys_do ln -sfn "$REAL_HOME/.tmux/plugins/tpm" /root/.tmux/plugins/tpm
-            elif [[ ! -e /root/.tmux/plugins/tpm ]]; then
-                sys_do ln -s "$REAL_HOME/.tmux/plugins/tpm" /root/.tmux/plugins/tpm
-            else
-                warn "Preserving the existing root TPM path: /root/.tmux/plugins/tpm"
-            fi
+        # Root gets its own TPM clone. A symlink into the user's home would let
+        # that user change code that root's tmux runs.
+        if [[ -L /root/.tmux/plugins/tpm ]]; then
+            sys_do rm -f -- /root/.tmux/plugins/tpm
+        fi
+        if [[ -d /root/.tmux/plugins/tpm/.git ]]; then
+            sys_do git -C /root/.tmux/plugins/tpm pull --quiet ||
+                warn "Could not update the root TPM clone: /root/.tmux/plugins/tpm"
+        elif [[ ! -e /root/.tmux/plugins/tpm ]]; then
+            sys_do git clone --quiet https://github.com/tmux-plugins/tpm /root/.tmux/plugins/tpm ||
+                warn "Could not clone TPM for root: /root/.tmux/plugins/tpm"
+        else
+            warn "Preserving the existing root TPM path: /root/.tmux/plugins/tpm"
         fi
     fi
 

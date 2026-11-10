@@ -67,8 +67,12 @@ executa `pacman -R`. Os itens adicionados são:
 - Node e Bun por mise somente quando ainda faltam; `pnpm` e PM2 pelo npm.
 - Ansible, utilitários de rede ausentes e Tailscale quando os pacotes estão
   disponíveis.
-- Skills CLI, Kimi Code, Agentlytics, Antigravity CLI e Spec-Kit, sem repetir
-  os CLIs já instalados pelo Omarchy.
+- Skills CLI, Kimi Code, Agentlytics, Antigravity CLI, Hermes Agent e
+  Spec-Kit, sem repetir os CLIs já instalados pelo Omarchy. O Hermes Agent é só
+  instalado, pelo instalador oficial com `--skip-setup`; configure provedor,
+  modelo e chaves com `hermes setup`. O instalador acrescenta ao `~/.bashrc` e
+  ao `~/.profile` uma linha que só põe `~/.local/bin` no `PATH` quando ele
+  ainda não está lá.
 - `ssh_copy_id`, `ecosystem.config.js` e o compose do Portainer em
   `~/.setupvibe/`.
 

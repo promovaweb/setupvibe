@@ -1,6 +1,6 @@
 # Édition Windows de SetupVibe (Beta)
 
-> Configuration des utilitaires Windows natifs — v0.41.15
+> Configuration des utilitaires Windows natifs — v0.41.16
 
 L'Édition Windows (Beta) configure des utilitaires Windows natifs, Python, Node.js et une sélection de CLI d'IA, avec WinGet comme source principale et Chocolatey pour les paquets indisponibles via WinGet.
 
@@ -41,7 +41,7 @@ Docker Desktop est volontairement exclu. SetupVibe prépare WSL 2, mais n'instal
 
 ## Installation En Une Commande
 
-Il s'agit de l'équivalent Windows de `curl -sSL desktop.setupvibe.dev | bash`.
+Il s'agit de l'équivalent Windows de `curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash`.
 
 L'URL canonique du programme d'installation Windows est `https://windows.setupvibe.dev`.
 

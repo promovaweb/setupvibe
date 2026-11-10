@@ -1,6 +1,6 @@
 # SetupVibe
 
-> The ultimate cross-platform development environment setup script — v0.41.15
+> The ultimate cross-platform development environment setup script — v0.41.16
 
 Installs and configures a development environment in one command, supporting Windows 11, macOS, major Linux distributions and Omarchy 4. The Windows Edition focuses on native utilities, Python, Node.js, selected native AI CLIs, and the WSL 2 base system. The Unix Desktop Edition includes complete language ecosystems and a broader AI toolkit, the Server Edition remains focused on operations tooling, and the Omarchy edition adds only the SetupVibe layer that is not already present in the operating system.
 
@@ -18,13 +18,14 @@ Installs and configures a development environment in one command, supporting Win
 - **Agent Skills:** Installs and validates the [Vercel Labs Skills CLI](https://github.com/vercel-labs/skills) on Desktop, Windows, and Server editions.
 - **Agent Multiplexer:** Installs and validates [Herdr](https://github.com/herdrdev/herdr) on the Unix Desktop and Server editions, with a dedicated [usage guide](docs/en/HERDR.md).
 - **Unix Antigravity CLI:** Installs Google's Antigravity CLI as `agy` on the Unix Desktop edition, resolving and SHA-512-verifying its versioned release manifest directly (the official Unix bootstrapper does not forward `--skip-aliases`/`--skip-path` to its own `agy install` step) and running `agy install --skip-aliases --skip-path` explicitly so shell profiles stay untouched.
+- **Hermes Agent:** Installs [Hermes Agent](https://github.com/NousResearch/hermes-agent) with the official Nous Research installer on the Unix Desktop and Omarchy editions, without running `hermes setup` or `hermes gateway install`, so provider, model, keys and gateway stay with the user.
 - **WSL 2 Ready:** Installs the WSL base without a Linux distribution and configures mirrored VPN/LAN networking and development optimizations on Windows 11.
 - **Smart Privilege Elevation:** Uses `sudo` only where strictly necessary on macOS and Linux; most tools are installed in `$HOME/.local/bin`.
 - **Global QR Code Generator:** Installs the PyPI `qrcode` package for the target user on macOS and Linux, exposing its `qr` command in the shell.
 - **Auto-Update:** Automatically upgrades existing Homebrew packages during setup.
 - **Modern Shell:** ZSH + Oh My Zsh + Starship with a curated set of plugins and aliases.
 - **Optimized Tmux:** Pre-configured with TPM, intuitive keybindings, and window/pane numbering starting at 1.
-- **Current Runtimes:** PHP 8.5, Ruby 3.4.10, Go 1.26.5, Python 3.14 on macOS, and Node.js 24 LTS.
+- **Current Runtimes:** PHP 8.5, Ruby 3.4.12, Go 1.26.11, Python 3.14 on macOS, and Node.js 24 LTS.
 - **AI-Ready Unix Editions:** Includes the latest AI CLI tools for developers on macOS, Linux, and WSL.
 - **Omarchy 4 Edition:** Preserves Omarchy defaults and adds SetupVibe through `omarchy.sh`, without removing operating-system packages or replacing its shell configuration.
 
@@ -53,7 +54,7 @@ creating public material.
 ### Desktop (macOS, Linux & WSL)
 
 ```bash
-curl -sSL desktop.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash
 ```
 
 ### Windows Desktop (Beta)
@@ -69,13 +70,13 @@ See the [Windows installation guide](docs/windows/README.md) for local installat
 ### Server (Linux only)
 
 ```bash
-curl -sSL server.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash
 ```
 
 To initialize Docker Swarm automatically after setup:
 
 ```bash
-curl -sSL server.setupvibe.dev | bash -s -- --manager
+curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash -s -- --manager
 ```
 
 Add `--yes` for unattended installation or `--advertise-addr ADDRESS` to choose the Swarm address or interface explicitly.

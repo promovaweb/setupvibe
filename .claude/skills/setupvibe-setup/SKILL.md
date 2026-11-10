@@ -18,7 +18,7 @@ conferir um ambiente que já usa o SetupVibe.
 3. Execute somente o comando canônico da edição:
 
    ```bash
-   curl -sSL desktop.setupvibe.dev | bash
+   curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash
    ```
 
    Para servidor, troque o endereço por `server.setupvibe.dev`. No Windows,

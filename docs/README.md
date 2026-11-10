@@ -1,6 +1,6 @@
 # SetupVibe Documentation
 
-> Automated development environment setup — v0.41.15
+> Automated development environment setup — v0.41.16
 
 SetupVibe transforms a machine into a configured development workspace in one command. It supports four editions depending on your target:
 
@@ -16,7 +16,7 @@ SetupVibe transforms a machine into a configured development workspace in one co
 ### Desktop (macOS, Linux & WSL)
 
 ```bash
-curl -sSL desktop.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash
 ```
 
 ### Windows Desktop (Beta)
@@ -28,13 +28,13 @@ curl -sSL desktop.setupvibe.dev | bash
 ### Server (Linux only)
 
 ```bash
-curl -sSL server.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash
 ```
 
 To initialize Docker Swarm automatically after setup:
 
 ```bash
-curl -sSL server.setupvibe.dev | bash -s -- --manager
+curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash -s -- --manager
 ```
 
 Add `--yes` for unattended installation or `--advertise-addr ADDRESS` to choose the Swarm address or interface explicitly.
@@ -83,6 +83,7 @@ installation and never executes package-removal commands.
 | Vercel Labs Skills CLI                | ✔              | ✔               | ✔       |
 | Herdr agent multiplexer               | ✔              | ✗               | ✔       |
 | Antigravity CLI (`agy`)               | ✔              | ✔               | ✗       |
+| Hermes Agent (install only)           | ✔              | ✗               | ✗       |
 | PM2 auto-startup                      | ✔              | ✗               | ✗       |
 | Docker Swarm Manager (`--manager`)    | ✗              | ✗               | ✔       |
 

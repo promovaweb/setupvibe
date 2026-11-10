@@ -1,6 +1,6 @@
 # Ejecutables de SetupVibe
 
-> Scripts ejecutables auxiliares — v0.41.15
+> Scripts ejecutables auxiliares — v0.41.16
 
 SetupVibe mantiene scripts auxiliares reutilizables en el directorio [`bin/`](../../bin) del repositorio. Durante la instalación, las ediciones Desktop y Server descargan estos archivos directamente desde el repositorio a `~/.setupvibe/bin` y les aplican permisos de ejecución.
 

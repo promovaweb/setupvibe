@@ -20,7 +20,7 @@ if command -v starship >/dev/null; then eval "$(starship init zsh)"; fi
 # 4. ALIASES
 
 # --- SetupVibe ---
-alias setupvibe="curl --proto '=https' --tlsv1.2 -fsSL server.setupvibe.dev | bash" # Reinstala ou atualiza o SetupVibe Server
+alias setupvibe="curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash" # Reinstala ou atualiza o SetupVibe Server
 
 # --- AI CLIs ---
 alias cc="claude --permission-mode=auto --dangerously-skip-permissions"        # Claude CLI sem confirmações

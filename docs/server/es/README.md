@@ -1,6 +1,6 @@
 # SetupVibe — Edición Servidor
 
-> Configuración de servidor Linux — v0.41.15
+> Configuración de servidor Linux — v0.41.16
 
 Un script de configuración ligero y enfocado para servidores Linux. Sin Homebrew, sin ecosistemas de lenguajes, sin herramientas de escritorio. Instala solo lo que un servidor de producción necesita: Docker, Ansible, redes, shell, tmux y herramientas AI CLI.
 
@@ -18,7 +18,7 @@ Un script de configuración ligero y enfocado para servidores Linux. Sin Homebre
 ## Instalación
 
 ```bash
-curl -sSL server.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash
 ```
 
 O localmente:
@@ -30,7 +30,7 @@ bash server.sh
 Para inicializar Docker Swarm automáticamente tras el setup, pasa `--manager`:
 
 ```bash
-curl -sSL server.setupvibe.dev | bash -s -- --manager
+curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash -s -- --manager
 ```
 
 ```bash
@@ -57,7 +57,7 @@ Instala mediante APT:
 
 - Utilidades principales: `curl`, `file`, `figlet`, `fontconfig`, `fzf`, `git`, `gnupg`, `iproute2`, `jq`, `nano`, `procps`, `psmisc`, `sshpass`, `tmux`, `unzip`, `wget`
 - Servicios del sistema: `cron`, `logrotate`, `rsyslog`
-- **zoxide** mediante su instalador oficial
+- **zoxide** desde los paquetes de la distribución
 - Habilita `cron` sin crear tareas y elimina únicamente las tareas de demostración antiguas añadidas por SetupVibe v0.41.4-v0.41.6
 
 ### Paso 2 — Docker, Ansible y GitHub CLI

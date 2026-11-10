@@ -1,6 +1,6 @@
 # SetupVibe — Edição Desktop
 
-> Configuração de ambiente de desenvolvimento multiplataforma — v0.41.15
+> Configuração de ambiente de desenvolvimento multiplataforma — v0.41.16
 
 Instala e configura um stack de desenvolvedor completo em um comando. Suporta macOS e as principais distribuições Linux.
 
@@ -20,7 +20,7 @@ Instala e configura um stack de desenvolvedor completo em um comando. Suporta ma
 ## Instalação
 
 ```bash
-curl -sSL desktop.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash
 ```
 
 Ou localmente:
@@ -69,7 +69,7 @@ cada projeto com `npx skills add <origem>`.
 | --------------- | --------------------------- | --------------------------------------- |
 | rbenv           | via Homebrew                | clonado do GitHub em `~/.rbenv`         |
 | ruby-build      | via Homebrew                | clonado em `~/.rbenv/plugins/ruby-build` |
-| Ruby            | 3.4.10 compilado via rbenv  | igual                                   |
+| Ruby            | 3.4.12 compilado via rbenv  | igual                                   |
 | Bundler + Rails | `gem install bundler rails` | igual                                   |
 
 ### Etapa 5 — Linguagens
@@ -79,7 +79,7 @@ cada projeto com `npx skills add <origem>`.
 | Python 3  | `python@3.14` via Homebrew | via APT (`python3`, `python3-pip`, `python3-venv`) |
 | uv        | via script de instalação   | igual                                              |
 | qrcode    | `pip --user` com CLI `qr`  | igual                                              |
-| Go        | via Homebrew               | binário 1.26.5 verificado em `~/.local/go`         |
+| Go        | via Homebrew               | binário 1.26.11 verificado em `~/.local/go`         |
 | Rust      | via rustup                 | igual                                              |
 
 ### Etapa 6 — JavaScript
@@ -176,8 +176,9 @@ manifestos oficiais de releases:
 | Skills CLI         | `skills`                         |
 | Herdr              | Binário do manifesto oficial     |
 | Antigravity CLI    | Binário do manifesto oficial     |
+| Hermes Agent       | Instalador oficial, sem setup    |
 
-Cada CLI listado é validado após a instalação. O [Herdr](https://github.com/herdrdev/herdr) é instalado em `~/.local/bin` conforme o sistema operacional e a arquitetura detectados. Consulte o [guia do Herdr](../../pt-br/HERDR.md) para entender sessões, atalhos, atualizações e diagnóstico. O Antigravity CLI é instalado em `~/.local/bin` como `agy`: o manifesto versionado e o checksum SHA-512 do próprio feed de releases do Google são resolvidos e verificados diretamente (o bootstrapper oficial Unix não repassa `--skip-aliases`/`--skip-path` ao seu passo interno `agy install`), e então `agy install --skip-aliases --skip-path` é executado explicitamente para não alterar perfis de shell. O **Spec-Kit** é instalado via `uv tool install specify-cli`. Veja o [SPECKIT.md](SPECKIT.md) para o guia completo de Spec-Driven Development e aliases.
+Cada CLI listado é validado após a instalação. O [Herdr](https://github.com/herdrdev/herdr) é instalado em `~/.local/bin` conforme o sistema operacional e a arquitetura detectados. Consulte o [guia do Herdr](../../pt-br/HERDR.md) para entender sessões, atalhos, atualizações e diagnóstico. O Antigravity CLI é instalado em `~/.local/bin` como `agy`: o manifesto versionado e o checksum SHA-512 do próprio feed de releases do Google são resolvidos e verificados diretamente (o bootstrapper oficial Unix não repassa `--skip-aliases`/`--skip-path` ao seu passo interno `agy install`), e então `agy install --skip-aliases --skip-path` é executado explicitamente para não alterar perfis de shell. O [Hermes Agent](https://github.com/NousResearch/hermes-agent) é instalado pelo instalador oficial da Nous Research em `~/.hermes`, com o comando `hermes` em `~/.local/bin`, usando `--skip-setup`: o SetupVibe não roda `hermes setup` nem `hermes gateway install`, então provedor, modelo, chaves e gateway ficam para você configurar com `hermes setup`. Se o `hermes` já existir, ele só é validado; atualize com `hermes update`. O **Spec-Kit** é instalado via `uv tool install specify-cli`. Veja o [SPECKIT.md](SPECKIT.md) para o guia completo de Spec-Driven Development e aliases.
 
 ### Passo 14 — Finalização e Limpeza
 

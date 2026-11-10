@@ -27,11 +27,11 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.15"
+VERSION="0.41.16"
 PHP_VERSION="8.5"
-RUBY_VERSION="3.4.10"
+RUBY_VERSION="3.4.12"
 PYTHON_VERSION="3.14"
-GO_VERSION="1.26.5"
+GO_VERSION="1.26.11"
 NERD_FONTS_VERSION="3.4.0"
 CTOP_VERSION="0.7.7"
 CTOP_SHA256_AMD64="b78374734ebe3d14b6edee3d5512c911c250d7fa7f3f964cb00acd3bc5a02a09"
@@ -180,36 +180,63 @@ ${CRON_DISK}"
     fi
 }
 
-# --- SETUPVIBE FIX: idempotent APT helpers (skip existing, dedupe conflicts) ---
-apt_uri_exists() {
+# --- Idempotent APT helpers ---
+# DEBIAN.md: never remove a repository found by a content search, because it may
+# belong to the user or to another manager. These helpers only ever remove the
+# .list files SetupVibe itself writes.
+
+# Print every active APT source file (sources.list, *.list, *.sources) that
+# references the URI on a non-comment line.
+apt_files_with_uri() {
     local uri="$1"
-    grep -rqsF -- "$uri" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null
-}
-apt_dedupe_conflicts() {
-    if [[ -f /etc/apt/sources.list.d/nodesource.list && -f /etc/apt/sources.list.d/nodesource.sources ]]; then
-        if grep -qs "deb.nodesource.com" /etc/apt/sources.list.d/nodesource.sources 2>/dev/null; then
-            echo "Removing duplicate nodesource.sources (Signed-By conflict, keeping nodesource.list)..."
-            sys_do rm -f -- /etc/apt/sources.list.d/nodesource.sources
-        fi
-    fi
     local f
-    for f in /etc/apt/sources.list.d/*.sources; do
-        [[ -e "$f" ]] || continue
-        if grep -qs "deb.nodesource.com\|download.docker.com\|repo.charm.sh\|packages.sury.org\|cli.github.com" "$f" 2>/dev/null; then
-            local base="${f%.sources}.list"
-            if [[ -f "$base" ]]; then
-                echo "Removing duplicate DEB822 source: $f (already have $base)..."
-                sys_do rm -f -- "$f"
-            fi
+    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+        [[ -f "$f" ]] || continue
+        if awk -v u="$uri" '!/^[[:space:]]*#/ && index($0, u) { found = 1 } END { exit !found }' "$f"; then
+            printf "%s\n" "$f"
         fi
     done
 }
+
+apt_uri_exists() {
+    [[ -n "$(apt_files_with_uri "$1")" ]]
+}
+
+# When a repository SetupVibe manages is also configured by another file (for
+# example the docker.sources written by Docker's own guide), remove only the
+# SetupVibe .list copy, so APT does not fail with conflicting Signed-By values.
+# The step that owns the repository then sees the URI and skips re-adding it.
+apt_dedupe_conflicts() {
+    local entry
+    local file
+    local uri
+    local others
+    local -a managed=(
+        "charm.list|https://repo.charm.sh/apt"
+        "php.list|https://packages.sury.org/php/"
+        "nodesource.list|https://deb.nodesource.com/node_24.x"
+        "docker.list|https://download.docker.com/linux/${DISTRO_ID:-}"
+        "github-cli.list|https://cli.github.com/packages"
+    )
+
+    for entry in "${managed[@]}"; do
+        file="/etc/apt/sources.list.d/${entry%%|*}"
+        uri="${entry#*|}"
+        [[ -f "$file" ]] || continue
+        others=$(apt_files_with_uri "$uri" | grep -vxF -- "$file" || true)
+        if [[ -n "$others" ]]; then
+            echo -e "${YELLOW}⚠ $uri is already configured in: ${others//$'\n'/, }. Removing the SetupVibe copy $file to avoid a Signed-By conflict.${NC}"
+            sys_do rm -f -- "$file"
+        fi
+    done
+}
+
 apt_update() {
     apt_dedupe_conflicts
     if ! sys_do apt-get update -qq; then
         echo -e "${RED}apt-get update failed. Diagnostics:${NC}"
         sys_do apt-get update 2>&1 | head -n 20 || true
-        echo -e "${YELLOW}Hint: sudo rm -f /etc/apt/sources.list.d/nodesource.sources && sudo apt-get update${NC}"
+        echo -e "${YELLOW}Hint: look for the same repository configured twice in /etc/apt/sources.list.d/ with different Signed-By keys.${NC}"
         return 1
     fi
 }
@@ -770,6 +797,61 @@ install_herdr() {
     echo -e "${GREEN}✔ Herdr installed and validated.${NC}"
 }
 
+# Install Hermes Agent (Nous Research) with the official installer, without
+# running `hermes setup` or `hermes gateway install`: provider, model, keys and
+# gateway stay with the user. An existing install is only validated; updates
+# belong to `hermes update`.
+install_hermes() {
+    local hermes_bin="$REAL_HOME/.local/bin/hermes"
+    local hermes_tmp_dir
+    local installer_tmp
+    local user_shell
+
+    if [[ -x "$hermes_bin" ]]; then
+        echo "Hermes Agent already installed; validating only (update with: hermes update)."
+        if ! user_do env PATH="$REAL_HOME/.local/bin:$PATH" "$hermes_bin" --version >/dev/null; then
+            echo -e "${RED}✘ Hermes Agent is installed but does not run. Repair it with: hermes doctor${NC}"
+            return 1
+        fi
+        echo -e "${GREEN}✔ Hermes Agent validated.${NC}"
+        return 0
+    fi
+
+    # The Node.js runtime Hermes stages needs libatomic.so.1. The installer only
+    # tries a non-interactive sudo, which fails on a minimal Debian or Ubuntu.
+    if $IS_LINUX; then
+        sys_do apt-get install -y libatomic1
+    fi
+
+    user_do mkdir -p "$REAL_HOME/.setupvibe/tmp"
+    hermes_tmp_dir=$(user_do mktemp -d "$REAL_HOME/.setupvibe/tmp/hermes.XXXXXX")
+    installer_tmp="$hermes_tmp_dir/install.sh"
+
+    if ! safe_download https://hermes-agent.nousresearch.com/install.sh "$installer_tmp" 10000; then
+        user_do rmdir -- "$hermes_tmp_dir" 2>/dev/null || true
+        return 1
+    fi
+
+    # The installer wires PATH into the rc file of $SHELL; point it at the
+    # user's login shell instead of the shell that launched SetupVibe.
+    user_shell=$(getent passwd "$REAL_USER" 2>/dev/null | cut -d: -f7 || true)
+    [[ -n "$user_shell" ]] || user_shell="${SHELL:-/bin/bash}"
+
+    if ! user_do env SHELL="$user_shell" PATH="$REAL_HOME/.local/bin:$PATH" \
+        bash "$installer_tmp" --skip-setup; then
+        user_do rm -rf -- "$hermes_tmp_dir"
+        echo -e "${RED}✘ Hermes Agent installer failed.${NC}"
+        return 1
+    fi
+    user_do rm -rf -- "$hermes_tmp_dir"
+
+    if ! user_do env PATH="$REAL_HOME/.local/bin:$PATH" "$hermes_bin" --version >/dev/null; then
+        echo -e "${RED}✘ Hermes Agent was installed but does not run.${NC}"
+        return 1
+    fi
+    echo -e "${GREEN}✔ Hermes Agent installed and validated. Configure it with: hermes setup${NC}"
+}
+
 install_antigravity() {
     local antigravity_os
     local antigravity_arch
@@ -1116,9 +1198,13 @@ step_4() {
     if $IS_MACOS; then
         # On macOS, use Homebrew for rbenv
         brew_cmd install rbenv ruby-build
+        # An older ruby-build does not know RUBY_VERSION; brew install keeps it as is.
+        brew_cmd upgrade ruby-build 2>/dev/null || true
         
         echo "Checking Ruby $RUBY_VERSION..."
-        if ! user_do rbenv versions --bare | grep -Fxq "$RUBY_VERSION"; then
+        # No -q: grep must read all of rbenv's output, or rbenv can die with SIGPIPE
+        # and pipefail turns an installed version into a false "missing" (#52).
+        if ! user_do rbenv versions --bare | grep -Fx "$RUBY_VERSION" >/dev/null; then
             echo "Compiling Ruby $RUBY_VERSION (this may take a few minutes)..."
             # Optimization: Skip documentation and use parallel compilation.
             # Use single quotes for the outer `bash -c` and double quotes for the
@@ -1147,7 +1233,7 @@ step_4() {
         user_do bash -c 'echo "gem: --no-document" > "$HOME/.gemrc"'
 
         echo "Checking Ruby $RUBY_VERSION..."
-        if ! user_do env RUBY_VERSION="$RUBY_VERSION" bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv versions --bare | grep -Fxq "$RUBY_VERSION"'; then
+        if ! user_do env RUBY_VERSION="$RUBY_VERSION" bash -c 'export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; rbenv versions --bare | grep -Fx "$RUBY_VERSION" >/dev/null'; then
             echo "Compiling Ruby $RUBY_VERSION (this may take a few minutes)..."
             # Use $HOME/.tmp as TMPDIR to avoid noexec on /tmp (common in cloud VMs)
             user_do env RUBY_VERSION="$RUBY_VERSION" bash -c 'mkdir -p "$HOME/.tmp"; export TMPDIR="$HOME/.tmp"; export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; export RUBY_CONFIGURE_OPTS="--disable-install-doc"; export MAKE_OPTS="-j$(nproc 2>/dev/null || echo 2)"; rbenv install "$RUBY_VERSION" && rbenv global "$RUBY_VERSION"'
@@ -1240,8 +1326,8 @@ step_5() {
         if [[ "$INSTALLED_GO_VERSION" != "go${GO_VERSION}" ]]; then
             echo "Installing Go $GO_VERSION to $REAL_HOME/.local/go..."
             case "$ARCH_GO" in
-                amd64) GO_SHA256="5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053" ;;
-                arm64) GO_SHA256="fe4789e92b1f33358680864bbe8704289e7bb5fc207d80623c308935bd696d49" ;;
+                amd64) GO_SHA256="9849f4e04ee35303714e34fbc3ac8ab44ea3e448a95aa182f91e3b9b79c710ec" ;;
+                arm64) GO_SHA256="6c2f29b458b5add0835f18b776f69c8881a6d88428f1484a6da55755e620757e" ;;
                 *)
                     echo -e "${RED}✘ No Go checksum configured for architecture: $ARCH_GO${NC}"
                     return 1
@@ -1690,8 +1776,14 @@ step_12() {
     if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then
         mkdir -p /root/.tmux/plugins
         cp "$REAL_HOME/.tmux.conf" /root/.tmux.conf
-        [[ -d "$REAL_HOME/.tmux/plugins/tpm" ]] && \
-            ln -sfn "$REAL_HOME/.tmux/plugins/tpm" /root/.tmux/plugins/tpm 2>/dev/null || true
+        # Root gets its own TPM clone. A symlink into the user's home would let
+        # that user change code that root's tmux runs.
+        [[ -L /root/.tmux/plugins/tpm ]] && rm -f -- /root/.tmux/plugins/tpm
+        if [[ -d /root/.tmux/plugins/tpm/.git ]]; then
+            git -C /root/.tmux/plugins/tpm pull --quiet || true
+        elif [[ ! -e /root/.tmux/plugins/tpm ]]; then
+            git clone --quiet https://github.com/tmux-plugins/tpm /root/.tmux/plugins/tpm || true
+        fi
     fi
 
     if $IS_LINUX; then
@@ -1797,6 +1889,9 @@ step_13() {
 
     echo "Installing Antigravity CLI..."
     install_antigravity
+
+    echo "Installing Hermes Agent..."
+    install_hermes || failed+=("hermes (install)")
 
     echo "Installing Spec-Kit (specify-cli)..."
     if ! user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v specify" &>/dev/null; then

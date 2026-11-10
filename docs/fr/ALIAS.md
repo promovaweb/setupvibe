@@ -1,6 +1,6 @@
 # Aliases SetupVibe
 
-> Alias de l'environnement shell — v0.41.15
+> Alias de l'environnement shell — v0.41.16
 
 Voici la liste exhaustive de todos os aliases configurados por SetupVibe sur toutes les plateformes.
 
@@ -16,7 +16,7 @@ Voici la liste exhaustive de todos os aliases configurados por SetupVibe sur tou
 
 - **`setupvibe`**
   - Disponibilité : 🌐 Les deux
-  - Commande : `curl -sSL desktop.setupvibe.dev | bash` (Desktop) / `curl -sSL server.setupvibe.dev | bash` (Server)
+  - Commande : `curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash` (Desktop) / `curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash` (Server)
   - Description : Réinstalle ou met à jour SetupVibe.
   - Exemple : `setupvibe`
 

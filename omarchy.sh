@@ -9,7 +9,7 @@ set -Eeuo pipefail
 # shell Bash, Starship, mise, Tmux, Docker, ferramentas Unix, fontes, aliases,
 # funções, Neovim, Herdr e CLIs de IA.
 
-VERSION="0.41.15"
+VERSION="0.41.16"
 OMARCHY_MAJOR="4"
 SETUPVIBE_RAW="https://raw.githubusercontent.com/promovaweb/setupvibe/main"
 
@@ -305,6 +305,41 @@ install_optional_ai_tools() {
 
     if ! user_do bash -lc "command -v agy >/dev/null 2>&1"; then
         install_antigravity
+    fi
+
+    if user_do bash -lc "command -v hermes >/dev/null 2>&1"; then
+        echo "hermes já está disponível; mantendo o comando existente."
+    else
+        install_hermes
+    fi
+}
+
+# Instala o Hermes Agent (Nous Research) pelo instalador oficial, sem rodar
+# `hermes setup` nem `hermes gateway install`. Provedor, modelo, chaves e
+# gateway ficam com o usuário; atualizações ficam com `hermes update`.
+install_hermes() {
+    local temporary_dir installer
+
+    temporary_dir="$(user_do mktemp -d "$REAL_HOME/.setupvibe/hermes.XXXXXX")"
+    installer="$temporary_dir/install.sh"
+
+    safe_download https://hermes-agent.nousresearch.com/install.sh "$installer" 10000 || {
+        warn "O instalador do Hermes Agent não pôde ser baixado."
+        user_do rm -rf -- "$temporary_dir"
+        return 0
+    }
+
+    if ! user_do env SHELL=/bin/bash PATH="$REAL_HOME/.local/bin:$PATH" bash "$installer" --skip-setup; then
+        warn "O instalador do Hermes Agent falhou."
+        user_do rm -rf -- "$temporary_dir"
+        return 0
+    fi
+    user_do rm -rf -- "$temporary_dir"
+
+    if user_do env PATH="$REAL_HOME/.local/bin:$PATH" hermes --version >/dev/null 2>&1; then
+        echo "Hermes Agent instalado. Configure com: hermes setup"
+    else
+        warn "O Hermes Agent foi instalado, mas não respondeu a hermes --version."
     fi
 }
 

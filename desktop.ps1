@@ -11,8 +11,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'Continue'
 
-$script:Version = '0.41.15'
+$script:Version = '0.41.16'
 $script:InstallUrl = 'https://windows.setupvibe.dev'
+$script:ElevationScriptUrl = 'https://raw.githubusercontent.com/promovaweb/setupvibe/v{0}/desktop.ps1' -f $script:Version
 $script:RestartRequired = $false
 $script:RestartBeforeRetryRequired = $false
 $script:SystemFileCheckerCompleted = $false
@@ -43,7 +44,6 @@ $script:LegacyWindowsUtilityFiles = @('ssh_copy_id.bat', 'ssh_copy_id.ps1', 'cod
 $script:WinGetPackages = @(
     @{ Id = 'Git.Git'; Name = 'Git' }
     @{ Id = '7zip.7zip'; Name = '7-Zip' }
-    @{ Id = 'JernejSimoncic.Wget'; Name = 'Wget' }
     @{ Id = 'Gyan.FFmpeg'; Name = 'FFmpeg' }
     @{ Id = 'ImageMagick.ImageMagick'; Name = 'ImageMagick' }
     @{ Id = 'GitHub.cli'; Name = 'GitHub CLI (gh)' }
@@ -78,7 +78,6 @@ $script:ChocolateyPackages = @(
 $script:WinGetCommandChecks = @(
     @{ Name = 'Git'; Command = 'git.exe'; Arguments = @('--version') }
     @{ Name = '7-Zip'; Command = '7z.exe'; Arguments = @('i'); PreferredPaths = @((Join-Path $env:ProgramFiles '7-Zip\7z.exe')) }
-    @{ Name = 'Wget'; Command = 'wget.exe'; Arguments = @('--version') }
     @{ Name = 'FFmpeg'; Command = 'ffmpeg.exe'; Arguments = @('-version') }
     @{ Name = 'ImageMagick'; Command = 'magick.exe'; Arguments = @('-version') }
     @{ Name = 'bat'; Command = 'bat.exe'; Arguments = @('--version') }
@@ -117,6 +116,14 @@ $script:LegacyWinGetPackages = @(
     @{ Id = 'jdx.mise'; Name = 'mise' }
 )
 
+# Packages SetupVibe installed before and now removes on install and uninstall.
+# Wget 1.21.4 is the newest JernejSimoncic.Wget in WinGet and carries the
+# vendor security warning about loading wgetrc from a user-writable path;
+# the installer already uses the System32 curl.exe.
+$script:RetiredWinGetPackages = @(
+    @{ Id = 'JernejSimoncic.Wget'; Name = 'Wget' }
+)
+
 $script:LegacyNpmPackages = @('pnpm', 'pm2', '@n8n/cli', 'agentlytics', '@githubnext/github-copilot-cli', 'npm')
 
 function Write-Section {
@@ -136,6 +143,27 @@ function Write-WarningMessage {
     param([Parameter(Mandatory = $true)][string]$Message)
 
     Write-Host ("[WARN] {0}" -f $Message) -ForegroundColor Yellow
+}
+
+# Return a registry value, or $null when the key or the value does not exist.
+# Get-ItemPropertyValue throws for a missing value on Windows PowerShell 5.1 even
+# with -ErrorAction SilentlyContinue (#46), and reading a missing property
+# directly fails under Set-StrictMode -Version Latest.
+function Get-RegistryValueOrNull {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$Name
+    )
+
+    $item = Get-ItemProperty -Path $Path -ErrorAction SilentlyContinue
+    if ($null -eq $item) {
+        return $null
+    }
+    $property = $item.PSObject.Properties[$Name]
+    if ($null -eq $property) {
+        return $null
+    }
+    return $property.Value
 }
 
 function Test-Administrator {
@@ -162,7 +190,10 @@ function Invoke-PowerShellHandoff {
         $temporaryScript = Join-Path ([IO.Path]::GetTempPath()) ("SetupVibe-desktop-{0}.ps1" -f $PID)
         $webClient = New-Object Net.WebClient
         try {
-            $webClient.DownloadFile($script:InstallUrl, $temporaryScript)
+            # The elevated copy comes from the release tag of this exact version on
+            # GitHub, not from the public install alias, so the administrator
+            # session runs the same code the user started.
+            $webClient.DownloadFile($script:ElevationScriptUrl, $temporaryScript)
         }
         finally {
             $webClient.Dispose()
@@ -476,8 +507,8 @@ function Invoke-WindowsInstallerPreflight {
         Ensure-WindowsServiceReady -Name 'wuauserv'
         Ensure-WindowsServiceReady -Name 'bits'
 
-        $useWsus = Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' -Name 'UseWUServer' -ErrorAction SilentlyContinue
-        $blockPublicWindowsUpdate = Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate' -Name 'DoNotConnectToWindowsUpdateInternetLocations' -ErrorAction SilentlyContinue
+        $useWsus = Get-RegistryValueOrNull -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' -Name 'UseWUServer'
+        $blockPublicWindowsUpdate = Get-RegistryValueOrNull -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate' -Name 'DoNotConnectToWindowsUpdateInternetLocations'
         if ([int]$useWsus -eq 1 -or [int]$blockPublicWindowsUpdate -eq 1) {
             Write-WarningMessage 'Windows Update is controlled by WSUS or domain policy. Windows optional features may fail if the corporate update source does not provide the required content.'
         }
@@ -725,7 +756,6 @@ function Install-OpenSsh {
             '/i'
             $msiPath
             'ADDLOCAL=Client,Server'
-            'REMOVE='
             'REINSTALL=ALL'
             'REINSTALLMODE=amus'
             '/qn'
@@ -1774,7 +1804,6 @@ function Install-NodeJs {
                 '/i'
                 $installerPath
                 'ADDLOCAL=ALL'
-                'REMOVE='
                 'REINSTALL=ALL'
                 'REINSTALLMODE=amus'
                 '/qn'
@@ -2435,7 +2464,7 @@ if ($Uninstall) {
 
     $script:WinGetPath = Find-WinGet
     if ($script:WinGetPath) {
-        $packagesToRemove = @($script:WinGetPackages) + @($script:LegacyWinGetPackages)
+        $packagesToRemove = @($script:WinGetPackages) + @($script:LegacyWinGetPackages) + @($script:RetiredWinGetPackages)
         foreach ($package in $packagesToRemove) {
             Invoke-SetupStep -Name ("Remove WinGet: {0}" -f $package.Name) -Action {
                 Uninstall-WinGetPackage -Id $package.Id -Name $package.Name
@@ -2476,6 +2505,11 @@ else {
     Invoke-SetupStep -Name 'Node.js 24 LTS official MSI' -Action { Install-NodeJs }
 
     if ($script:WinGetPath) {
+        foreach ($package in $script:RetiredWinGetPackages) {
+            Invoke-SetupStep -Name ("Remove retired WinGet: {0}" -f $package.Name) -Action {
+                Uninstall-WinGetPackage -Id $package.Id -Name $package.Name
+            }
+        }
         foreach ($package in $script:WinGetPackages) {
             Invoke-SetupStep -Name ("WinGet: {0}" -f $package.Name) -Action {
                 Install-WinGetPackage -Id $package.Id -Name $package.Name

@@ -4,7 +4,7 @@ This file provides instructions and context for OpenAI Codex when working with t
 
 ## What This Project Is
 
-**SetupVibe** is a cross-platform automated development environment setup script (v0.41.15). It installs and configures a complete developer toolkit in one command, supporting Windows 11 22H2+, macOS 12+, Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+) and Omarchy 4 on Arch Linux x86_64.
+**SetupVibe** is a cross-platform automated development environment setup script (v0.41.16). It installs and configures a complete developer toolkit in one command, supporting Windows 11 22H2+, macOS 12+, Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+) and Omarchy 4 on Arch Linux x86_64.
 
 There are four editions:
 
@@ -24,7 +24,7 @@ bash server.sh
 bash omarchy.sh
 
 # Or via curl (canonical usage)
-curl -sSL desktop.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash
 ```
 
 ```powershell
@@ -70,8 +70,8 @@ While the Windows Edition is in Beta, every SetupVibe repository URL in Windows-
 1. Base system & build tools
 2. Homebrew
 3. PHP 8.5 (Composer, Laravel)
-4. Ruby 3.4.10 (rbenv, Rails)
-5. Go 1.26.5, Rust, Python (uv, user-global `qrcode` via pip; Python 3.14 on macOS)
+4. Ruby 3.4.12 (rbenv, Rails)
+5. Go 1.26.11, Rust, Python (uv, user-global `qrcode` via pip; Python 3.14 on macOS)
 6. JavaScript (Node, Bun, PNPM)
 7. DevOps (Docker, Ansible, GitHub CLI)
 8. Modern Unix tools via Homebrew

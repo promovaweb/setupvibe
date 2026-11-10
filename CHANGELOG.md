@@ -4,6 +4,30 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.16] - 2026-11-10
+
+### Added
+
+- Installed [Hermes Agent](https://github.com/NousResearch/hermes-agent) on the Unix Desktop and Omarchy editions with the official Nous Research installer and `--skip-setup`. SetupVibe does not run `hermes setup` or `hermes gateway install`: provider, model, keys and gateway stay with the user. An existing `hermes` is only validated, and updates belong to `hermes update`. The Desktop edition installs `libatomic1` first, because the Node.js runtime Hermes stages needs it and the installer only tries a non-interactive `sudo`.
+
+### Changed
+
+- The published install commands, the `setupvibe` aliases and the agent skills now use `curl --proto '=https' --tlsv1.2 -fsSL https://…`. The previous `curl -sSL desktop.setupvibe.dev` started over plain HTTP, and the redirect to HTTPS carries no HSTS, so anyone on the network path could replace the script that runs with `sudo`.
+- Updated Go to 1.26.11 (security fixes in 1.26.6, 1.26.9, 1.26.10 and 1.26.11) with the checksums published on go.dev, and Ruby to 3.4.12 (Onigmo and `resolv` security fixes). On macOS, `ruby-build` is upgraded so it knows the new Ruby.
+- The Server edition installs zoxide from the distribution archive instead of running the upstream `install.sh` from an unpinned branch, which ran as root on the usual VPS run.
+- The Windows edition no longer installs Wget. The newest `JernejSimoncic.Wget` in WinGet is 1.21.4, which the vendor flags for loading `wgetrc` from a user-writable path and which is affected by CVE-2024-38428; installs and uninstalls now remove it, and the installer keeps using the System32 `curl.exe`.
+- The elevated Windows session downloads `desktop.ps1` from the release tag of the same version on GitHub instead of the public install alias, so the administrator session runs the code the user started.
+
+### Fixed
+
+- Fixed a local privilege escalation when the Desktop or Server edition runs as root for another user: `/root/.tmux/plugins/tpm` was a symlink into that user's home, so the user could change code that root's tmux runs. Root now gets its own TPM clone.
+- Fixed the Desktop APT conflict handling from v0.41.15 deleting `.sources` files that belong to the user or to another manager, such as the `docker.sources` written by Docker's own guide. It now removes only the SetupVibe `.list` copy, and commented lines and `.save` files no longer count as a configured repository.
+- Fixed the macOS Ruby step recompiling an installed Ruby and failing about half of the time: `grep -q` closed the pipe early, `rbenv` died with `SIGPIPE` and `pipefail` reported the version as missing ([#52](https://github.com/promovaweb/setupvibe/issues/52)).
+- Fixed the Windows OpenSSH and Node.js MSI repairs failing with error 1603: the empty `REMOVE=` argument was joined as `REMOVE=REINSTALL=ALL` ([#63](https://github.com/promovaweb/setupvibe/issues/63)).
+- Fixed the Windows readiness step failing when the Windows Update policy key exists without the `UseWUServer` value ([#46](https://github.com/promovaweb/setupvibe/issues/46)).
+
+---
+
 ## [v0.41.15] - 2026-11-10
 
 ### Fixed
