@@ -11,7 +11,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'Continue'
 
-$script:Version = '0.41.13'
+$script:Version = '0.41.14'
 $script:InstallUrl = 'https://windows.setupvibe.dev'
 $script:RestartRequired = $false
 $script:RestartBeforeRetryRequired = $false

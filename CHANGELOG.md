@@ -4,7 +4,23 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.14] - 2026-11-09
+
+### Fixed
+
+- Restored the v0.41.12 entry in this changelog, which the v0.41.13 release had renamed by mistake, and recorded the v0.41.13 changes under their own heading.
+
+---
+
 ## [v0.41.13] - 2026-11-09
+
+### Added
+
+- `.gitignore` at the repository root, ignoring `dist/`, `node_modules/`, log files and `.DS_Store`, so local builds and installs no longer show up as untracked files in the repository or in the Hub submodule status.
+
+---
+
+## [v0.41.12] - 2026-11-09
 
 ### Removed
 
