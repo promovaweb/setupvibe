@@ -332,8 +332,15 @@ REAL_GROUP=$(id -gn "$REAL_USER" 2>/dev/null || echo "$REAL_USER")
 if $IS_LINUX; then
     DISTRO_ID=$(lsb_release -is 2>/dev/null | tr '[:upper:]' '[:lower:]')
     DISTRO_CODENAME=$(lsb_release -cs 2>/dev/null)
+    # Check if LMDE (Linux Mint Debian Edition) or other Debian derivatives
+    if grep -Eq '^(ID_LIKE=.*debian|NAME="LMDE")' /etc/os-release 2>/dev/null; then
+        DISTRO_ID="debian"
+        BASE_CODENAME=$(grep -oP '(?<=DEBIAN_CODENAME=).*' /etc/os-release 2>/dev/null)
+        if [[ -n "$BASE_CODENAME" ]]; then
+            DISTRO_CODENAME="$BASE_CODENAME"
+        fi
     # Map derivative distros to their Ubuntu base codename for repository compatibility
-    if [[ "$DISTRO_ID" == "zorin" || "$DISTRO_ID" == "linuxmint" ]]; then
+    elif [[ "$DISTRO_ID" == "zorin" || "$DISTRO_ID" == "linuxmint" ]]; then
         DISTRO_ID="ubuntu"
         BASE_CODENAME=$(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release 2>/dev/null)
         if [[ -n "$BASE_CODENAME" ]]; then
@@ -1146,7 +1153,7 @@ step_5() {
         if ! command -v uv &> /dev/null; then
             user_do curl -LsSf https://astral.sh/uv/install.sh | sh
         else
-            user_do uv self update
+            user_do uv self update 2>/dev/null || true
         fi
         
         echo "Setup Go $GO_VERSION..."
@@ -1175,7 +1182,7 @@ step_5() {
         if ! user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v uv" &> /dev/null; then
             user_do bash -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
         else
-            user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv self update"
+            user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv self update 2>/dev/null || true"
         fi
         export PATH="$REAL_HOME/.local/bin:$PATH"
 
@@ -1222,7 +1229,7 @@ step_5() {
 
         echo "Installing Cronboard (Cron TUI)..."
         if ! user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v cronboard" &> /dev/null; then
-            user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool install git+https://github.com/antoniorodr/cronboard"
+            user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool install --force git+https://github.com/antoniorodr/cronboard"
         fi
 
         cron_ensure
@@ -1322,7 +1329,7 @@ step_7() {
         echo "Configuring Ansible..."
         if $IS_UBUNTU; then
             echo "Using Ubuntu Ansible PPA Strategy..."
-            sys_do add-apt-repository --yes --update ppa:ansible/ansible
+            sys_do add-apt-repository -y ppa:ansible/ansible
             sys_do apt-get install -y ansible
         elif $IS_DEBIAN; then
             echo "Using Debian Ansible Strategy..."
@@ -1405,8 +1412,10 @@ step_9() {
         
         echo "Installing Network Tools (Rust)..."
         for tool in bandwhich gping trippy rustscan; do
-            if ! command -v $tool &> /dev/null; then
-                user_do cargo install $tool
+            local bin_name="$tool"
+            [[ "$tool" == "trippy" ]] && bin_name="trip"
+            if ! command -v "$bin_name" &> /dev/null; then
+                user_do cargo install "$tool"
             fi
         done
         
@@ -1426,7 +1435,9 @@ step_9() {
 
         echo "Installing Network Tools (Rust)..."
         for tool in bandwhich gping trippy rustscan; do
-            if ! user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; command -v $tool" &> /dev/null; then
+            local bin_name="$tool"
+            [[ "$tool" == "trippy" ]] && bin_name="trip"
+            if ! user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; command -v $bin_name" &> /dev/null; then
                  user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; cargo install $tool"
             fi
         done
@@ -1684,7 +1695,7 @@ step_13() {
 
     echo "Installing Spec-Kit (specify-cli)..."
     if ! user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; command -v specify" &>/dev/null; then
-        user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool install specify-cli"
+        user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool install --force specify-cli"
     else
         user_do bash -c "export PATH=\$HOME/.local/bin:\$PATH; uv tool upgrade specify-cli" 2>/dev/null || true
     fi
