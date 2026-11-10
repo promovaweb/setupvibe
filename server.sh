@@ -713,7 +713,7 @@ step_2() {
     if $IS_UBUNTU; then
         echo "Using the official Ansible Ubuntu PPA..."
         apt_do install -y software-properties-common
-        sys_do add-apt-repository --yes --update ppa:ansible/ansible
+        sys_do add-apt-repository -y ppa:ansible/ansible
         apt_do install -y ansible
     elif $IS_DEBIAN; then
         echo "Using the Debian ansible-core package..."
