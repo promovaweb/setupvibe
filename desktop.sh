@@ -27,7 +27,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.14"
+VERSION="0.41.15"
 PHP_VERSION="8.5"
 RUBY_VERSION="3.4.10"
 PYTHON_VERSION="3.14"
@@ -1712,6 +1712,8 @@ step_13() {
     local command_name
     local allowed_scripts
     local index
+    local query_name
+    local foreign_bin
     local -a failed=()
     local -a ai_packages=(
         "agentlytics"

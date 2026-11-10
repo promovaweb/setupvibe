@@ -1,6 +1,6 @@
 # Spec-Kit Guide
 
-> Tooling guide — v0.41.14
+> Tooling guide — v0.41.15
 
 SetupVibe installs [Spec-Kit](https://github.com/github/spec-kit) on the Desktop edition (macOS and Linux desktop) via `uv tool install specify-cli`.
 

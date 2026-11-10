@@ -310,9 +310,21 @@ artefatos.
 
 ### Idempotência do Starship e do `PATH`
 
-`starship preset` recusa sobrescrever `~/.config/starship.toml` sem `--force`.
-Como esse arquivo é gerenciado pelo Desktop, o rerun deve aplicar o preset com
-essa opção.
+Versões antigas do `starship preset` recusam sobrescrever
+`~/.config/starship.toml`, e as atuais removeram a opção `--force`, que passou
+a abortar a etapa. O rerun deve guardar uma única cópia do arquivo existente
+em `starship.toml.bak`, apagar o destino e aplicar o preset com `-o`, sem
+`--force`.
+
+### Repositórios APT já configurados
+
+Máquinas com Docker, NodeSource, Charm, Sury ou GitHub CLI já configurados
+podem ter o mesmo repositório em um `.list` e em um `.sources` DEB822 com
+`Signed-By` diferente, e o `apt-get update` falha com `Conflicting values set
+for option Signed-By`. O Desktop pula o repositório cujo endereço já está
+registrado e remove o `.sources` que duplica um `.list` do SetupVibe. No
+Ubuntu 24.04 ou mais novo, use `libncurses-dev`, porque `libncurses5-dev` não
+tem candidato.
 
 Cada etapa adicionava novamente os mesmos diretórios ao `PATH`, o que gerava
 uma variável enorme na unidade systemd do PM2. Diretórios gerenciados devem ser
