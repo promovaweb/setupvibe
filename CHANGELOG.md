@@ -4,6 +4,21 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.15] - 2026-11-10
+
+### Fixed
+
+- Fixed the Shell step aborting on current starship releases, which removed `--force` from `starship preset` and reject it as an unexpected argument. In the Desktop edition the step died on that line before `.zshrc` was written, leaving the user with no shell configuration at all. `desktop.sh` and `omarchy.sh` no longer pass the flag, and the Desktop and Server editions preserve an existing `~/.config/starship.toml` before clearing it, so the step also succeeds on older starship, which refused to overwrite an existing file ([#43](https://github.com/promovaweb/setupvibe/issues/43)).
+- Fixed the Desktop edition adding `ppa:ondrej/php` on Ubuntu releases the PPA does not publish, such as 26.04 (resolute). The unusable source made every later `apt-get update` exit non-zero, marking unrelated steps as failed and leaving the machine with a broken APT source after the run. `desktop.sh` now probes the PPA for the running codename and falls back to the Ubuntu archive when it is absent ([#40](https://github.com/promovaweb/setupvibe/issues/40)).
+- Fixed the Server edition destroying a hand-written `~/.config/starship.toml` without a backup, and aborting the whole run on starship releases that refused to overwrite it.
+- Fixed `desktop.sh` failing with `E: Conflicting values set for option Signed-By` on machines that already had the Docker, NodeSource, Charm, Sury or GitHub CLI repository configured. The Desktop edition now skips a repository whose URI is already registered, removes a DEB822 `.sources` file that duplicates a SetupVibe `.list` file, and prints APT diagnostics when `apt-get update` fails ([#39](https://github.com/promovaweb/setupvibe/issues/39)).
+- Fixed step 1 of `desktop.sh` failing on Ubuntu 24.04 (noble), Linux Mint 22 and newer releases, where `libncurses5-dev` has no installation candidate. The step now installs `libncurses-dev`, which also unblocks the Ruby and Tmux steps that depended on it ([#49](https://github.com/promovaweb/setupvibe/issues/49)).
+- Fixed `desktop.sh` step 6 (`JavaScript`) aborting with `EEXIST` when npm was provided by the Node distribution instead of npm: npm refuses to overwrite a binary it does not own, so `npm install -g pnpm npm@latest` died on `npm` itself before `pnpm`/`PM2` were verified. The step now installs only `pnpm` (and `pm2` separately); upgrading npm is not the installer's job ([#53](https://github.com/promovaweb/setupvibe/issues/53)).
+- Fixed `desktop.sh` step 13 (`AI CLI Tools`) aborting on the first failing package: one collision (e.g. `EEXIST` on `claude` from the native installer) silently skipped every later package. The loop now attempts all seven tools, collects failures, still installs Herdr/Antigravity/Spec-Kit, and reports the failed tools at the end ([#53](https://github.com/promovaweb/setupvibe/issues/53)).
+- Fixed `desktop.sh` step 13 (`AI CLI Tools`) fighting native installers: when a binary was already provided by another manager (e.g. `claude`/`codex` from their official installers in npm's global bin dir), `npm install -g` died with `EEXIST`. The step now detects the foreign owner via `npm ls` (using the bare package name — `npm ls -g skills@latest` will never match) and skips with a warning instead of replacing the user's install; a foreign binary that does not run is reported as a failure ([#53](https://github.com/promovaweb/setupvibe/issues/53)).
+
+---
+
 ## [v0.41.14] - 2026-11-09
 
 ### Fixed
@@ -40,12 +55,6 @@ All notable changes to **SetupVibe** are documented in this file.
 
 - Added Moonshot AI's Kimi Code CLI (`@moonshot-ai/kimi-code`) to the Unix Desktop edition's AI CLI Tools step, installed and validated globally via npm alongside Claude Code, Codex, and Copilot CLI.
 - Enabled tmux extended keys (`extended-keys on` and `terminal-features '*:extkeys'`) in both `tmux-desktop.conf` and `tmux-server.conf`, so modifier+key combinations like `Shift+Enter` and `Ctrl+Arrow` reach TUI apps such as Claude Code, Codex, Kimi Code, and Neovim instead of being swallowed by tmux.
-
-### Fixed
-
-- Fixed the Shell step aborting on current starship releases, which removed `--force` from `starship preset` and reject it as an unexpected argument. In the Desktop edition the step died on that line before `.zshrc` was written, leaving the user with no shell configuration at all. `desktop.sh` and `omarchy.sh` no longer pass the flag, and the Desktop and Server editions preserve an existing `~/.config/starship.toml` before clearing it, so the step also succeeds on older starship, which refused to overwrite an existing file.
-- Fixed the Desktop edition adding `ppa:ondrej/php` on Ubuntu releases the PPA does not publish, such as 26.04 (resolute). The unusable source made every later `apt-get update` exit non-zero, marking unrelated steps as failed and leaving the machine with a broken APT source after the run. `desktop.sh` now probes the PPA for the running codename and falls back to the Ubuntu archive when it is absent.
-- Fixed the Server edition destroying a hand-written `~/.config/starship.toml` without a backup, and aborting the whole run on starship releases that refused to overwrite it.
 
 ---
 
