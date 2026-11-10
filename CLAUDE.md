@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-**SetupVibe** is a cross-platform automated development environment setup script (v0.41.12). It installs and configures a complete developer toolkit in one command, supporting Windows 11 22H2+, macOS 12+, Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+) and Omarchy 4 on Arch Linux x86_64.
+**SetupVibe** is a cross-platform automated development environment setup script (v0.41.13). It installs and configures a complete developer toolkit in one command, supporting Windows 11 22H2+, macOS 12+, Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+) and Omarchy 4 on Arch Linux x86_64.
 
 There are four editions:
 

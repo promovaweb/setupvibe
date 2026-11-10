@@ -1,6 +1,6 @@
 # SetupVibe
 
-> The ultimate cross-platform development environment setup script — v0.41.12
+> The ultimate cross-platform development environment setup script — v0.41.13
 
 Installs and configures a development environment in one command, supporting Windows 11, macOS, major Linux distributions and Omarchy 4. The Windows Edition focuses on native utilities, Python, Node.js, selected native AI CLIs, and the WSL 2 base system. The Unix Desktop Edition includes complete language ecosystems and a broader AI toolkit, the Server Edition remains focused on operations tooling, and the Omarchy edition adds only the SetupVibe layer that is not already present in the operating system.
 

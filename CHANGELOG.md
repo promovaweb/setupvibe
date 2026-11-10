@@ -4,7 +4,7 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
-## [v0.41.12] - 2026-11-09
+## [v0.41.13] - 2026-11-09
 
 ### Removed
 

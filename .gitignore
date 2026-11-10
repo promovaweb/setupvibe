@@ -1,0 +1,7 @@
+# Build output and local installs
+dist/
+node_modules/
+
+# Logs and temporary files
+*.log
+.DS_Store
