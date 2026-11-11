@@ -1,6 +1,6 @@
 # SetupVibe Aliases
 
-> Shell environment aliases — v0.41.17
+> Shell environment aliases — v0.41.18
 
 This is the exhaustive list of all aliases configured by SetupVibe on all platforms.
 
@@ -27,6 +27,18 @@ This is the exhaustive list of all aliases configured by SetupVibe on all platfo
   - Command: `claude --permission-mode=auto --dangerously-skip-permissions`
   - Description: Claude CLI without confirmations.
   - Example: `cc`
+
+- **`cx`**
+  - Availability: 🌐 Both
+  - Command: `codex --yolo`
+  - Description: Codex CLI without confirmations.
+  - Example: `cx`
+
+- **`oc`**
+  - Availability: 🌐 Both
+  - Command: `opencode --auto`
+  - Description: OpenCode without confirmations.
+  - Example: `oc`
 
 ## Skills CLI
 

@@ -1,6 +1,6 @@
 # SetupVibe — Édition Bureau
 
-> Configuration de l'environnement de développement multiplateforme — v0.41.17
+> Configuration de l'environnement de développement multiplateforme — v0.41.18
 
 Installe et configure un stack complet de développeur en une seule commande. Supporte macOS et les principales distributions Linux.
 
@@ -205,6 +205,8 @@ Chaque plateforme reçoit un `.zshrc` dédié :
 | `update`   | `brew update && brew upgrade` (macOS) / `sudo apt update && sudo apt upgrade` (Linux)      |
 | `brewup`   | `brew update && brew upgrade && brew cleanup`                                            |
 | `cc`       | `claude --permission-mode=auto --dangerously-skip-permissions`                        |
+| `cx`       | `codex --yolo`                                                                        |
+| `oc`       | `opencode --auto`                                                                     |
 | `skl`      | `skills list`                                                                         |
 | `skf`      | `skills find`                                                                         |
 | `ska`      | `skills add`                                                                          |

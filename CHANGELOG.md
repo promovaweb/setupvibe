@@ -4,6 +4,14 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.18] - 2026-11-11
+
+### Added
+
+- Aliases `cx` (`codex --yolo`) and `oc` (`opencode --auto`) in the Desktop (Linux and macOS) and Server shell profiles, next to `cc`, so the three AI CLIs installed by SetupVibe start without confirmations. Documented in `docs/*/ALIAS.md` and in the alias tables of the Desktop and Server guides, in the four languages.
+
+---
+
 ## [v0.41.17] - 2026-11-10
 
 ### Security

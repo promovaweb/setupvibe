@@ -1,6 +1,6 @@
 # SetupVibe Executables
 
-> Helper executable scripts — v0.41.17
+> Helper executable scripts — v0.41.18
 
 SetupVibe keeps reusable helper scripts in the repository [`bin/`](../../bin) directory. During installation, Desktop and Server editions download these files directly from the repository into `~/.setupvibe/bin` and make them executable.
 

@@ -1,6 +1,6 @@
 # SetupVibe Windows Edition (Beta)
 
-> Native Windows development environment guides — v0.41.17
+> Native Windows development environment guides — v0.41.18
 
 The Windows Edition includes the Vercel Labs Skills CLI alongside its native utilities and selected AI CLIs.
 

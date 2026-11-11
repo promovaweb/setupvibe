@@ -46,6 +46,8 @@ alias setupvibe="curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe
 
 # --- AI CLIs ---
 alias cc="claude --permission-mode=auto --dangerously-skip-permissions"        # Claude CLI sem confirmações
+alias cx="codex --yolo"                                                       # Codex CLI sem confirmações
+alias oc="opencode --auto"                                                    # OpenCode sem confirmações
 
 # --- Skills CLI ---
 alias skl="skills list"                         # Lista todas as skills instaladas
