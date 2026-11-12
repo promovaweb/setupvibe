@@ -37,6 +37,7 @@ import { logTail } from "../tui/model.ts";
 import { findAgent } from "./mcp-install.ts";
 import { rebootRequired, selfArgv } from "./auto.ts";
 import { detectV1Here } from "../legacy/v1.ts";
+import { windowsHealth, windowsHealthFinding, windowsRepairSteps } from "../ops/windows-health.ts";
 import { DRY_RUN_OPTION, executePlan } from "./execute.ts";
 import { installItemsFor } from "./inventory.ts";
 import { removePlan, type ExternalApp, type SelectedItem } from "../ops/inventory-ops.ts";
@@ -84,6 +85,7 @@ export function machineFindings(): Finding[] {
     exposedContainers: c.detected.variant === "local" ? [] : exposedContainers(),
     rebootPending: rebootRequired(),
     v1Traces: detectV1Here(homedir()).traces,
+    ...(process.platform === "win32" ? { windowsHealth: windowsHealthFinding(windowsHealth()) } : {}),
     wslOnWindows: c.detected.system === "windows" && c.selection.some((s) => s.id === "wsl"),
     elsewhere: c.selection
       .map((s) => c.inventory.items.find((i) => i.id === s.id))
@@ -119,10 +121,18 @@ const mark = (l: string) => (l === "ok" ? color.ok("✓") : l === "warn" ? color
 export const doctorCommand: Command = {
   name: "doctor",
   description: "Check the runtime, SetupVibe state, pending prerequisites, items and SetupVibe 1 leftovers; --fix applies the safe fixes.",
-  options: [{ name: "--fix", description: "Apply the safe fixes (folders, shell block) and list the ones that need a decision." }],
+  options: [
+    { name: "--fix", description: "Apply the safe fixes (folders, shell block) and list the ones that need a decision." },
+    { name: "--repair-windows", description: "Windows: repair the component store and system files (DISM /RestoreHealth, then sfc /scannow); needs an elevated PowerShell and takes minutes." },
+    DRY_RUN_OPTION,
+  ],
   exitCodes: [ExitCode.CONFIG, ExitCode.PARTIAL],
   examples: [`${manifest.bin} doctor`, `${manifest.bin} doctor --fix`, `${manifest.bin} doctor --json`],
   run: async (ctx) => {
+    if (ctx.options["repair-windows"]) {
+      if (process.platform !== "win32" && !ctx.options["dry-run"]) return { code: ExitCode.UNSUPPORTED_SYSTEM, data: {}, text: "✗ --repair-windows runs on Windows only." };
+      return executePlan(ctx, "windows-repair", windowsRepairSteps());
+    }
     let runtime = collectDoctorChecks();
     let findings = machineFindings();
     const applied: string[] = [];

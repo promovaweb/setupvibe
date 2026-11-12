@@ -34,6 +34,7 @@ import {
 } from "../init/requirements.ts";
 import { DRY_RUN_OPTION, executePlan } from "./execute.ts";
 import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
+import { windowsHealth, windowsHealthFinding } from "../ops/windows-health.ts";
 
 const icon = (c: RequirementCheck) => (c.status === "ok" ? color.ok("✓") : c.status === "warn" ? color.warn("!") : color.error("✗"));
 
@@ -63,6 +64,7 @@ export const initCommand: Command = {
       checkMemory(totalMemoryGb()),
       checkLocale(process.env),
       ...(ctx.options["skip-network-check"] ? [] : await checkNetworkAndClock()),
+      ...windowsHealthChecks(),
     ];
     const blocked = exitCodeOf(checks);
     if (blocked !== ExitCode.SUCCESS) {
@@ -88,6 +90,16 @@ export const initCommand: Command = {
     return { ...result, text: () => blocks(section("Requirements"), requirementsText(checks), typeof resultText === "function" ? resultText() : resultText) };
   },
 };
+
+/**
+ * Windows component store health as a warning of init (spec section 14.6);
+ * the repair is `doctor --repair-windows`. Empty outside Windows.
+ */
+export function windowsHealthChecks(health = windowsHealth()): RequirementCheck[] {
+  const finding = windowsHealthFinding(health);
+  if (!finding) return [];
+  return [{ name: "Windows health", status: finding.level === "ok" ? "ok" : "warn", detail: finding.text, ...(finding.fix ? { fix: finding.fix } : {}) }];
+}
 
 /** Reads `git config --global <key>`, or undefined. */
 function gitConfig(key: string): string | undefined {

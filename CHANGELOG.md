@@ -4,6 +4,18 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.16] - 2026-11-12
+
+### Added
+
+- Windows health (spec section 14.6): `doctor` and `init` run the quick `DISM /Online /Cleanup-Image /CheckHealth` and report a healthy, repairable or broken component store; `doctor --repair-windows` runs `DISM /RestoreHealth` and then `sfc /scannow` in an elevated PowerShell. SetupVibe 1 ran them around every install; SetupVibe 2 keeps the check quick and the repair explicit.
+
+### Validation
+
+- `bun run validate` with 315 tests; the Windows CI job runs the real check on Windows Server 2025.
+
+---
+
 ## [v2.0.0-dev.15] - 2026-11-12
 
 ### Added

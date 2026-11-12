@@ -102,7 +102,9 @@ item installs the WSL 2 base without a distribution and writes a SetupVibe
 block in `%USERPROFILE%\.wslconfig` (mirrored networking, DNS tunneling,
 proxy, memory reclaim and sparse disks) after a backup. The Hyper-V firewall
 keeps blocking inbound connections to WSL; `doctor` shows the command that
-opens a single port. `self uninstall` removes the block.
+opens a single port. `self uninstall` removes the block. `doctor` and `init` run the quick DISM
+`CheckHealth`; `doctor --repair-windows` runs the slow repair (`DISM
+/RestoreHealth`, then `sfc /scannow`).
 
 ## Desktop reachable from outside
 
