@@ -57,7 +57,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [macos-14, macos-13]
+        runner: [macos-15, macos-15-intel]
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -69,12 +69,12 @@ jobs:
       - run: ./dist/setupvibe system --no-update-check
       - run: ./dist/setupvibe auto --profile essencial --dry-run
       - name: auto (Apple Silicon only)
-        if: matrix.runner == 'macos-14'
+        if: matrix.runner == 'macos-15'
         run: ./dist/setupvibe auto --profile essencial --skip-network-check && ./dist/setupvibe check
 
   windows:
     needs: validate
-    runs-on: windows-2022
+    runs-on: windows-2025
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2

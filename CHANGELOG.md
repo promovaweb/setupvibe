@@ -4,6 +4,19 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.3] - 2026-11-12
+
+### Fixed
+
+- CI runs the Windows job on `windows-2025` (build 26100). The `windows-2022` runner is build 20348, below the supported minimum 22621, so `setupvibe system` rightly refused it.
+- CI runs the macOS jobs on `macos-15` and `macos-15-intel`; the `macos-13` label no longer gets a runner.
+
+### Validation
+
+- GitHub Actions run of `v2.0.0-dev.2`: unit tests and the six container jobs passed (Debian 12 and 13, Ubuntu 24.04 and Arch on desktop; Ubuntu 24.04 and Debian 12 on server through the root flow).
+
+---
+
 ## [v2.0.0-dev.2] - 2026-11-12
 
 Pre-release of SetupVibe 2 on the `v2` branch, rebuilt from the approved specification. It replaces the earlier `v2.0.0-dev.1` attempt, whose branch was removed. The SetupVibe 1 scripts on `main` are not affected.
