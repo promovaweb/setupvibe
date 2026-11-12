@@ -28,7 +28,7 @@ import type { Step } from "../exec/runner.ts";
 import { detectSystem } from "../system/detect.ts";
 import { currentUser } from "../system/user.ts";
 import { ensureStateDirs, readState, writeState } from "../state/store.ts";
-import { shellSteps } from "../shell/config.ts";
+import { shellSteps, agentAliasesEnabled } from "../shell/config.ts";
 import { legacyFindings } from "../ops/maintenance.ts";
 import { addedLines, detectV1Here, maskSecretLine, legacyRemoveStep, LINUXBREW_UNINSTALL, migrateSteps, V1_TMUX, V1_ZSHRC } from "../legacy/v1.ts";
 import { adoptExistingItems } from "./init.ts";
@@ -100,7 +100,7 @@ export const migrateCommand: Command = {
           bin: manifest.bin,
           user: currentUser().username,
           home,
-          agentAliases: (config.shell as { agentAliases?: boolean } | undefined)?.agentAliases ?? true,
+          agentAliases: agentAliasesEnabled(config),
           zsh: v1.zshrc || Boolean(Bun.which("zsh")),
           tmux: v1.tmux || Boolean(Bun.which("tmux")),
           starship: Boolean(Bun.which("starship")),

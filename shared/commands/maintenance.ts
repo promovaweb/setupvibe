@@ -33,7 +33,7 @@ import { checkForUpdate, compareSemver, type Channel } from "../state/update.ts"
 import { cosignVerifyArgv, RELEASES_BASE } from "../repo.ts";
 import { fetchWithRetries } from "../install/methods.ts";
 import { findInChecksumList, verify } from "../state/checksum.ts";
-import { shellRemoveSteps, shellSteps } from "../shell/config.ts";
+import { shellRemoveSteps, shellSteps, agentAliasesEnabled, skippedAliases } from "../shell/config.ts";
 import { logTail } from "../tui/model.ts";
 import { findAgent } from "./mcp-install.ts";
 import { rebootRequired, selfArgv } from "./auto.ts";
@@ -86,6 +86,7 @@ export function machineFindings(): Finding[] {
     exposedContainers: c.detected.variant === "local" ? [] : exposedContainers(),
     rebootPending: rebootRequired(),
     v1Traces: detectV1Here(homedir()).traces,
+    ...(c.detected.system && c.detected.system !== "windows" && c.init?.done ? { skippedAliases: skippedAliases(undefined, agentAliasesEnabled(c.config)) } : {}),
     ...(process.platform === "win32" ? { windowsHealth: windowsHealthFinding(windowsHealth()) } : {}),
     wslOnWindows: c.detected.system === "windows" && c.selection.some((s) => s.id === "wsl"),
     elsewhere: c.selection
@@ -145,7 +146,7 @@ export const doctorCommand: Command = {
       chmodSync(statePath(), 0o700);
       applied.push("~/.setupvibe mode 700");
       if (findings.some((f) => f.id === "shell" && f.level !== "ok") && c.detected.system) {
-        steps.push(...shellSteps({ system: c.detected.system, edition: manifest.edition, bin: manifest.bin, user: currentUser().username, zsh: Boolean(Bun.which("zsh")), tmux: Boolean(Bun.which("tmux")), starship: Boolean(findAgent("starship")) }));
+        steps.push(...shellSteps({ system: c.detected.system, edition: manifest.edition, bin: manifest.bin, user: currentUser().username, zsh: Boolean(Bun.which("zsh")), tmux: Boolean(Bun.which("tmux")), starship: Boolean(findAgent("starship")), agentAliases: agentAliasesEnabled(c.config) }));
       }
       const results = await runSteps(steps, realRunner());
       applied.push(...results.filter((r) => r.status !== "fail").map((r) => r.id));

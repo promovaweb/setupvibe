@@ -25,6 +25,7 @@ import { homedir } from "../system/home.ts";
 import { dirname, join, basename } from "node:path";
 import type { System } from "../inventory.ts";
 import type { Step } from "../exec/runner.ts";
+import { getPath, readSettings } from "../core/config/settings.ts";
 import aliases from "./files/aliases.sh" with { type: "text" };
 import agentAliases from "./files/aliases-agents.sh" with { type: "text" };
 import tmuxDesktop from "./files/tmux-desktop.conf" with { type: "text" };
@@ -103,6 +104,50 @@ export function tmuxSettings(edition: "desktop" | "server"): string {
   return edition === "server" ? tmuxServer : tmuxDesktop;
 }
 
+/**
+ * Whether the agent aliases are on: `shell.agentAliases` in settings.json
+ * (what `config set` writes), and the older `shell.agentAliases` in
+ * config.json, which also turns them off when false.
+ */
+export function agentAliasesEnabled(config: Record<string, unknown> = {}, settingValue: () => unknown = agentAliasesSetting): boolean {
+  const legacy = (config.shell as { agentAliases?: boolean } | undefined)?.agentAliases;
+  return settingValue() !== false && legacy !== false;
+}
+
+function agentAliasesSetting(): unknown {
+  try {
+    return getPath(readSettings(), "shell.agentAliases");
+  } catch {
+    return undefined;
+  }
+}
+
+/** Names defined by the alias files, in order. */
+export function aliasNames(agents = true): string[] {
+  const text = agents ? `${aliases}\n${agentAliases}` : aliases;
+  return [...text.matchAll(/^_sv_alias (\S+) /gm)].map((m) => m[1]!);
+}
+
+/** Aliases that wrap their own command on purpose (see _sv_alias_wraps in aliases.sh). */
+export const ALIAS_WRAPS = ["df"];
+
+/** Aliases whose installed command does the same thing (pnpm ships pn and pnx): skipped quietly. */
+export const ALIAS_SAME_AS_COMMAND = ["pn", "pnx"];
+
+/**
+ * Aliases the shell skips on this machine because an installed command has
+ * the same name, for doctor. Functions and your own aliases are skipped too,
+ * but only the shell can see those.
+ */
+export function skippedAliases(which: (name: string) => string | null = (n) => Bun.which(n), agents = true): Array<{ name: string; path: string }> {
+  return aliasNames(agents)
+    .filter((n) => !ALIAS_WRAPS.includes(n) && !ALIAS_SAME_AS_COMMAND.includes(n))
+    .flatMap((name) => {
+      const path = which(name);
+      return path ? [{ name, path }] : [];
+    });
+}
+
 /** Files SetupVibe owns and replaces on every apply. */
 export function managedFiles(home: string, edition: "desktop" | "server", agentAliasesOn: boolean): Record<string, string> {
   const files: Record<string, string> = {
@@ -151,7 +196,7 @@ export interface ShellOptions {
   edition: "desktop" | "server";
   user: string;
   home?: string;
-  /** Load the agent aliases (cc, cx, oc). */
+  /** Load the agent aliases (cco, cxo, oco, plus the old cx and oc). */
   agentAliases?: boolean;
   /** Binary name, for the completion line. */
   bin?: string;

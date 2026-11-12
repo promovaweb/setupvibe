@@ -122,7 +122,7 @@ try {
       ["install --external hyperfine", [bin, "install", "--external", "hyperfine"]],
       ["remove --external hyperfine", [bin, "remove", "--external", "hyperfine", "--yes"]],
       ["remove go", [bin, "remove", "go", "--yes"]],
-      ["zsh loads the SetupVibe block", ["zsh", "-ic", "alias gs >/dev/null && command -v starship >/dev/null && command -v node >/dev/null"]],
+      ["zsh loads the SetupVibe block", ["zsh", "-ic", "alias gstat >/dev/null && alias cco >/dev/null && command -v starship >/dev/null && command -v node >/dev/null"]],
       ["tmux loads the SetupVibe settings", ["sh", "-c", "tmux new-session -d -s sv && tmux show -gv base-index | grep -qx 1; r=$?; tmux kill-server; exit $r"]],
       ["login shell is zsh", ["sh", "-c", "getent passwd \"$(id -un)\" | cut -d: -f7 | grep -q zsh"]],
       ["mcp install", [bin, "mcp", "install"]],

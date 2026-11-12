@@ -14,9 +14,20 @@
 - Personal settings go in `~/.zshrc.local`, `~/.bashrc.local` and
   `~/.tmux.conf.local`, created empty and never overwritten.
 - The aliases live in `~/.setupvibe/shell/aliases.sh` (valid in ZSH and
-  Bash). The aliases that start agents with every permission (`cc`, `cx`,
-  `oc`) live in `aliases-agents.sh`; set `shell.agentAliases` to `false`
-  in config.json to leave them out.
+  Bash). Each one goes through `_sv_alias`, which defines it only when no
+  alias, shell function or installed command answers to that name, so your
+  setup always wins and no alias hides a real program; `df` is the one alias
+  that wraps its own command on purpose. `setupvibe doctor` lists the aliases
+  skipped on the machine. Names that hid common programs were renamed:
+  `gs` → `gstat` (Ghostscript), `ci` → `cin` (RCS), `ts` → `tsv`
+  (moreutils), `dc` → `dco` (the dc calculator), `gofmt` → `gofmtw` (it changed
+  what the real `gofmt` does). `pn` and `pnx` are skipped quietly when pnpm
+  ships commands with those names, since they do the same.
+- The aliases that start agents with every permission live in
+  `aliases-agents.sh`: `cco` (Claude Code; `cc` is the C compiler), `cxo`
+  (`codex --yolo`) and `oco` (`opencode --auto`), plus the old `cx` and `oc`.
+  `setupvibe config set shell.agentAliases false` followed by
+  `setupvibe shell apply` leaves them out.
 
 ## Per system
 

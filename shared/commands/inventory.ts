@@ -29,6 +29,7 @@ import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
 import { totalMemoryGb } from "../init/requirements.ts";
 import { otherManagerPath } from "../ops/other-manager.ts";
 import { detectV1Here } from "../legacy/v1.ts";
+import { agentAliasesEnabled } from "../shell/config.ts";
 import {
   dependentsOf,
   dropFromSelection,
@@ -167,7 +168,7 @@ async function installItems(ctx: Context, m: Machine, ids: string[], force: bool
     selection,
     createdNopasswd: false,
     shell: selection.items.some((i) => ["zsh", "tmux", "tpm", "starship", "oh-my-zsh"].includes(i.id)),
-    agentAliases: (m.config.shell as { agentAliases?: boolean } | undefined)?.agentAliases ?? true,
+    agentAliases: agentAliasesEnabled(m.config),
     legacy: detectV1Here(user.homedir),
   });
   const steps = selection.items.length ? plan.steps.filter((s) => s.id !== "git-identity") : [];

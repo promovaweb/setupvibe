@@ -98,7 +98,7 @@
       "type": "object",
       "properties": {
         "agentAliases": {
-          "description": "Write the cc, cx and oc aliases.",
+          "description": "Legacy place of the agent aliases switch; settings.json shell.agentAliases is read first.",
           "type": "boolean"
         }
       },

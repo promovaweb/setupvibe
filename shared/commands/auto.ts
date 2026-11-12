@@ -38,6 +38,7 @@ import { hasAuthorizedKey } from "./security.ts";
 import { readSshKey } from "./user.ts";
 import { planText } from "./execute.ts";
 import { detectV1Here } from "../legacy/v1.ts";
+import { agentAliasesEnabled } from "../shell/config.ts";
 import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
 
 /**
@@ -248,7 +249,7 @@ async function run(ctx: Context) {
       answers,
       selection,
       createdNopasswd: process.env.SETUPVIBE_AUTO_CREATED_NOPASSWD === "1",
-      agentAliases: (config.shell as { agentAliases?: boolean } | undefined)?.agentAliases ?? true,
+      agentAliases: agentAliasesEnabled(config),
       legacy: detectV1Here(user.homedir),
     });
   } catch (e) {

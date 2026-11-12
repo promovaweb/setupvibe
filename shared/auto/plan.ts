@@ -42,7 +42,7 @@ export interface AutoContext {
   home?: string;
   /** Configure the shell environment (spec section 7). Default true. */
   shell?: boolean;
-  /** Load the agent aliases (cc, cx, oc). Default true. */
+  /** Load the agent aliases (cco, cxo, oco, cx, oc). Default true. */
   agentAliases?: boolean;
   /** SetupVibe 1 files on the machine: converted before the shell blocks are written. */
   legacy?: V1Detection;

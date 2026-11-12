@@ -22,6 +22,7 @@ Keys em notação de ponto. O schema do esqueleto:
 | `tui.initialTab` | `overview`, `inventory`, `user`, `doctor`, `logs` ou `about` | `overview` (Início) | aba aberta ao iniciar a TUI |
 | `tui.language` | `pt-BR` ou `en` | `pt-BR` | idioma da TUI; a tecla `L` e o seletor `PT · EN` gravam aqui |
 | `tui.mouse` | `true` ou `false` | `true` | mouse na TUI (cliques e roda) |
+| `shell.agentAliases` | `true` ou `false` | `true` | cria `cco`, `cxo`, `oco`, `cx` e `oc`, que abrem os agentes sem confirmação; rode `{{bin}} shell apply` depois de mudar |
 | `tui.theme` | `night` ou `day` | `night` | paleta da TUI |
 | `telemetry.enabled` | boolean | `false` | reservado para projetos derivados |
 

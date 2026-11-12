@@ -22,6 +22,7 @@ Keys in dot notation. The skeleton schema:
 | `tui.initialTab` | `overview`, `inventory`, `user`, `doctor`, `logs` or `about` | `overview` (Home) | tab opened when the TUI starts |
 | `tui.language` | `pt-BR` or `en` | `pt-BR` | TUI language; the `L` key and the `PT · EN` switch write it |
 | `tui.mouse` | `true` or `false` | `true` | mouse in the TUI (clicks and wheel) |
+| `shell.agentAliases` | `true` or `false` | `true` | writes `cco`, `cxo`, `oco`, `cx` and `oc`, which start the agents without prompts; run `{{bin}} shell apply` after changing it |
 | `tui.theme` | `night` or `day` | `night` | TUI palette |
 | `telemetry.enabled` | boolean | `false` | reserved for derived projects |
 

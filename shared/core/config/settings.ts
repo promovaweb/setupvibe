@@ -60,6 +60,12 @@ export const SETTINGS_SCHEMA: readonly SettingDefinition[] = Object.freeze([
     description: "Mouse in the TUI: click tabs, items, buttons and keys, scroll lists. Shift+drag still selects text.",
   },
   {
+    key: "shell.agentAliases",
+    type: "boolean",
+    default: true,
+    description: "Write the agent aliases (cco, cxo, oco, cx, oc) that skip the permission prompts. Run shell apply after changing it.",
+  },
+  {
     key: "tui.theme",
     type: "enum",
     default: "night",

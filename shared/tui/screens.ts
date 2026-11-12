@@ -21,6 +21,7 @@ import { BoxRenderable, ScrollBoxRenderable, TextAttributes, TextRenderable, fg,
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "../system/home.ts";
 import { detectV1Here } from "../legacy/v1.ts";
+import { agentAliasesEnabled } from "../shell/config.ts";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";
 import { panel } from "../core/tui/components.ts";
@@ -541,8 +542,8 @@ const CHECKLIST_PT: Record<string, string> = {
   "not in PATH": "fora do PATH",
   none: "nenhum",
   "run setupvibe init": "rode setupvibe init",
-  "cc, cx and oc are not defined": "cc, cx e oc não são criados",
-  "cc, cx and oc bypass prompts; turn off: config set shell.agentAliases false": "cc, cx e oc pulam as confirmações; para desligar: config set shell.agentAliases false",
+  "cco, cxo and oco are not defined": "cco, cxo e oco não são criados",
+  "cco, cxo and oco bypass prompts; turn off: config set shell.agentAliases false": "cco, cxo e oco pulam as confirmações; para desligar: config set shell.agentAliases false",
 };
 
 const checklistText = (text: string) => (tuiLanguage() === "pt-BR" ? (CHECKLIST_PT[text] ?? text) : text);
@@ -581,7 +582,7 @@ export const userScreen: Screen = (() => {
         createText.content = t`${dim(tr("user.create"))}\n${fg(theme.accent)(`${manifest.bin} user create <${tuiLanguage() === "pt-BR" ? "nome" : "name"}>`)}`;
 
         clear(checksBody);
-        const agentAliases = (config.shell as { agentAliases?: boolean } | undefined)?.agentAliases ?? true;
+        const agentAliases = agentAliasesEnabled(config);
         const entries = userChecklist({ groups: currentGroups(), sudoNoPassword: sudoWithoutPassword(), initDone: Boolean(init?.done), agentAliases });
         const pendingCount = entries.filter((e) => !e.ok).length;
         checks.title = ` Checklist · ${pendingCount ? tr("user.pending", { n: pendingCount }) : `✓ ${tr("user.allGood")}`} `;

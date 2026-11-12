@@ -4,6 +4,25 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.19] - 2026-11-12
+
+### Changed
+
+- Aliases never hide your setup or a real program: each one goes through `_sv_alias`, which skips the alias when an alias, a shell function or an installed command already answers to that name (`df` wraps its own command on purpose). Before, only existing aliases were checked, so `cc` hid the C compiler and `gs` hid Ghostscript.
+- Renamed aliases: `cc` → `cco` (Claude Code without prompts), `gs` → `gstat`, `ci` → `cin`, `ts` → `tsv`, `dc` → `dco`, `gofmt` → `gofmtw` (it replaced what the real `gofmt` does).
+- New agent aliases `cxo` (`codex --yolo`) and `oco` (`opencode --auto`); `cx` and `oc` stay.
+- `doctor` lists the aliases skipped because an installed command has the same name; `pn` and `pnx` are skipped quietly when pnpm ships them.
+
+### Fixed
+
+- `setupvibe config set shell.agentAliases false` works: the key exists in settings.json and every command reads it (the older `config.json` value still turns the aliases off). Before, the documented command wrote a key nothing read.
+
+### Validation
+
+- `bun run validate` with 355 tests, the aliases checked in real bash and zsh (your alias kept, a same-named command wins, `df` wraps, the helper removed).
+
+---
+
 ## [v2.0.0-dev.18] - 2026-11-12
 
 ### Added

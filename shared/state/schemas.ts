@@ -22,7 +22,7 @@ export const configSchema = z
       .object({ done: z.boolean(), at: z.string(), version: z.string(), system, prerequisites: z.array(z.string()) })
       .optional(),
     git: z.object({ name: z.string().optional(), email: z.string().optional() }).optional(),
-    shell: z.object({ agentAliases: z.boolean().optional().describe("Write the cc, cx and oc aliases.") }).loose().optional(),
+    shell: z.object({ agentAliases: z.boolean().optional().describe("Legacy place of the agent aliases switch; settings.json shell.agentAliases is read first.") }).loose().optional(),
     network: z
       .object({ caFile: z.string().optional().describe("Extra CA bundle."), cacheDir: z.string().optional().describe("Shared download cache.") })
       .optional(),

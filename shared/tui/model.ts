@@ -127,8 +127,8 @@ export function userChecklist(probes: { groups: string[]; sudoNoPassword: boolea
     { group: "setupvibe", label: "init completed", ok: probes.initDone, detail: probes.initDone ? "yes" : "run setupvibe init" },
     // The agent aliases start Claude Code, Codex and OpenCode without permission prompts (spec section 12).
     probes.agentAliases === false
-      ? { group: "setupvibe", label: "agent aliases off", ok: true, detail: "cc, cx and oc are not defined" }
-      : { group: "setupvibe", label: "agent aliases skip permissions", ok: false, detail: "cc, cx and oc bypass prompts; turn off: config set shell.agentAliases false" },
+      ? { group: "setupvibe", label: "agent aliases off", ok: true, detail: "cco, cxo and oco are not defined" }
+      : { group: "setupvibe", label: "agent aliases skip permissions", ok: false, detail: "cco, cxo and oco bypass prompts; turn off: config set shell.agentAliases false" },
   ];
 }
 

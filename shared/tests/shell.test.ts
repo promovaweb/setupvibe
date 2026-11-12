@@ -128,3 +128,50 @@ describe("steps", () => {
     expect(runner.calls.length).toBeGreaterThan(0);
   });
 });
+
+describe("aliases never hide your setup or a real program (task 17)", () => {
+  const { aliasNames, skippedAliases, agentAliasesEnabled } = require("../shell/config") as typeof import("../shell/config");
+  const { mkdtempSync: mk, mkdirSync: md, writeFileSync: wf, chmodSync: cm, rmSync: rm } = require("node:fs") as typeof import("node:fs");
+  const { tmpdir: td } = require("node:os") as typeof import("node:os");
+
+  test("the renamed aliases replace the names that hid programs", () => {
+    const names = aliasNames();
+    for (const n of ["cco", "cxo", "oco", "gstat", "cin", "tsv", "dco", "gofmtw"]) expect(names).toContain(n);
+    for (const n of ["cc", "gs", "ci", "ts", "dc", "gofmt"]) expect(names).not.toContain(n);
+    expect(aliasNames(false)).not.toContain("cco");
+  });
+
+  test("doctor lists aliases whose name is an installed command, except df, pn and pnx", () => {
+    const which = (n: string) => (["gstat", "df", "pn", "oc"].includes(n) ? `/usr/bin/${n}` : null);
+    expect(skippedAliases(which)).toEqual([{ name: "gstat", path: "/usr/bin/gstat" }, { name: "oc", path: "/usr/bin/oc" }]);
+    expect(skippedAliases(which, false)).toEqual([{ name: "gstat", path: "/usr/bin/gstat" }]);
+  });
+
+  test("shell.agentAliases in settings turns the agent aliases off; config.json false still counts", () => {
+    expect(agentAliasesEnabled({}, () => true)).toBe(true);
+    expect(agentAliasesEnabled({}, () => false)).toBe(false);
+    expect(agentAliasesEnabled({ shell: { agentAliases: false } }, () => true)).toBe(false);
+  });
+
+  for (const shell of ["bash", "zsh"]) {
+    test.skipIf(!Bun.which(shell))(`${shell}: your alias stays, a command with the same name wins, df wraps`, () => {
+      const dir = mk(join(td(), "sv-alias-"));
+      try {
+        md(join(dir, "bin"));
+        wf(join(dir, "bin", "gstat"), "#!/bin/sh\n");
+        cm(join(dir, "bin", "gstat"), 0o755);
+        const files = join(import.meta.dir, "../shell/files");
+        const script = `alias ll="echo mine"; . "${files}/aliases.sh"; . "${files}/aliases-agents.sh"; for n in ll gstat df cco cxo oco; do alias $n 2>/dev/null || echo "$n=skipped"; done; type _sv_alias >/dev/null 2>&1 && echo leaked || echo clean`;
+        const out = Bun.spawnSync([shell, "-c", script], { env: { HOME: dir, PATH: `${join(dir, "bin")}:/usr/bin:/bin` } }).stdout.toString();
+        expect(out).toContain("ll='echo mine'");
+        expect(out).toContain("gstat=skipped");
+        expect(out).toContain("df='df -h'");
+        expect(out).toContain("cxo='codex --yolo'");
+        expect(out).toContain("oco='opencode --auto'");
+        expect(out).toContain("clean");
+      } finally {
+        rm(dir, { recursive: true, force: true });
+      }
+    });
+  }
+});
