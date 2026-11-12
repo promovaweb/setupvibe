@@ -35,17 +35,17 @@ const list = (v: string | string[] | undefined): string[] => (v === undefined ? 
 /** Native package install command for a system. */
 export function nativeInstallCmd(system: System, packages: string[]): Cmd[] {
   if (DEBIAN_FAMILY.includes(system)) {
-    return [{ argv: ["apt-get", "install", "-y", "-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold", ...packages], sudo: true }];
+    return [{ argv: ["apt-get", "install", "-y", "-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold", ...packages], sudo: true, retries: 3 }];
   }
   if (system === "omarchy") return [{ argv: ["omarchy", "pkg", "add", ...packages] }];
-  if (system === "arch") return [{ argv: ["pacman", "-S", "--noconfirm", "--needed", ...packages], sudo: true }];
-  if (system === "macos") return [{ argv: ["brew", "install", ...packages], env: { HOMEBREW_NO_AUTO_UPDATE: "1" } }];
+  if (system === "arch") return [{ argv: ["pacman", "-S", "--noconfirm", "--needed", ...packages], sudo: true, retries: 3 }];
+  if (system === "macos") return [{ argv: ["brew", "install", ...packages], env: { HOMEBREW_NO_AUTO_UPDATE: "1" }, retries: 3 }];
   throw new Error(`No native package manager for ${system}.`);
 }
 
 /** Refreshes the package index once before native installs. */
 export function nativeRefreshCmd(system: System): Cmd | undefined {
-  if (DEBIAN_FAMILY.includes(system)) return { argv: ["apt-get", "update"], sudo: true };
+  if (DEBIAN_FAMILY.includes(system)) return { argv: ["apt-get", "update"], sudo: true, retries: 3 };
   if (system === "arch") return { argv: ["pacman", "-Sy", "--noconfirm"], sudo: true };
   return undefined;
 }
@@ -106,6 +106,24 @@ export function aptRepositorySteps(name: string, repo: Repository, info: DistroI
   };
 }
 
+/** fetch with three extra attempts and a growing wait, for network failures and 5xx. */
+export async function fetchWithRetries(url: string, timeoutMs: number, attempts = 4): Promise<Response> {
+  let last: unknown;
+  for (let i = 0; i < attempts; i++) {
+    if (i > 0) await Bun.sleep(1000 * 2 ** i);
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+      if (response.ok) return response;
+      if (response.status < 500) throw new Error(`Download failed for ${url}: HTTP ${response.status}`);
+      last = new Error(`Download failed for ${url}: HTTP ${response.status}`);
+    } catch (e) {
+      if (e instanceof Error && e.message.startsWith("Download failed") && !e.message.includes("HTTP 5")) throw e;
+      last = e;
+    }
+  }
+  throw last instanceof Error ? last : new Error(`Download failed for ${url}`);
+}
+
 /** mise release asset name for the running platform. */
 export function miseAsset(version: string, system: System, arch: string): string {
   const os = system === "macos" ? "macos" : "linux";
@@ -122,8 +140,7 @@ async function downloadVerified(
   check: { sha256?: string; listUrl?: string; listName?: string; digestUrl?: string; algorithm?: "sha256" | "sha384" | "sha512" },
   mode = 0o644,
 ): Promise<Uint8Array> {
-  const response = await fetch(url, { signal: AbortSignal.timeout(120_000) });
-  if (!response.ok) throw new Error(`Download failed for ${url}: HTTP ${response.status}`);
+  const response = await fetchWithRetries(url, 120_000);
   const data = new Uint8Array(await response.arrayBuffer());
   let expected = check.sha256;
   if (!expected && check.listUrl) {
@@ -226,7 +243,7 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
     case "brew": {
       const formulas = list(entry.formula);
       const argv = entry.cask ? ["brew", "install", "--cask", entry.cask] : ["brew", "install", ...formulas];
-      return [{ id, description: `Install ${entry.cask ?? formulas.join(", ")} with Homebrew`, commands: [{ argv, env: { HOMEBREW_NO_AUTO_UPDATE: "1", NONINTERACTIVE: "1" } }] }];
+      return [{ id, description: `Install ${entry.cask ?? formulas.join(", ")} with Homebrew`, commands: [{ argv, env: { HOMEBREW_NO_AUTO_UPDATE: "1", NONINTERACTIVE: "1" }, retries: 3 }] }];
     }
     case "winget":
       return list(entry.id).map((pkg, i) => ({
@@ -238,7 +255,7 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
     case "mise": {
       const tool = withVersion(entry.tool ?? id, item);
       const spec = tool.includes("@v") || /@[\w.]+$/.test(tool.split(":").pop() ?? "") ? tool : `${tool}@${v}`;
-      return [{ id, description: `Install ${spec} with mise`, commands: [{ argv: [miseCmd(home), "use", "--global", "--yes", spec] }] }];
+      return [{ id, description: `Install ${spec} with mise`, commands: [{ argv: [miseCmd(home), "use", "--global", "--yes", spec], retries: 3 }] }];
     }
     case "git": {
       const path = expandHome(entry.path ?? "", home);
@@ -247,8 +264,8 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
           id,
           description: `Check out ${entry.repo} at ${v.slice(0, 12)} into ${entry.path}`,
           commands: [
-            { argv: ["sh", "-c", `test -d "${path}/.git" || git clone --quiet "${entry.repo}" "${path}"`] },
-            { argv: ["git", "-C", path, "fetch", "--quiet", "origin", v] },
+            { argv: ["sh", "-c", `test -d "${path}/.git" || git clone --quiet "${entry.repo}" "${path}"`], retries: 3 },
+            { argv: ["git", "-C", path, "fetch", "--quiet", "origin", v], retries: 3 },
             { argv: ["git", "-C", path, "checkout", "--quiet", "--detach", v] },
           ],
         },
@@ -259,8 +276,8 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
           id: `${id}:${repo}`,
           description: `Check out tmux plugin ${repo} at ${commit.slice(0, 12)}`,
           commands: [
-            { argv: ["sh", "-c", `test -d "${pluginPath}/.git" || git clone --quiet "https://github.com/${repo}" "${pluginPath}"`] },
-            { argv: ["git", "-C", pluginPath, "fetch", "--quiet", "origin", commit] },
+            { argv: ["sh", "-c", `test -d "${pluginPath}/.git" || git clone --quiet "https://github.com/${repo}" "${pluginPath}"`], retries: 3 },
+            { argv: ["git", "-C", pluginPath, "fetch", "--quiet", "origin", commit], retries: 3 },
             { argv: ["git", "-C", pluginPath, "checkout", "--quiet", "--detach", commit] },
           ],
         });

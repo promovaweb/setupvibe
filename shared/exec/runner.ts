@@ -21,6 +21,8 @@ export interface Cmd {
   input?: string;
   /** A failure of this command does not fail the step. */
   optional?: boolean;
+  /** Extra attempts after a failure, with a growing wait; for network commands. */
+  retries?: number;
 }
 
 /** A unit of work with a description and its commands. */
@@ -118,6 +120,21 @@ export function dryRunner(answers: Record<string, Partial<CmdResult>> = {}): Run
   };
 }
 
+/** Wait before retry number `attempt` (1-based), in milliseconds: 2 s, 4 s, 8 s. */
+export function retryDelayMs(attempt: number): number {
+  return 1000 * 2 ** attempt;
+}
+
+/** Runs a command, retrying network commands with a growing wait. */
+export async function execWithRetries(cmd: Cmd, runner: Runner, sleep: (ms: number) => Promise<void> = (ms) => Bun.sleep(ms)): Promise<CmdResult> {
+  let result = await runner.exec(cmd);
+  for (let attempt = 1; result.code !== 0 && attempt <= (cmd.retries ?? 0) && !runner.dryRun; attempt++) {
+    await sleep(retryDelayMs(attempt));
+    result = await runner.exec(cmd);
+  }
+  return result;
+}
+
 /**
  * Runs steps in order. A failed step does not stop the next ones; the caller
  * decides the exit code from the results.
@@ -132,7 +149,7 @@ export async function runSteps(steps: Step[], runner: Runner, onStep?: (r: StepR
     } else {
       let failure: string | undefined;
       for (const cmd of step.commands) {
-        const r = await runner.exec(cmd);
+        const r = await execWithRetries(cmd, runner);
         if (r.code !== 0 && !cmd.optional) {
           failure = `${describeCmd(cmd)} exited with ${r.code}: ${(r.stderr || r.stdout).trim().split("\n").slice(-3).join(" ")}`;
           break;

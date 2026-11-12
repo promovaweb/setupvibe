@@ -261,3 +261,35 @@ describe("commands", () => {
     expect(JSON.parse(r.stdout).data.steps.map((s: { id: string }) => s.id)).toContain("ufw");
   });
 });
+
+describe("network retries", () => {
+  test("retries a failing command with a growing wait, then succeeds", async () => {
+    const { execWithRetries, retryDelayMs } = await import("../exec/runner");
+    let calls = 0;
+    const runner = { dryRun: false, exec: async () => ({ code: ++calls < 3 ? 128 : 0, stdout: "", stderr: "Could not resolve host" }) };
+    const waits: number[] = [];
+    const r = await execWithRetries({ argv: ["git", "clone"], retries: 3 }, runner, async (ms) => void waits.push(ms));
+    expect(r.code).toBe(0);
+    expect(calls).toBe(3);
+    expect(waits).toEqual([retryDelayMs(1), retryDelayMs(2)]);
+    expect(waits).toEqual([2000, 4000]);
+  });
+
+  test("commands without retries run once; dry runs never retry", async () => {
+    const { execWithRetries } = await import("../exec/runner");
+    let calls = 0;
+    const failing = { dryRun: false, exec: async () => ({ code: ++calls && 1, stdout: "", stderr: "" }) };
+    await execWithRetries({ argv: ["x"] }, failing, async () => {});
+    expect(calls).toBe(1);
+    calls = 0;
+    await execWithRetries({ argv: ["x"], retries: 3 }, { ...failing, dryRun: true }, async () => {});
+    expect(calls).toBe(1);
+  });
+
+  test("network install commands carry retries", () => {
+    const ctx = { arch: "x64", inventory: desktop, home: HOME };
+    expect(itemSteps(item(desktop, "node"), "ubuntu", ctx)[0]!.commands[0]!.retries).toBe(3);
+    expect(itemSteps(item(desktop, "tpm"), "macos", ctx)[1]!.commands[0]!.retries).toBe(3);
+    expect(nativeInstallCmd("debian", ["zsh"])[0]!.retries).toBe(3);
+  });
+});

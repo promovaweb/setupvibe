@@ -4,6 +4,18 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.5] - 2026-11-12
+
+### Fixed
+
+- Network commands retry with a growing wait (2, 4 and 8 seconds): Git clones and fetches, `mise use`, APT, pacman and Homebrew installs, and verified downloads. The first real `auto` on macOS (CI of `v2.0.0-dev.4`) lost TPM and three tmux plugins to a momentary DNS failure; every other item, PHP and Composer through Homebrew included, installed and passed its check.
+
+### Validation
+
+- `bun run validate` with 217 tests.
+
+---
+
 ## [v2.0.0-dev.4] - 2026-11-12
 
 ### Added

@@ -12,7 +12,9 @@ strings), an optional `skipIf` command and an optional code action, such as a
 verified download. Privileged commands run through `sudo -n` with
 `DEBIAN_FRONTEND=noninteractive`, `NEEDRESTART_MODE=a`, `NONINTERACTIVE=1` and
 `CI=1`. A failed step does not stop the next ones; the command exits with
-`PARTIAL` (10) and the run log lists each result.
+`PARTIAL` (10) and the run log lists each result. Network commands (Git
+clones and fetches, `mise use`, APT, pacman and Homebrew installs) and
+downloads are retried three times, waiting 2, 4 and 8 seconds.
 
 ## Install methods (`shared/install/methods.ts`)
 
