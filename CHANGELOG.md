@@ -4,6 +4,14 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.21] - 2026-11-12
+
+### Added
+
+- Daily workflow `v2-health.yml` that checks the SetupVibe 2 inventory on the `v2` branch: APT key fingerprints, pinned archive checksums and installer URLs, plus a report of newer versions. GitHub runs scheduled workflows only from the default branch, so the file lives on `main`; it does not change the SetupVibe 1 installers.
+
+---
+
 ## [v0.41.20] - 2026-11-12
 
 ### Added
