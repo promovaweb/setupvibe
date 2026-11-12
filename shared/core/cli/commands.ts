@@ -18,12 +18,14 @@ import { systemCommand } from "../../commands/system.ts";
 import { initCommand } from "../../commands/init.ts";
 import { userCommand } from "../../commands/user.ts";
 import { securityCommand } from "../../commands/security.ts";
+import { autoCommand } from "../../commands/auto.ts";
+import { checkCommand } from "../../commands/check.ts";
 import type { Command } from "./registry.ts";
 
 export const root: Command = {
   name: manifest.bin,
   description: manifest.description,
-  subcommands: [tuiCommand, systemCommand, initCommand, userCommand, securityCommand, aboutCommand, configCommand, credentialsCommand, mcpCommand, createSkillCommand(() => root), doctorCommand, createCompletionCommand(() => root)],
+  subcommands: [tuiCommand, systemCommand, initCommand, autoCommand, checkCommand, userCommand, securityCommand, aboutCommand, configCommand, credentialsCommand, mcpCommand, createSkillCommand(() => root), doctorCommand, createCompletionCommand(() => root)],
   examples: [
     `${manifest.bin}`,
     `${manifest.bin} system`,

@@ -17,6 +17,23 @@ O `setupvibe` e o `setupvibe-server` usam a mesma pasta `~/.setupvibe/` e o
 prefixo `SETUPVIBE_` nas variáveis, porque só um deles fica instalado por
 máquina.
 
+## Instalação automática
+
+`{{bin}} auto` instala tudo sem perguntar nada, para máquinas sem interface,
+provisionamento e agentes. As respostas vêm de opções, de variáveis
+`SETUPVIBE_*` ou de um arquivo `--config`. Como root, `--user` cria o usuário
+de trabalho e o `auto` continua como ele. Sem `--profile`, entra todo o
+inventário compatível com o sistema; itens gráficos ficam de fora em máquina
+sem interface.
+
+```bash
+{{bin}} auto --dry-run          # mostra o plano sem alterar nada
+{{bin}} auto --user deploy --ssh-key "ssh-ed25519 AAAA..." --manager
+```
+
+O resultado completo fica em `~/.setupvibe/last-run.json`. Os códigos de
+saída estão na seção de exit codes.
+
 ## Mapa
 
 - [cli.md](cli.md): commands, opções globais, convenções de saída e a referência gerada do registry.

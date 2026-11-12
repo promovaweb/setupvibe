@@ -18,7 +18,8 @@
     "build:all": "bun run scripts/build.ts --all",
     "test": "bun test",
     "typecheck": "bunx tsc --noEmit",
-    "validate": "bun run typecheck && bun test && bun run build"
+    "validate": "bun run typecheck && bun test && bun run build",
+    "release:assets": "bun run scripts/build.ts --all && bun run scripts/checksums.ts"
   },
   "engines": {
     "bun": ">=1.4.4"

@@ -20,6 +20,11 @@ import { findInChecksumList, verify } from "../state/checksum.ts";
 const DEBIAN_FAMILY: System[] = ["ubuntu", "debian", "mint", "zorin", "wsl"];
 const ARCH_FAMILY: System[] = ["arch", "omarchy"];
 
+/** Expands `~/` inside an argument such as `--install-dir=~/.local/bin`. */
+export function expandArg(arg: string, home = homedir()): string {
+  return arg.replace(/(^|=)~\//, (_m, p: string) => `${p}${home}/`);
+}
+
 /** Expands `~/` to the home directory. */
 export function expandHome(path: string, home = homedir()): string {
   return path.startsWith("~/") ? join(home, path.slice(2)) : path;
@@ -111,7 +116,12 @@ export function miseAsset(version: string, system: System, arch: string): string
  * Downloads a file, verifies it and writes it with the given mode.
  * Used by archive, installer and mise steps.
  */
-async function downloadVerified(url: string, target: string, check: { sha256?: string; listUrl?: string; listName?: string }, mode = 0o644): Promise<Uint8Array> {
+async function downloadVerified(
+  url: string,
+  target: string,
+  check: { sha256?: string; listUrl?: string; listName?: string; digestUrl?: string; algorithm?: "sha256" | "sha384" | "sha512" },
+  mode = 0o644,
+): Promise<Uint8Array> {
   const response = await fetch(url, { signal: AbortSignal.timeout(120_000) });
   if (!response.ok) throw new Error(`Download failed for ${url}: HTTP ${response.status}`);
   const data = new Uint8Array(await response.arrayBuffer());
@@ -122,7 +132,12 @@ async function downloadVerified(url: string, target: string, check: { sha256?: s
     expected = findInChecksumList(await listResponse.text(), check.listName ?? "");
     if (!expected) throw new Error(`${check.listName} is not in ${check.listUrl}.`);
   }
-  if (expected) verify(data, expected, "sha256", url);
+  if (check.digestUrl) {
+    const digestResponse = await fetch(check.digestUrl, { signal: AbortSignal.timeout(30_000) });
+    if (!digestResponse.ok) throw new Error(`Checksum unavailable: ${check.digestUrl}`);
+    expected = (await digestResponse.text()).trim().split(/\s+/)[0];
+  }
+  if (expected) verify(data, expected, check.algorithm ?? "sha256", url);
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, data);
   chmodSync(target, mode);
@@ -277,20 +292,22 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
     }
     case "installer": {
       const url = withVersion(entry.url ?? "", item);
-      const args = (entry.args ?? []).map((a) => withVersion(a, item));
+      const args = (entry.args ?? []).map((a) => expandArg(withVersion(a, item), home));
       if (system === "windows") {
         return [{ id, description: `Run the official installer ${url}`, commands: [{ argv: ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `& ([scriptblock]::Create((irm '${url}'))) ${args.join(" ")}`] }] }];
       }
       const tmp = join(home, ".setupvibe", "tmp", `${id}-installer`);
+      const interpreter = entry.interpreter ?? "bash";
+      const digestUrl = entry.checksum?.startsWith("https://") ? entry.checksum : undefined;
       return [
         {
           id,
           description: `Run the official installer ${url}${entry.checksum && entry.checksum !== "none-official" ? ` (checksum: ${entry.checksum})` : ""}`,
           commands: [],
-          actionDescription: `download ${url} to ${tmp} and run it with ${args.join(" ") || "no arguments"}`,
+          actionDescription: `download ${url} to ${tmp}${digestUrl ? `, verify it with ${digestUrl} (${entry.checksumAlgorithm ?? "sha256"})` : ""} and run it with ${interpreter} ${args.join(" ")}`.trimEnd(),
           action: async (runner) => {
-            await downloadVerified(url, tmp, {}, 0o755);
-            const r = await runner.exec({ argv: ["bash", tmp, ...args] });
+            await downloadVerified(url, tmp, { digestUrl, algorithm: entry.checksumAlgorithm }, 0o755);
+            const r = await runner.exec({ argv: [interpreter, tmp, ...args] });
             if (r.code !== 0) throw new Error(`Installer for ${id} exited with ${r.code}: ${r.stderr.trim().split("\n").pop()}`);
           },
         },

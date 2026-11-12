@@ -601,7 +601,8 @@
             "--filename=composer"
           ],
           "checksum": "https://composer.github.io/installer.sig",
-          "checksumAlgorithm": "sha384"
+          "checksumAlgorithm": "sha384",
+          "interpreter": "php"
         },
         "windows": {
           "method": "unsupported",

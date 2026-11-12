@@ -38,6 +38,8 @@ export interface InstallEntry {
   args?: string[];
   checksum?: string;
   checksumAlgorithm?: "sha256" | "sha384" | "sha512";
+  /** Program that runs a downloaded installer; bash when omitted. */
+  interpreter?: string;
   files?: { url: string; sha256: string }[];
   repo?: string;
   path?: string;
