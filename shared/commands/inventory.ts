@@ -27,6 +27,7 @@ import { hasAuthorizedKey } from "./security.ts";
 import { executePlan, DRY_RUN_OPTION } from "./execute.ts";
 import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
 import { totalMemoryGb } from "../init/requirements.ts";
+import { otherManagerPath } from "../ops/other-manager.ts";
 import {
   dependentsOf,
   dropFromSelection,
@@ -78,6 +79,17 @@ export function itemStatus(item: Item, system: System, headless: boolean, select
   return "available";
 }
 
+/**
+ * Status plus the origin of a copy installed by another manager: an item that
+ * is not selected but whose command exists outside the mise folders shows
+ * `other` and the path (spec section 10).
+ */
+export function statusWithOrigin(item: Item, system: System, headless: boolean, selected: SelectedItem[], other: (i: Item) => string | undefined = (i) => otherManagerPath(i)): { status: string; elsewhere?: string } {
+  const status = itemStatus(item, system, headless, selected);
+  const elsewhere = status === "available" ? other(item) : undefined;
+  return elsewhere ? { status: "other", elsewhere } : { status };
+}
+
 const listCommand: Command = {
   name: "list",
   description: "Show the inventory with the status of each item on this system.",
@@ -99,7 +111,7 @@ const listCommand: Command = {
       category: i.category,
       version: i.version,
       default: i.default,
-      status: itemStatus(i, m.system, m.detected.headless, m.selection),
+      ...statusWithOrigin(i, m.system, m.detected.headless, m.selection),
       ...(checks.length ? { check: checks.find((c) => c.id === i.id)?.status } : {}),
     }));
     return {
@@ -112,7 +124,7 @@ const listCommand: Command = {
               section(c.name.en),
               rows
                 .filter((r) => r.category === c.id)
-                .map((r) => `  ${r.status === "installed" ? color.ok("●") : r.status === "outdated" || r.status === "failed" ? color.warn("●") : color.dim("○")} ${r.id.padEnd(22)} ${r.version.slice(0, 12).padEnd(13)} ${color.dim(r.status)}`)
+                .map((r) => `  ${r.status === "installed" ? color.ok("●") : r.status === "outdated" || r.status === "failed" ? color.warn("●") : r.status === "other" ? color.warn("◐") : color.dim("○")} ${r.id.padEnd(22)} ${r.version.slice(0, 12).padEnd(13)} ${color.dim(r.status)}${r.elsewhere ? color.dim(` (${r.elsewhere})`) : ""}`)
                 .join("\n"),
             ),
           )
@@ -158,6 +170,10 @@ async function installItems(ctx: Context, m: Machine, ids: string[], force: bool
   });
   const steps = selection.items.length ? plan.steps.filter((s) => s.id !== "git-identity") : [];
   for (const s of selection.skipped) if (!ctx.json) ctx.stderr(`- ${s.id}: ${s.reason}`);
+  for (const i of selection.items) {
+    const elsewhere = otherManagerPath(i);
+    if (elsewhere && !ctx.json) ctx.stderr(`! ${i.id}: another copy exists at ${elsewhere}; SetupVibe installs its own through mise and leaves that one in place. Check which comes first in PATH.`);
+  }
   const result = await executePlan(ctx, "install", steps, { items: selection.items.map((i) => i.id), skipped: selection.skipped });
   if (!dryRun && selection.items.length) {
     const checked = await checkItems(selection.items.filter((i) => !i.securityModule), realRunner());
@@ -209,7 +225,7 @@ const removeCommand: Command = {
   options: [
     { name: "--external", description: "Remove an app installed outside the inventory." },
     { name: "--include-native", description: "Also remove packages installed by the system package manager." },
-    { name: "--force", description: "Remove even when other selected items require it." },
+    { name: "--force", description: "Remove even when other selected items require it, or when init found the item on the machine before SetupVibe." },
     { name: "--yes", aliases: ["-y"], description: "Do not ask for confirmation." },
     DRY_RUN_OPTION,
   ],
@@ -243,8 +259,11 @@ const removeCommand: Command = {
       const blocked = ctx.args.map((id) => ({ id, by: dependentsOf(id, selectedIds.filter((s) => !ctx.args.includes(s)), m.inventory) })).filter((b) => b.by.length);
       if (blocked.length) return { code: ExitCode.USAGE, data: { blocked }, text: blocked.map((b) => `✗ ${b.id} is required by ${b.by.join(", ")}. Remove those too, or pass --force.`).join("\n") };
     }
-    const items = m.inventory.items.filter((i) => ctx.args.includes(i.id));
+    // Items init found on the machine stay unless --force: SetupVibe did not install them.
+    const adopted = ctx.options.force ? [] : m.selection.filter((s) => s.adopted && ctx.args.includes(s.id)).map((s) => s.id);
+    const items = m.inventory.items.filter((i) => ctx.args.includes(i.id) && !adopted.includes(i.id));
     const plan = removePlan(items, m.system, { includeNative: Boolean(ctx.options["include-native"]) });
+    plan.refused.push(...adopted.map((id) => ({ id, reason: "was on the machine before SetupVibe; pass --force to remove it" })));
     for (const r of plan.refused) if (!ctx.json) ctx.stderr(`- ${r.id}: ${r.reason}`);
     if (!plan.steps.length) return { code: plan.refused.length ? ExitCode.PARTIAL : ExitCode.SUCCESS, data: { refused: plan.refused }, text: "Nothing removed." };
     const stop = await ask(plan.steps.map((s) => s.id).join(", "));

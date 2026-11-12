@@ -18,7 +18,7 @@ import { itemSteps, miseCmd, nativeRefreshCmd, type DistroInfo } from "../instal
 import { initPlan } from "../init/plan.ts";
 import { securityPlan } from "../security/plan.ts";
 import { removeNopasswdStep } from "../users/create.ts";
-import { shellSteps } from "../shell/config.ts";
+import { applyBlock, shellSteps } from "../shell/config.ts";
 import type { AutoAnswers } from "./answers.ts";
 import type { Selection } from "./selection.ts";
 
@@ -69,6 +69,7 @@ export function swapSizeGb(memoryGb: number): number {
 function configSteps(item: Item, ctx: AutoContext): Step[] {
   const entry = resolveInstall(item, ctx.system);
   if (!entry) return [];
+  const home = ctx.home ?? homedir();
   if (entry.method === "config" && entry.action === "loginctl enable-linger") {
     return [{ id: item.id, description: `Keep ${ctx.user}'s services running after logout`, commands: [{ argv: ["loginctl", "enable-linger", ctx.user], sudo: true }] }];
   }
@@ -84,6 +85,13 @@ function configSteps(item: Item, ctx: AutoContext): Step[] {
           { argv: ["wsl.exe", "--install", "--no-distribution", "--web-download"], retries: 2 },
           { argv: ["wsl.exe", "--set-default-version", "2"], optional: true },
         ],
+      },
+      {
+        id: "wslconfig",
+        description: "Mirrored networking, DNS tunneling, proxy, memory reclaim and sparse disks in ~/.wslconfig",
+        commands: [],
+        actionDescription: `write the SetupVibe block in ${join(home, ".wslconfig")}, after a backup`,
+        action: async () => applyBlock(join(home, ".wslconfig"), WSL_CONFIG, home),
       },
     ];
   }
@@ -125,6 +133,24 @@ function configSteps(item: Item, ctx: AutoContext): Step[] {
   return [];
 }
 
+/**
+ * SetupVibe block of ~/.wslconfig (spec section 14.6). The Hyper-V firewall
+ * stays on with its default: inbound connections to WSL are blocked until
+ * the person opens a port, which doctor explains. SetupVibe 1 opened every
+ * inbound connection.
+ */
+export const WSL_CONFIG = [
+  "[wsl2]",
+  "networkingMode=mirrored",
+  "dnsTunneling=true",
+  "autoProxy=true",
+  "firewall=true",
+  "",
+  "[experimental]",
+  "autoMemoryReclaim=gradual",
+  "sparseVhd=true",
+].join("\n");
+
 /** Builds the auto plan. */
 export function autoPlan(ctx: AutoContext): AutoPlan {
   const steps: Step[] = [];
@@ -165,7 +191,7 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
   }
 
   const dockerItem = ctx.selection.items.find((i) => i.id === "docker");
-  if (dockerItem && resolveInstall(dockerItem, ctx.system)?.method === "native") steps.push(dockerDaemonStep(ctx.edition));
+  if (dockerItem && resolveInstall(dockerItem, ctx.system)?.method === "native") steps.push(dockerDaemonStep(ctx.edition, ctx.variant));
 
   const pm2Item = ctx.selection.items.find((i) => i.id === "pm2");
   if (pm2Item && ctx.answers.pm2Autostart && !["windows", "macos"].includes(ctx.system)) {
@@ -190,7 +216,7 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
 
   if (ctx.shell !== false && ctx.system !== "windows") {
     const has = (id: string) => ctx.selection.items.some((i) => i.id === id) || resolveInstall(ctx.inventory.items.find((i) => i.id === id) ?? ({ install: {} } as Item), ctx.system)?.method === "preinstalled";
-    steps.push(...shellSteps({ system: ctx.system, edition: ctx.edition, user: ctx.user, home, agentAliases: ctx.agentAliases ?? true, zsh: has("zsh"), tmux: has("tmux") && has("tpm"), starship: has("starship") }));
+    steps.push(...shellSteps({ system: ctx.system, edition: ctx.edition, bin: ctx.edition === "server" ? "setupvibe-server" : "setupvibe", user: ctx.user, home, agentAliases: ctx.agentAliases ?? true, zsh: has("zsh"), tmux: has("tmux") && has("tpm"), starship: has("starship") }));
   }
 
   const security = securityApplies(ctx.edition, ctx.variant, ctx.selection);
@@ -227,10 +253,14 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
         id: "tailscale-up",
         description: "Join the Tailscale network with TAILSCALE_AUTHKEY",
         skipIf: { argv: ["sh", "-c", "tailscale status >/dev/null 2>&1"] },
-        commands: [{ argv: ["sh", "-c", 'tailscale up --authkey="$TAILSCALE_AUTHKEY"'], sudo: true, env: { TAILSCALE_AUTHKEY: ctx.answers.tailscaleAuthKey } }],
+        commands: [{ argv: ["sh", "-c", `tailscale up --authkey="$TAILSCALE_AUTHKEY"${ctx.answers.tailscaleSsh ? " --ssh" : ""}`], sudo: true, env: { TAILSCALE_AUTHKEY: ctx.answers.tailscaleAuthKey } }],
       });
     } else {
       skipped.push({ id: "tailscale-up", reason: "installed without joining; set TAILSCALE_AUTHKEY to join" });
+    }
+    if (ctx.answers.tailscaleSsh) {
+      // Also covers a machine that had already joined, where tailscale up is skipped.
+      steps.push({ id: "tailscale-ssh", description: "Turn on Tailscale SSH", commands: [{ argv: ["tailscale", "set", "--ssh"], sudo: true }] });
     }
   }
 
@@ -246,22 +276,26 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
  * live-restore on the desktop only, because dockerd refuses live-restore in
  * Swarm mode. An existing daemon.json is merged, not replaced.
  */
-export function daemonSettings(edition: "desktop" | "server", current: Record<string, unknown> = {}): Record<string, unknown> {
+export function daemonSettings(edition: "desktop" | "server", current: Record<string, unknown> = {}, variant: AutoContext["variant"] = "local"): Record<string, unknown> {
   return {
     ...current,
+    // A desktop reachable from outside publishes container ports on 127.0.0.1
+    // by default; Docker writes its own iptables rules and skips UFW.
+    ...(edition === "desktop" && variant !== "local" && current.ip === undefined ? { ip: "127.0.0.1" } : {}),
     "log-driver": current["log-driver"] ?? "json-file",
     "log-opts": { "max-size": "10m", "max-file": "3", ...(current["log-opts"] as Record<string, string> | undefined) },
     ...(edition === "desktop" ? { "live-restore": true } : {}),
   };
 }
 
-function dockerDaemonStep(edition: "desktop" | "server"): Step {
+function dockerDaemonStep(edition: "desktop" | "server", variant: AutoContext["variant"]): Step {
   const file = "/etc/docker/daemon.json";
   return {
     id: "docker-daemon",
     description: `Docker daemon: log rotation${edition === "desktop" ? " and live-restore" : ""} in ${file}`,
     commands: [],
     actionDescription: `merge the SetupVibe settings into ${file} and restart Docker`,
+    actionSudo: true,
     action: async (runner) => {
       let current: Record<string, unknown> = {};
       try {
@@ -269,7 +303,7 @@ function dockerDaemonStep(edition: "desktop" | "server"): Step {
       } catch {
         // Missing or unreadable: start from the defaults.
       }
-      const next = daemonSettings(edition, current);
+      const next = daemonSettings(edition, current, variant);
       if (JSON.stringify(next) === JSON.stringify(current)) return;
       for (const cmd of [
         { argv: ["install", "-d", "-m", "0755", "/etc/docker"], sudo: true },

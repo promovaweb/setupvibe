@@ -28,6 +28,8 @@ export interface SelectedItem {
   id: string;
   version: string;
   status?: "ok" | "fail";
+  /** Found on the machine by init, not installed by SetupVibe; remove needs --force. */
+  adopted?: boolean;
 }
 
 /** One entry of external.json. */

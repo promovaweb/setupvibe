@@ -1,0 +1,29 @@
+name: SetupVibe 2 bug
+description: Something failed in setupvibe or setupvibe-server (SetupVibe 2).
+labels: ["v2", "bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. The report below lets us reproduce the machine without asking for secrets.
+  - type: textarea
+    id: report
+    attributes:
+      label: Output of `setupvibe report`
+      description: Run `setupvibe report` (or `setupvibe-server report`) and paste the whole output. It masks tokens and keys.
+      render: markdown
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command that failed
+      placeholder: setupvibe auto --profile essencial
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected and what happened
+    validations:
+      required: true

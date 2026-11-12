@@ -12,10 +12,11 @@ import { glyphs, type Theme } from "./theme.ts";
 export function panel(
   renderer: CliRenderer,
   theme: Theme,
-  options: { title: string; flexGrow?: number; width?: number | "auto" | `${number}%`; height?: number | "auto" | `${number}%`; active?: boolean },
+  options: { title: string; flexGrow?: number; flexBasis?: number; width?: number | "auto" | `${number}%`; height?: number | "auto" | `${number}%`; active?: boolean },
 ): BoxRenderable {
   return new BoxRenderable(renderer, {
     flexGrow: options.flexGrow,
+    ...(options.flexBasis !== undefined ? { flexBasis: options.flexBasis } : {}),
     width: options.width,
     height: options.height,
     flexDirection: "column",
@@ -39,9 +40,10 @@ export function keyValueRow(
   valueColor?: string,
 ): BoxRenderable {
   const row = new BoxRenderable(renderer, { flexDirection: "row", height: 1 });
-  row.add(new TextRenderable(renderer, { content: key.padEnd(keyWidth), fg: theme.textDim, selectable: false }));
-  row.add(new TextRenderable(renderer, { content: "  " }));
-  row.add(new TextRenderable(renderer, { content: value, fg: valueColor ?? theme.text, wrapMode: "none" }));
+  // The key column never shrinks, so long values cannot push the labels out of line.
+  row.add(new TextRenderable(renderer, { content: key.padEnd(keyWidth), fg: theme.textDim, selectable: false, flexShrink: 0 }));
+  row.add(new TextRenderable(renderer, { content: "  ", flexShrink: 0 }));
+  row.add(new TextRenderable(renderer, { content: value, fg: valueColor ?? theme.text, wrapMode: "none", flexShrink: 1, minWidth: 0 }));
   return row;
 }
 

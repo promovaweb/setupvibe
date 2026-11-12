@@ -11,7 +11,11 @@ import { edition } from "../core/app/edition.ts";
 import { ExitCode } from "../core/app/exit-codes.ts";
 import { blocks, color, section } from "../core/cli/format.ts";
 import type { Command } from "../core/cli/registry.ts";
-import type { Inventory } from "../inventory.ts";
+import type { Inventory, System } from "../inventory.ts";
+import { realRunner } from "../exec/runner.ts";
+import { installable } from "../auto/selection.ts";
+import { checkItems } from "../auto/check.ts";
+import type { SelectedItem } from "../ops/inventory-ops.ts";
 import { isRoot } from "../exec/runner.ts";
 import { detectSystem } from "../system/detect.ts";
 import { ensureStateDirs, readState, writeState } from "../state/store.ts";
@@ -75,9 +79,47 @@ export const initCommand: Command = {
         system: detected.system,
         prerequisites: inventory.items.filter((i) => i.initOnly).map((i) => i.id),
       };
-      writeState("config.json", { ...config, edition: manifest.edition, system: detected.system, init: record });
+      const git = ctx.interactive ? askGitIdentity() : undefined;
+      writeState("config.json", { ...config, edition: manifest.edition, system: detected.system, init: record, ...(git ? { git } : {}) });
+      const adopted = await adoptExistingItems(inventory, detected.system, detected.headless);
+      if (adopted.length && !ctx.json) ctx.stderr(`✓ ${adopted.length} item(s) already installed were added to the selection: ${adopted.join(", ")}`);
     }
     const resultText = result.text;
     return { ...result, text: () => blocks(section("Requirements"), requirementsText(checks), typeof resultText === "function" ? resultText() : resultText) };
   },
 };
+
+/** Reads `git config --global <key>`, or undefined. */
+function gitConfig(key: string): string | undefined {
+  const r = Bun.spawnSync(["git", "config", "--global", key], { stdout: "pipe", stderr: "ignore" });
+  return r.stdout.toString().trim() || undefined;
+}
+
+/**
+ * Asks for the Git name and e-mail once, when Git has none (spec section 7).
+ * The answer goes to git config and to config.json.
+ */
+export function askGitIdentity(read: (question: string) => string | null = (q) => prompt(q)): { name?: string; email?: string } | undefined {
+  const current = { name: gitConfig("user.name"), email: gitConfig("user.email") };
+  if (current.name && current.email) return current;
+  const name = current.name ?? (read("Git name (empty to skip):")?.trim() || undefined);
+  const email = current.email ?? (read("Git e-mail (empty to skip):")?.trim() || undefined);
+  if (name && !current.name) Bun.spawnSync(["git", "config", "--global", "user.name", name]);
+  if (email && !current.email) Bun.spawnSync(["git", "config", "--global", "user.email", email]);
+  return name || email ? { ...(name ? { name } : {}), ...(email ? { email } : {}) } : undefined;
+}
+
+/**
+ * Builds the first selection from what the machine already has (spec section
+ * 16): on a machine set up by SetupVibe 1, or by hand, items that pass their
+ * check are recorded as installed. Nothing is installed or removed.
+ */
+export async function adoptExistingItems(inventory: Inventory, system: System, headless: boolean): Promise<string[]> {
+  const current = readState<{ items?: SelectedItem[] }>("selection.json", {}).items ?? [];
+  if (current.length) return [];
+  const candidates = inventory.items.filter((i) => !i.initOnly && !i.securityModule && installable(i, system) && !(headless && (i.flags ?? []).includes("gui")));
+  const checks = await checkItems(candidates, realRunner());
+  const adopted = candidates.filter((i) => checks.find((c) => c.id === i.id)?.status === "ok");
+  if (adopted.length) writeState("selection.json", { items: adopted.map((i) => ({ id: i.id, version: i.version, status: "ok", adopted: true })) });
+  return adopted.map((i) => i.id);
+}

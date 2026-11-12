@@ -26,7 +26,7 @@ export function readSshKey(value: string | undefined): string | undefined {
 const createCommand: Command = {
   name: "create",
   description: "Create the working user with sudo, an SSH key and an optional sudo rule without password.",
-  arguments: [{ name: "name", description: "User name (lowercase letters, digits, - and _).", required: true }],
+  arguments: [{ name: "name", description: "User name (lowercase letters, digits, - and _). Asked in a terminal when omitted." }],
   options: [
     { name: "--ssh-key", argument: { name: "key-or-file" }, description: "SSH public key, or a file with it, for ~/.ssh/authorized_keys." },
     { name: "--nopasswd", description: "Allow sudo without a password (needed by automation)." },
@@ -40,7 +40,8 @@ const createCommand: Command = {
     if (!detected.system || detected.unsupportedReason) {
       return { code: ExitCode.UNSUPPORTED_SYSTEM, data: { system: detected }, text: `✗ ${detected.unsupportedReason}` };
     }
-    const name = ctx.args[0]!;
+    const name = ctx.args[0] ?? (ctx.interactive ? (prompt("Working user name:") ?? "").trim() : "");
+    if (!name) return { code: ExitCode.USAGE, data: {}, text: "✗ Missing the user name. Pass it as an argument: user create <name>." };
     let steps;
     try {
       steps = userCreatePlan({ name, system: detected.system, sshKey: readSshKey(ctx.options["ssh-key"] as string | undefined), nopasswd: Boolean(ctx.options.nopasswd) });
@@ -51,6 +52,10 @@ const createCommand: Command = {
     if (!ctx.options["dry-run"] && result.code === ExitCode.SUCCESS) {
       const config = readState<Record<string, unknown>>("config.json", {});
       writeState("config.json", { ...config, user: name, nopasswd: Boolean(ctx.options.nopasswd) });
+      const before = result.text;
+      // Spec section 3: after creating the user, tell the person how to continue.
+      const next = `Next: log in as ${name} (ssh ${name}@<host>, or su - ${name}) and run: ${manifest.bin} init`;
+      return { ...result, data: { ...(result.data as object), next }, text: () => `${typeof before === "function" ? before() : (before ?? "")}\n\n${next}` };
     }
     return result;
   },

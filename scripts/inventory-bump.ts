@@ -2,9 +2,12 @@
  * Looks for newer versions of the inventory items installed through mise and
  * updates the inventories (spec section 17: `inventory bump`).
  *
- * Only items with `versionPolicy: "exact"` and a mise install entry are
- * checked; the version comes from `mise latest <tool>`. Items pinned by
- * series (`node@24`, `python@3.14`, `ruby@3.4`) stay on their line.
+ * Only items with `versionPolicy: "exact"` are checked. For a mise install
+ * entry the version comes from `mise latest <tool>`. Items pinned by series
+ * (`node@24`, `python@3.14`, `ruby@3.4`) stay on their line. For an
+ * `archive` entry downloaded from GitHub releases (Nerd Fonts), the version
+ * comes from the latest release and every file is downloaded again to record
+ * its new SHA-256, so the bump never leaves a stale checksum behind.
  *
  * Usage:
  *   bun run scripts/inventory-bump.ts            # report only
@@ -38,6 +41,44 @@ export function applyVersion(item: Item, version: string): Item {
   return { ...item, version, verify: { ...item.verify, ...(expect ? { expect } : {}) } };
 }
 
+/** GitHub owner/repo of an exact item installed from release archives. */
+export function archiveRepo(item: Item): string | undefined {
+  if (item.versionPolicy !== "exact") return undefined;
+  for (const entry of Object.values(item.install)) {
+    if (entry?.method !== "archive") continue;
+    const m = entry.files?.[0]?.url.match(/^https:\/\/github\.com\/([^/]+\/[^/]+)\/releases\/download\/v?\{version\}\//);
+    if (m) return m[1];
+  }
+  return undefined;
+}
+
+/** URL templates of the archive files of an item. */
+export function archiveUrls(item: Item): string[] {
+  return [...new Set(Object.values(item.install).flatMap((e) => (e?.method === "archive" ? (e.files ?? []).map((f) => f.url) : [])))];
+}
+
+/** Applies a new version and the new checksums (by URL template) to an archive item. */
+export function applyArchiveVersion(item: Item, version: string, hashes: Record<string, string>): Item {
+  const install = Object.fromEntries(
+    Object.entries(item.install).map(([key, e]) => [key, e?.method === "archive" ? { ...e, files: (e.files ?? []).map((f) => ({ ...f, sha256: hashes[f.url] ?? f.sha256 })) } : e]),
+  ) as Item["install"];
+  return { ...applyVersion(item, version), install };
+}
+
+async function latestRelease(repo: string): Promise<string | undefined> {
+  const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN;
+  const r = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, { headers: { accept: "application/vnd.github+json", ...(token ? { authorization: `Bearer ${token}` } : {}) } });
+  if (!r.ok) return undefined;
+  const tag = ((await r.json()) as { tag_name?: string }).tag_name?.replace(/^v/, "");
+  return tag && /^\d+(\.\d+)+$/.test(tag) ? tag : undefined;
+}
+
+async function sha256Of(url: string): Promise<string> {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
+  return new Bun.CryptoHasher("sha256").update(new Uint8Array(await r.arrayBuffer())).digest("hex");
+}
+
 function latest(tool: string): string | undefined {
   const r = Bun.spawnSync(["mise", "latest", tool], { stdout: "pipe", stderr: "ignore" });
   const v = r.stdout.toString().trim();
@@ -52,7 +93,26 @@ if (import.meta.main) {
   const cache = new Map<string, string | undefined>();
   for (const file of files) {
     const inv = JSON.parse(readFileSync(file, "utf8")) as Inventory;
-    inv.items = inv.items.map((item) => {
+    const archived: Item[] = [];
+    for (const item of inv.items) {
+      const repo = archiveRepo(item);
+      if (!repo) {
+        archived.push(item);
+        continue;
+      }
+      if (!cache.has(repo)) cache.set(repo, await latestRelease(repo));
+      const next = cache.get(repo);
+      if (!next || next === item.version) {
+        archived.push(item);
+        continue;
+      }
+      if (!changes.some((c) => c.id === item.id)) changes.push({ id: item.id, from: item.version, to: next });
+      // Checksums are only computed when writing: each archive can be large.
+      const hashes: Record<string, string> = {};
+      if (write) for (const url of archiveUrls(item)) hashes[url] = await sha256Of(url.replaceAll("{version}", next));
+      archived.push(write ? applyArchiveVersion(item, next, hashes) : item);
+    }
+    inv.items = archived.map((item) => {
       const tool = bumpTool(item);
       if (!tool) return item;
       if (!cache.has(tool)) cache.set(tool, latest(tool));
@@ -67,7 +127,7 @@ if (import.meta.main) {
     }
   }
   if (!changes.length) {
-    console.log("✓ Every mise item is on its latest version.");
+    console.log("✓ Every mise and archive item is on its latest version.");
     process.exit(0);
   }
   for (const c of changes) console.log(`↑ ${c.id.padEnd(20)} ${c.from} → ${c.to}`);

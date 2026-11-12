@@ -263,3 +263,29 @@ describe("docker and time sync fixes from the container tests", () => {
     expect(plan.steps.find((s) => s.id === "security-packages")!.commands.map(describeCmd)[0]).toContain("systemd-timesyncd");
   });
 });
+
+describe("remote access and docker on exposed desktops", () => {
+  const { daemonSettings } = require("../auto/plan") as typeof import("../auto/plan");
+  const { finalText } = require("../commands/auto") as typeof import("../commands/auto");
+  const { resolveAnswers } = require("../auto/answers") as typeof import("../auto/answers");
+
+  test("a reachable desktop publishes container ports on 127.0.0.1", () => {
+    expect(daemonSettings("desktop", {}, "remote-exposed").ip).toBe("127.0.0.1");
+    expect(daemonSettings("desktop", {}, "local").ip).toBeUndefined();
+    expect(daemonSettings("desktop", { ip: "0.0.0.0" }, "remote-headless").ip).toBe("0.0.0.0");
+    expect(daemonSettings("server", {}, "remote-exposed").ip).toBeUndefined();
+  });
+
+  test("--tailscale-ssh comes from the option or the environment", () => {
+    expect(resolveAnswers({ "tailscale-ssh": true }, {}).tailscaleSsh).toBe(true);
+    expect(resolveAnswers({}, { SETUPVIBE_TAILSCALE_SSH: "1" }).tailscaleSsh).toBe(true);
+    expect(resolveAnswers({}, {}).tailscaleSsh).toBe(false);
+  });
+
+  test("the closing text lists skipped parts and the new shell hint", () => {
+    const text = finalText({ failed: 0, log: "/l", skipped: [{ id: "ssh-hardening", reason: "no key" }], shell: true });
+    expect(text).toContain("ssh-hardening: no key");
+    expect(text).toContain("exec $SHELL -l");
+    expect(finalText({ failed: 0, log: "/l", skipped: [], shell: false })).not.toContain("Skipped");
+  });
+});

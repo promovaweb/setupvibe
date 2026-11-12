@@ -204,3 +204,14 @@ describe("edition rules", () => {
     }
   });
 });
+
+describe("inventory topic", () => {
+  const { inventoryMarkdown } = require("../inventory") as typeof import("../inventory");
+  test("every item appears once, in both languages", () => {
+    for (const lang of ["pt-BR", "en"] as const) {
+      const md = inventoryMarkdown(desktop as unknown as import("../inventory").Inventory, lang);
+      for (const i of desktop.items) expect(md).toContain(`| \`${i.id}\``);
+      expect(md).toContain(lang === "pt-BR" ? "## Perfis" : "## Profiles");
+    }
+  });
+});

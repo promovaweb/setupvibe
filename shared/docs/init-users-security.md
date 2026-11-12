@@ -42,13 +42,21 @@ and writes the `init` record to `config.json`. Exit codes: `ROOT` (12),
 `UNSUPPORTED_SYSTEM` (11), `DISK_SPACE` (14), `NETWORK_OR_API` (5),
 `PARTIAL` (10).
 
+In a terminal, init asks once for the Git name and e-mail when Git has none
+and saves them in `config.json`. On a machine set up by SetupVibe 1 or by
+hand, it builds the first `selection.json` from the items that already pass
+their check, marked `adopted`. `remove` keeps adopted items unless `--force`,
+because SetupVibe did not install them.
+
 ## `user create <name>`
 
 Creates the working user with a home folder and the `sudo` group (`wheel` on
 Arch and Omarchy), installs `--ssh-key` in `~/.ssh/authorized_keys` and, with
 `--nopasswd`, a sudoers rule in `/etc/sudoers.d/90-setupvibe-<name>`. The rule
 is checked with `visudo -cf` before it is moved into place. `user nopasswd
-<name> --remove` deletes it.
+<name> --remove` deletes it. Without a name, a terminal asks for it. On
+success the command prints the next step: log in as the new user and run
+`init`.
 
 ## `security apply`
 
@@ -59,3 +67,22 @@ security updates on Debian and Ubuntu, NTP sync and an optional
 `/etc/ssh/sshd_config.d/10-setupvibe.conf` only when the current user has an
 authorized key; the file passes `sshd -t` before the service reloads.
 SetupVibe never turns password authentication on.
+
+Before the first change, the module records the previous state in
+`~/.setupvibe/state/security.json`: whether UFW and fail2ban were active and
+which of its configuration files already existed. Later runs keep that first
+record.
+
+## `security remove`
+
+Undoes the module from that record. It deletes the files SetupVibe created
+(the SSH drop-in, after `sshd -t`, the fail2ban jail and the automatic
+updates setting), turns fail2ban and UFW off when they were off before and
+deletes the record. Files that existed before stay, and the packages remain
+installed. Without a record it exits with `CONFIG` (3).
+
+## `swarm token [worker|manager]` (server)
+
+Prints the join token of a Swarm manager on stdout alone, ready for
+`TOKEN=$(setupvibe-server swarm token)`. `--rotate` replaces the token first.
+On a machine that is not a manager it exits with `CONFIG`.

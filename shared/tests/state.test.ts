@@ -123,3 +123,23 @@ test("version.json at the repository root is a valid manifest for this version",
     expect(file.channels[channel].changelog).toContain("/blob/v2/");
   }
 });
+
+describe("state file schemas", () => {
+  const { stateProblems, jsonSchemaFor } = require("../state/schemas") as typeof import("../state/schemas");
+  const { readFileSync } = require("node:fs") as typeof import("node:fs");
+  const { join } = require("node:path") as typeof import("node:path");
+
+  test("the published JSON Schemas match the zod source", () => {
+    for (const file of ["config.json", "selection.json", "external.json"] as const) {
+      const published = JSON.parse(readFileSync(join(import.meta.dir, "..", "schemas", file.replace(".json", ".schema.json")), "utf8"));
+      expect(published).toEqual(jsonSchemaFor(file));
+    }
+  });
+
+  test("valid files pass and broken ones name the field", () => {
+    expect(stateProblems("selection.json", { items: [{ id: "go", version: "1.0", status: "ok" }] })).toEqual([]);
+    expect(stateProblems("config.json", { edition: "desktop", network: { caFile: "/ca.pem" }, future: 1 })).toEqual([]);
+    expect(stateProblems("selection.json", { items: [{ id: "go" }] })[0]).toStartWith("items.0.version");
+    expect(stateProblems("config.json", { channel: "nightly" })[0]).toStartWith("channel");
+  });
+});

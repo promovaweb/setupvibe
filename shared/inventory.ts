@@ -155,3 +155,31 @@ export function profileItems(inventory: Inventory, name: string, seen: string[] 
 export function withVersion(text: string, item: Item): string {
   return text.replaceAll("{version}", item.version.replace(/^v/, ""));
 }
+
+/**
+ * The inventory as Markdown, for `docs inventory` and `--skill`: profiles,
+ * then one table per category with the pinned version, the policy, the
+ * install keys and the flags. Generated from the embedded file, so it never
+ * drifts from what the binary installs.
+ */
+export function inventoryMarkdown(inventory: Inventory, language: "pt-BR" | "en"): string {
+  const pt = language === "pt-BR";
+  const lines: string[] = [pt ? "# Inventário" : "# Inventory", ""];
+  lines.push(pt ? `Schema ${inventory.schemaVersion}. Itens: ${inventory.items.length}.` : `Inventory schema ${inventory.schemaVersion}. Items: ${inventory.items.length}.`, "");
+  lines.push(pt ? "## Perfis" : "## Profiles", "");
+  for (const name of Object.keys(inventory.profiles)) lines.push(`- \`${name}\`: ${profileItems(inventory, name).join(", ")}`);
+  lines.push("");
+  for (const category of inventory.categories) {
+    const items = inventory.items.filter((i) => i.category === category.id);
+    if (!items.length) continue;
+    lines.push(`## ${category.name[language]}`, "");
+    lines.push(pt ? "| Item | Versão | Política | Sistemas | Flags |" : "| Item | Version | Policy | Systems | Flags |", "| --- | --- | --- | --- | --- |");
+    for (const i of items) {
+      const keys = Object.keys(i.install).join(", ");
+      lines.push(`| \`${i.id}\`${i.default ? " *" : ""} | ${i.version} | ${i.versionPolicy} | ${keys} | ${(i.flags ?? []).join(", ") || "-"} |`);
+    }
+    lines.push("");
+  }
+  lines.push(pt ? "`*` entra por padrão (perfil `essencial`)." : "`*` is selected by default (profile `essencial`).");
+  return lines.join("\n");
+}

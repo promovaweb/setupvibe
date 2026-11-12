@@ -6,18 +6,24 @@ exits with exit code 8.
 
 ## Tabs
 
+Tabs are numbered, and the number key goes straight to the tab. The
+interface text follows `SETUPVIBE_LANG` and, without it, `LANG`: Portuguese
+or English, like the embedded documentation.
+
 | Tab | Content |
 | --- | --- |
-| Inventory | Categories on the left, items on the right with status and pinned version, details below. `h`/`l` switch the category, `j`/`k` move, `space` marks, `i` installs and `r` removes the marked items (or the current one). The actions run the CLI in another process. |
-| User | Working user and the checklist: sudo group, passwordless sudo, permissions of `~/.setupvibe`, `~/.local/bin` in PATH, `~/.ssh`, `authorized_keys` and init. |
-| Doctor | Pending prerequisites, items that fail the check and outdated items, with the command that fixes each one. |
-| Logs | Runs in `~/.setupvibe/logs`, from newest to oldest, with the events of each one. |
-| Overview | Environment, state of settings.json and the vault, settings in effect and next steps. |
-| About | Binary, project, license, credits and standards followed. |
+| 1 Home | Machine (system, variant, architecture, edition), state (init, user, channel), items by status with a progress bar, the last run, the recommended next step and the main keys. |
+| 2 Inventory | Categories on the left with the `installed/total` count; on the right, the items of the category in columns (status, name, pinned version, installed version) and the symbol legend; below, the item details or the plan. `h`/`l` (or `[`/`]`) switch the category, `j`/`k` move, `g`/`End` go to the first and last item, `space` marks, `i` installs and `r` removes the marked items (or the current one). The first press shows the plan; a second press of the same key runs it, and any other key cancels. The actions run the CLI in another process. The status line sums up the items by status or shows the result of the last action. |
+| 3 User | Working user, edition, system and variant, and the checklist grouped in Permissions (sudo group, passwordless sudo), Folders (`~/.setupvibe`, `~/.local/bin` in PATH, `~/.ssh`, `authorized_keys`) and SetupVibe (init and the warning about the `cc`, `cx` and `oc` aliases, which skip the permission prompts). The title shows how many items are pending. |
+| 4 Doctor | The same findings as `doctor`, grouped in Problems, Warnings and In order, each with the command that fixes it. `f` applies the safe fixes (`doctor --fix`), marked with `[f]`; `u` refreshes the screen. |
+| 5 Logs | Runs in `~/.setupvibe/logs`, newest first, with date, time and command; on the right, the events of each run, with the error message under each failure. |
+| 6 About | Binary with the detected system and variant, project, license, credits and the standards followed. |
 
-The initial tab is Inventory, or the one set in `tui.initialTab` in
-settings.json or in `--tab`. On the Inventory tab, `[` and `]` switch the
-category; the arrows still switch tabs.
+The initial tab is Home, or the one set in `tui.initialTab` in
+settings.json or in `--tab` (`overview`, `inventory`, `user`, `doctor`,
+`logs` or `about`). On a terminal with fewer than 110 columns or 32 rows, the
+Inventory narrows its columns and spacing; categories and items scroll when
+they do not fit.
 
 ## Keys
 
@@ -25,7 +31,7 @@ category; the arrows still switch tabs.
 | --- | --- |
 | `←` `→` `[` `]` | previous or next tab |
 | `Tab` | next tab |
-| `1` … `9` | go to the tab with that number |
+| `1` … `6` | go to the tab with that number |
 | `?` | show or hide the key help |
 | `q` `Esc` `Ctrl+C` | quit |
 
@@ -45,7 +51,8 @@ Visual principles, in the modern unix style:
 - one accent color for what is active, a secondary one for links and
   external sources; green, amber and red only for state;
 - status bar with keys in inverted blocks;
-- no empty space between neighboring panels; inner padding of one cell;
+- two columns of breathing room between neighboring panels and one row between bands; inner padding of one cell and an empty row before the content;
+- wrapped text stays aligned with the text, not with the line symbol;
 - nothing blinks, nothing scrolls on its own.
 
 ## How to create a screen

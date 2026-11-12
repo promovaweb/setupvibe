@@ -89,6 +89,14 @@ jobs:
       - run: bun run build -- --edition desktop
       - run: .\dist\setupvibe.exe system --no-update-check
       - run: .\dist\setupvibe.exe auto --profile essencial --dry-run
+      - name: PowerShell completion
+        run: |
+          $env:PATH = "$PWD\dist;$env:PATH"
+          setupvibe completion powershell | Out-String | Invoke-Expression
+          $words = (TabExpansion2 -inputScript "setupvibe ins" -cursorColumn 13).CompletionMatches.CompletionText
+          if ($words -notcontains "install") { Write-Error "completion did not offer install: $words"; exit 1 }
+          $topics = (TabExpansion2 -inputScript "setupvibe docs inv" -cursorColumn 18).CompletionMatches.CompletionText
+          if ($topics -notcontains "inventory") { Write-Error "completion did not offer inventory: $topics"; exit 1 }
       - name: auto
         env:
           GITHUB_TOKEN: ${{ github.token }}

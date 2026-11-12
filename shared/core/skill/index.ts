@@ -4,17 +4,18 @@
  * The files in `desktop/docs/` or `server/docs/` enter the executable as text
  * at build time, registered by the edition entry point. An AI
  * agent can run `<bin> --skill` and receive the whole documentation without
- * access to the repository: overview, CLI, TUI, MCP, configuration and exit
- * codes. The CLI section ends with the reference generated from the command
+ * access to the repository: overview, CLI, TUI, MCP, configuration, exit
+ * codes and the inventory, generated from the embedded inventory.json. The CLI section ends with the reference generated from the command
  * registry, so it never drifts from what the parser accepts.
  */
 import { docsLanguage, edition, type DocsLanguage } from "../app/edition.ts";
 import { manifest } from "../app/manifest.ts";
 import { exitCodeDescriptions } from "../app/exit-codes.ts";
 import { GLOBAL_OPTIONS, type Command, type OptionDefinition } from "../cli/registry.ts";
+import { inventoryMarkdown, type Inventory } from "../../inventory.ts";
 
 /** Topics accepted by `--skill <topic>` and by the MCP tool/resource `skill`. */
-export const SKILL_TOPICS = ["cli", "tui", "mcp", "config", "exit-codes", "reference"] as const;
+export const SKILL_TOPICS = ["cli", "tui", "mcp", "config", "exit-codes", "inventory", "reference"] as const;
 export type SkillTopic = (typeof SKILL_TOPICS)[number];
 
 function substitute(text: string): string {
@@ -83,6 +84,7 @@ export function skillText(root: Command, topic?: string, language: DocsLanguage 
     mcp: () => substitute(mcpDoc),
     config: () => substitute(configDoc),
     "exit-codes": () => substitute(exitCodesDoc),
+    inventory: () => inventoryMarkdown(edition().inventory as Inventory, language),
   };
   if (topic) {
     const fn = sections[topic as SkillTopic];

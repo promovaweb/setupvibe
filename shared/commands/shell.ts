@@ -27,6 +27,7 @@ const applyCommand: Command = {
     const steps = shellSteps({
       system: detected.system,
       edition: manifest.edition,
+      bin: manifest.bin,
       user: currentUser().username,
       agentAliases: (config.shell as { agentAliases?: boolean } | undefined)?.agentAliases ?? true,
       zsh: Boolean(Bun.which("zsh")),

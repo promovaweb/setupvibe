@@ -19,7 +19,7 @@ Keys in dot notation. The skeleton schema:
 | --- | --- | --- | --- |
 | `output.format` | `text` or `json` | `text` | default CLI output format |
 | `output.colors` | boolean | `true` | ANSI colors in text output |
-| `tui.initialTab` | `overview` or `about` | `overview` | tab opened when the TUI starts |
+| `tui.initialTab` | `overview`, `inventory`, `user`, `doctor`, `logs` or `about` | `overview` (Home) | tab opened when the TUI starts |
 | `tui.theme` | `night` or `day` | `night` | TUI palette |
 | `telemetry.enabled` | boolean | `false` | reserved for derived projects |
 

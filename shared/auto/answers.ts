@@ -30,6 +30,8 @@ export interface AutoAnswers {
   encryptedNetwork: boolean;
   /** Start PM2 and its apps at boot. */
   pm2Autostart: boolean;
+  /** Turn on Tailscale SSH after joining the tailnet. */
+  tailscaleSsh: boolean;
 }
 
 /** Shape of the answers file (`--config`). Secrets are not accepted here. */
@@ -46,6 +48,7 @@ export interface AnswersFile {
   keepNopasswd?: boolean;
   encryptedNetwork?: boolean;
   pm2Autostart?: boolean;
+  tailscaleSsh?: boolean;
 }
 
 const csv = (v: string | undefined): string[] | undefined =>
@@ -80,6 +83,7 @@ export function resolveAnswers(options: Record<string, string | boolean | undefi
     keepNopasswd: flag(options["keep-nopasswd"]) ?? flag(env.SETUPVIBE_KEEP_NOPASSWD) ?? file.keepNopasswd ?? false,
     encryptedNetwork: flag(options["encrypted-network"]) ?? flag(env.SETUPVIBE_SWARM_ENCRYPTED) ?? file.encryptedNetwork ?? false,
     pm2Autostart: flag(options["pm2-autostart"]) ?? flag(env.SETUPVIBE_PM2_AUTOSTART) ?? file.pm2Autostart ?? false,
+    tailscaleSsh: flag(options["tailscale-ssh"]) ?? flag(env.SETUPVIBE_TAILSCALE_SSH) ?? file.tailscaleSsh ?? false,
   };
 }
 

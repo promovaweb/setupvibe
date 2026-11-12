@@ -111,3 +111,12 @@ bundle for Node, Bun, curl, Git and Python tools. `--cache-dir` (or
 `SETUPVIBE_CACHE_DIR`) keeps mise, npm, uv, Homebrew and SetupVibe downloads in
 one folder that several machines or CI runs can share; pinned downloads
 already in the cache install offline.
+
+On a machine that always sits behind the same CA or cache, save them in
+`~/.setupvibe/config.json` so every command uses them without the options:
+
+```json
+{ "network": { "caFile": "/etc/ssl/certs/corp.pem", "cacheDir": "/srv/setupvibe-cache" } }
+```
+
+The order is the option, then the environment variable, then this block.

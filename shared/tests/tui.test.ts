@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { createTestRenderer, type TestRendererSetup } from "@opentui/core/testing";
 import desktopJson from "../../desktop/inventory.json";
 import type { Inventory } from "../inventory";
-import { doctorFindings, inventoryModel, markable, rowLabel, userChecklist } from "../tui/model";
+import { doctorFindings, inventoryModel, markable, planFromEnvelope, rowLabel, userChecklist } from "../tui/model";
 import { HOME_VARIABLE } from "../core/config/paths";
 import { mountTui } from "../core/tui/index";
 
@@ -24,10 +24,34 @@ describe("inventory model", () => {
   });
 
   test("rows show the mark, the status and the pinned version", () => {
-    const row = inventoryModel(desktop, "debian", false, []).find((c) => c.id === "languages")!.rows.find((r) => r.item.id === "node")!;
+    const row = inventoryModel(desktop, "debian", false, [], "pt-BR", () => undefined).find((c) => c.id === "languages")!.rows.find((r) => r.item.id === "node")!;
     expect(rowLabel(row, true)).toStartWith("[x] ○ node");
     expect(rowLabel(row, false)).toContain("24.22.3");
     expect(row.method).toBe("mise node");
+  });
+
+  test("an item found outside the mise folders shows other and its path", () => {
+    const rows = inventoryModel(desktop, "debian", false, [], "pt-BR", (i) => (i.id === "node" ? "/usr/bin/node" : undefined)).find((c) => c.id === "languages")!.rows;
+    const node = rows.find((r) => r.item.id === "node")!;
+    expect(node.status).toBe("other");
+    expect(node.elsewhere).toBe("/usr/bin/node");
+    expect(rowLabel(node, false)).toContain("◐");
+  });
+
+  test("the installed version comes from the selection", () => {
+    const rows = inventoryModel(desktop, "debian", false, [{ id: "node", version: "24.0.0" }], "pt-BR", () => undefined).find((c) => c.id === "languages")!.rows;
+    expect(rows.find((r) => r.item.id === "node")!.installed).toBe("24.0.0");
+  });
+
+  test("the plan preview reads the dry-run envelope", () => {
+    expect(planFromEnvelope(JSON.stringify({ data: { steps: [{ id: "a", description: "Install Node.js" }, { id: "b" }] } }))).toEqual(["• Install Node.js", "• b"]);
+    expect(planFromEnvelope("not json")).toEqual([]);
+  });
+
+  test("the user checklist warns about the agent aliases", () => {
+    const on = userChecklist({ groups: ["sudo"], sudoNoPassword: true, initDone: true });
+    expect(on.at(-1)!.ok).toBe(false);
+    expect(userChecklist({ groups: ["sudo"], sudoNoPassword: true, initDone: true, agentAliases: false }).at(-1)!.ok).toBe(true);
   });
 
   test("system, init and unavailable items cannot be marked", () => {
@@ -72,6 +96,7 @@ describe("screens", () => {
   beforeAll(async () => {
     dir = mkdtempSync(join(tmpdir(), "sv-tui-"));
     process.env[HOME_VARIABLE] = dir;
+    process.env.SETUPVIBE_LANG = "en";
     mkdirSync(join(dir, "logs"), { recursive: true });
     writeFileSync(join(dir, "logs", "2026-11-12T10-00-00-000Z-auto.log"), `${JSON.stringify({ time: "2026-11-12T10:00:01.000Z", item: "node", action: "install", status: "ok" })}\n`);
     setup = await createTestRenderer({ width: 140, height: 36 });
@@ -83,33 +108,48 @@ describe("screens", () => {
     await closed.catch(() => undefined);
     rmSync(dir, { recursive: true, force: true });
     delete process.env[HOME_VARIABLE];
+    delete process.env.SETUPVIBE_LANG;
   });
 
-  test("inventory: categories, items, marking and category switch", async () => {
+  test("home: machine, state, items and next step", () => {
+    const frame = setup.captureCharFrame();
+    for (const text of ["1 Home", "Machine", "State", "Items", "Next step", "Last run", "Keys"]) expect(frame).toContain(text);
+  });
+
+  test("inventory: categories with counts, item columns, marking and details", async () => {
+    setup.mockInput.pressKey("2");
+    await setup.renderOnce();
     let frame = setup.captureCharFrame();
     expect(frame).toContain("Categories");
+    expect(frame).toContain("ITEM");
+    expect(frame).toContain("PINNED");
     expect(frame).toContain("sshpass");
     setup.mockInput.pressKey("l");
     await setup.renderOnce();
     frame = setup.captureCharFrame();
-    expect(frame).toContain("node");
+    expect(frame).toContain("Node.js");
     setup.mockInput.pressKey(" ");
     await setup.renderOnce();
-    expect(setup.captureCharFrame()).toContain("[x]");
-    expect(setup.captureCharFrame()).toContain("Version 24.22.3");
+    frame = setup.captureCharFrame();
+    expect(frame).toContain("◼");
+    expect(frame).toContain("1 marked");
+    expect(frame).toContain("24.22.3 (exact)");
   });
 
   test("user, doctor and logs tabs render", async () => {
-    setup.mockInput.pressKey("2");
-    await setup.renderOnce();
-    expect(setup.captureCharFrame()).toContain("Checklist");
     setup.mockInput.pressKey("3");
     await setup.renderOnce();
-    expect(setup.captureCharFrame()).toContain("Prerequisites pending");
+    expect(setup.captureCharFrame()).toContain("Checklist");
+    expect(setup.captureCharFrame()).toContain("Permissions");
     setup.mockInput.pressKey("4");
     await setup.renderOnce();
+    expect(setup.captureCharFrame()).toContain("prerequisites pending");
+    expect(setup.captureCharFrame()).toContain("Problems");
+    setup.mockInput.pressKey("5");
+    await setup.renderOnce();
     const frame = setup.captureCharFrame();
-    expect(frame).toContain("2026-11-12T10-00-00-000Z-auto.log");
-    expect(frame).toContain("install node");
+    expect(frame).toContain("12/11 10:00  auto");
+    expect(frame).toContain("node");
+    expect(frame).toContain("install");
   });
 });

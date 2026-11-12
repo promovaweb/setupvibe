@@ -133,3 +133,76 @@ describe("sbom and health helpers", () => {
     expect(fillRepoUrl("https://download.docker.com/linux/{distro}/gpg", "debian", "trixie")).toBe("https://download.docker.com/linux/debian/gpg");
   });
 });
+
+describe("windows restart and saved network settings", () => {
+  const auto = require("../commands/auto") as typeof import("../commands/auto");
+  const net = require("../exec/network") as typeof import("../exec/network");
+
+  test("a pending restart on Windows comes from the registry", () => {
+    expect(auto.rebootRequired("win32", (k) => k.endsWith("RebootPending"))).toBe(true);
+    expect(auto.rebootRequired("win32", () => false)).toBe(false);
+  });
+
+  test("Windows resumes through a self-deleting logon task", () => {
+    const [step] = auto.windowsRebootSteps(["C:\\Program Files\\setupvibe.exe", "auto", "--profile", "essencial"]);
+    const create = step!.commands[0]!.argv;
+    expect(create).toContain("ONLOGON");
+    expect(create.at(-1)).toContain('"C:\\Program Files\\setupvibe.exe" auto --profile essencial');
+    expect(create.at(-1)).toContain(`schtasks /Delete /TN ${auto.WINDOWS_RESUME_TASK} /F`);
+    expect(step!.commands[1]!.argv[0]).toBe("shutdown");
+  });
+
+  test("CA and cache fall back to config.json network", () => {
+    const keep = { ca: process.env.SETUPVIBE_CA_FILE, cache: process.env.SETUPVIBE_CACHE_DIR, node: process.env.NODE_EXTRA_CA_CERTS };
+    delete process.env.SETUPVIBE_CA_FILE;
+    delete process.env.SETUPVIBE_CACHE_DIR;
+    try {
+      net.applyNetworkOptions({}, { caFile: "/etc/ca.pem", cacheDir: "/cache" });
+      expect(String(process.env.SETUPVIBE_CA_FILE)).toBe("/etc/ca.pem");
+      expect(String(process.env.SETUPVIBE_CACHE_DIR)).toBe("/cache");
+      net.applyNetworkOptions({ "ca-file": "/opt/ca.pem" }, { caFile: "/etc/ca.pem" });
+      expect(String(process.env.SETUPVIBE_CA_FILE)).toBe("/opt/ca.pem");
+    } finally {
+      for (const [k, v] of [["SETUPVIBE_CA_FILE", keep.ca], ["SETUPVIBE_CACHE_DIR", keep.cache], ["NODE_EXTRA_CA_CERTS", keep.node]] as const) {
+        if (v === undefined) delete process.env[k];
+        else process.env[k] = v;
+      }
+    }
+  });
+});
+
+describe("upgrade signature", () => {
+  const { verifySignature } = require("../commands/maintenance") as typeof import("../commands/maintenance");
+  const { cosignVerifyArgv } = require("../repo") as typeof import("../repo");
+
+  test("without cosign the signature is skipped", async () => {
+    expect(await verifySignature("https://example.invalid", "", null)).toBe("skipped");
+  });
+
+  test("the cosign command pins the v2 release workflow", () => {
+    const argv = cosignVerifyArgv("/t/SHA256SUMS", "/t/b.json");
+    expect(argv.slice(0, 4)).toEqual(["cosign", "verify-blob", "--bundle", "/t/b.json"]);
+    expect(argv).toContain("https://token.actions.githubusercontent.com");
+    expect(argv.join(" ")).toContain("workflows/v2\\.yml@refs/tags/v2\\.");
+    expect(argv.at(-1)).toBe("/t/SHA256SUMS");
+  });
+});
+
+describe("inventory bump for release archives", () => {
+  const bump = require("../../scripts/inventory-bump") as typeof import("../../scripts/inventory-bump");
+  const inv = require("../../desktop/inventory.json") as import("../inventory").Inventory;
+  const fonts = inv.items.find((i) => i.id === "nerd-fonts")!;
+
+  test("the repository and URL templates come from the archive entries", () => {
+    expect(bump.archiveRepo(fonts)).toBe("ryanoasis/nerd-fonts");
+    expect(bump.archiveUrls(fonts).length).toBe(2);
+    expect(bump.archiveRepo(inv.items.find((i) => i.id === "go")!)).toBeUndefined();
+  });
+
+  test("a new version replaces every checksum on every system", () => {
+    const [a, b] = bump.archiveUrls(fonts);
+    const next = bump.applyArchiveVersion(fonts, "9.9.9", { [a!]: "aa", [b!]: "bb" });
+    expect(next.version).toBe("9.9.9");
+    for (const e of Object.values(next.install)) if (e?.method === "archive") expect(e.files!.map((f) => f.sha256)).toEqual(["aa", "bb"]);
+  });
+});

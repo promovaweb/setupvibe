@@ -26,10 +26,16 @@ implements section 9 of the specification.
    A failed step does not stop the others. Events go to the run log and, with
    `--json`, to stdout as NDJSON.
 6. **Check.** Every selected item is verified. The full result is written to
-   `~/.setupvibe/last-run.json`; failures exit with `PARTIAL` (10).
+   `~/.setupvibe/last-run.json`; failures exit with `PARTIAL` (10). The
+   closing text lists every skipped part, security parts included (SSH
+   hardening without an authorized key, for example), and asks for a new
+   shell when the shell files changed.
 7. **Restart.** When `/var/run/reboot-required` exists, auto exits with
    `REBOOT_PENDING` (20). With `--reboot`, it installs a one-shot systemd unit
-   that resumes auto and restarts.
+   that resumes auto and restarts. On Windows the pending restart comes from the
+   `RebootPending` and `RebootRequired` registry keys, and `--reboot` creates
+   the `SetupVibeAutoResume` logon task, which runs auto again with the
+   highest privileges and deletes itself.
 
 ## Answers
 
@@ -52,6 +58,7 @@ Each answer comes from an option, then an environment variable, then the
 | Keep passwordless sudo | `--keep-nopasswd` | `SETUPVIBE_KEEP_NOPASSWD` |
 | Encrypted overlay network (server) | `--encrypted-network` | `SETUPVIBE_SWARM_ENCRYPTED` |
 | PM2 at boot | `--pm2-autostart` | `SETUPVIBE_PM2_AUTOSTART` |
+| Tailscale SSH | `--tailscale-ssh` | `SETUPVIBE_TAILSCALE_SSH` |
 | Download cache | `--cache-dir` | `SETUPVIBE_CACHE_DIR` |
 | Corporate CA bundle | `--ca-file` | `SETUPVIBE_CA_FILE` |
 
@@ -87,3 +94,21 @@ After the items, `auto` writes `~/.config/mise/mise.lock` with `mise lock
 rotation into `/etc/docker/daemon.json` (plus `live-restore` on the desktop;
 dockerd refuses it in Swarm mode). Examples for cloud-init, Ansible,
 Dockerfile, GitHub Actions and Vagrant are in `provisioning.md`.
+
+## Windows
+
+auto needs an elevated PowerShell and does not open the UAC prompt. The WSL
+item installs the WSL 2 base without a distribution and writes a SetupVibe
+block in `%USERPROFILE%\.wslconfig` (mirrored networking, DNS tunneling,
+proxy, memory reclaim and sparse disks) after a backup. The Hyper-V firewall
+keeps blocking inbound connections to WSL; `doctor` shows the command that
+opens a single port. `self uninstall` removes the block.
+
+## Desktop reachable from outside
+
+On the `remote-headless` and `remote-exposed` variants, the desktop edition
+binds Portainer to 127.0.0.1 and adds `"ip": "127.0.0.1"` to
+`/etc/docker/daemon.json` when the file has no `ip`. Docker writes its own
+iptables rules and skips UFW, so a published port would otherwise be open to
+the internet. Reach the services through SSH tunnels or Tailscale;
+`--tailscale-ssh` turns on Tailscale SSH after the machine joins.

@@ -22,7 +22,7 @@
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, basename } from "node:path";
 import type { System } from "../inventory.ts";
 import type { Step } from "../exec/runner.ts";
 import aliases from "./files/aliases.sh" with { type: "text" };
@@ -56,7 +56,7 @@ export function removeBlock(text: string): string {
 }
 
 /** Body of the ZSH block. */
-export function zshBlock(home: string): string {
+export function zshBlock(home: string, bin = "setupvibe"): string {
   return [
     "# Managed by SetupVibe. Personal settings go in ~/.zshrc.local.",
     'export PATH="$HOME/.local/bin:$PATH"',
@@ -69,6 +69,7 @@ export function zshBlock(home: string): string {
     "fi",
     'command -v zoxide >/dev/null && eval "$(zoxide init zsh)"',
     'command -v starship >/dev/null && eval "$(starship init zsh)"',
+    `command -v ${bin} >/dev/null && source <(${bin} completion zsh)`,
     `[ -f "${join(home, ".setupvibe", "shell", "aliases.sh")}" ] && source "${join(home, ".setupvibe", "shell", "aliases.sh")}"`,
     `[ -f "${join(home, ".setupvibe", "shell", "aliases-agents.sh")}" ] && source "${join(home, ".setupvibe", "shell", "aliases-agents.sh")}"`,
     '[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"',
@@ -76,11 +77,12 @@ export function zshBlock(home: string): string {
 }
 
 /** Body of the Bash block used on Omarchy. */
-export function bashBlock(home: string): string {
+export function bashBlock(home: string, bin = "setupvibe"): string {
   return [
     "# Managed by SetupVibe. Personal settings go in ~/.bashrc.local.",
     'export PATH="$HOME/.local/bin:$PATH"',
     `export STARSHIP_CONFIG="${join(home, ".config", "setupvibe", "starship.toml")}"`,
+    `command -v ${bin} >/dev/null && source <(${bin} completion bash)`,
     `[ -f "${join(home, ".setupvibe", "shell", "aliases.sh")}" ] && source "${join(home, ".setupvibe", "shell", "aliases.sh")}"`,
     `[ -f "${join(home, ".setupvibe", "shell", "aliases-agents.sh")}" ] && source "${join(home, ".setupvibe", "shell", "aliases-agents.sh")}"`,
     '[ -f "$HOME/.bashrc.local" ] && source "$HOME/.bashrc.local"',
@@ -114,7 +116,7 @@ export function managedFiles(home: string, edition: "desktop" | "server", agentA
 /** Keeps a copy of a user file before its first change. Returns the backup path, if one was made. */
 export function backupOnce(path: string, home: string, now = new Date()): string | undefined {
   if (!existsSync(path)) return undefined;
-  const name = path.split("/").pop()!;
+  const name = basename(path);
   const marker = join(home, ".setupvibe", "backups", `${name}.first`);
   if (existsSync(marker)) return undefined;
   mkdirSync(dirname(marker), { recursive: true, mode: 0o700 });
@@ -151,6 +153,8 @@ export interface ShellOptions {
   home?: string;
   /** Load the agent aliases (cc, cx, oc). */
   agentAliases?: boolean;
+  /** Binary name, for the completion line. */
+  bin?: string;
   /** The items present on this machine, to configure only what exists. */
   zsh: boolean;
   tmux: boolean;
@@ -200,7 +204,7 @@ export function shellSteps(o: ShellOptions): Step[] {
       description: `SetupVibe block in ${rc}`,
       commands: [],
       actionDescription: `back up ${rc} once, then write the block between "${BLOCK_START}" and "${BLOCK_END}"`,
-      action: async () => applyBlock(rc, omarchy ? bashBlock(home) : zshBlock(home), home),
+      action: async () => applyBlock(rc, omarchy ? bashBlock(home, o.bin) : zshBlock(home, o.bin), home),
     });
   }
   if (o.tmux && !omarchy) {

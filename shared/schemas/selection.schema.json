@@ -1,0 +1,50 @@
+{
+  "$id": "https://raw.githubusercontent.com/promovaweb/setupvibe/v2/shared/schemas/selection.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "profile": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "fail"
+            ]
+          },
+          "adopted": {
+            "description": "Found on the machine by init; remove needs --force.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": {},
+  "description": "~/.setupvibe/selection.json: inventory items installed by SetupVibe"
+}

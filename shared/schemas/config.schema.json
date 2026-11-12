@@ -1,0 +1,124 @@
+{
+  "$id": "https://raw.githubusercontent.com/promovaweb/setupvibe/v2/shared/schemas/config.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "edition": {
+      "description": "Edition that ran init on this machine.",
+      "type": "string",
+      "enum": [
+        "desktop",
+        "server"
+      ]
+    },
+    "system": {
+      "type": "string",
+      "enum": [
+        "ubuntu",
+        "debian",
+        "mint",
+        "zorin",
+        "arch",
+        "omarchy",
+        "macos",
+        "windows"
+      ]
+    },
+    "user": {
+      "description": "Working user.",
+      "type": "string"
+    },
+    "channel": {
+      "description": "Release channel read by upgrade and the update notice.",
+      "type": "string",
+      "enum": [
+        "stable",
+        "beta"
+      ]
+    },
+    "init": {
+      "type": "object",
+      "properties": {
+        "done": {
+          "type": "boolean"
+        },
+        "at": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string",
+          "enum": [
+            "ubuntu",
+            "debian",
+            "mint",
+            "zorin",
+            "arch",
+            "omarchy",
+            "macos",
+            "windows"
+          ]
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "done",
+        "at",
+        "version",
+        "system",
+        "prerequisites"
+      ],
+      "additionalProperties": false
+    },
+    "git": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "shell": {
+      "type": "object",
+      "properties": {
+        "agentAliases": {
+          "description": "Write the cc, cx and oc aliases.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "network": {
+      "type": "object",
+      "properties": {
+        "caFile": {
+          "description": "Extra CA bundle.",
+          "type": "string"
+        },
+        "cacheDir": {
+          "description": "Shared download cache.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": {},
+  "description": "~/.setupvibe/config.json"
+}

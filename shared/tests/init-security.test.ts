@@ -342,3 +342,61 @@ describe("windows fixes from the first real run", () => {
     expect(steps[0]!.skipIf!.argv.at(-1)).toBe("git --version");
   });
 });
+
+describe("security remove", () => {
+  const { securityRemovePlan, probeSecurity, FAIL2BAN_JAIL, AUTO_UPGRADES } = require("../security/record") as typeof import("../security/record");
+  const { SSHD_DROPIN, securityPlan } = require("../security/plan") as typeof import("../security/plan");
+  const { describeCmd, dryRunner } = require("../exec/runner") as typeof import("../exec/runner");
+
+  test("the module records the previous state first", () => {
+    const plan = securityPlan({ system: "debian", edition: "server", user: "dev", userHasKey: true });
+    expect(plan.steps[0]!.id).toBe("security-record");
+  });
+
+  test("on a clean machine everything SetupVibe made is undone", () => {
+    const steps = securityRemovePlan({ schemaVersion: 1, at: "", ufwActive: false, fail2banActive: false, existed: [] }, "/h/.setupvibe/state/security.json");
+    const cmds = steps.flatMap((s) => s.commands.map(describeCmd));
+    expect(cmds).toContain(`sudo rm -f ${SSHD_DROPIN}`);
+    expect(cmds).toContain("sudo sshd -t");
+    expect(cmds).toContain(`sudo rm -f ${FAIL2BAN_JAIL}`);
+    expect(cmds).toContain("sudo systemctl disable --now fail2ban");
+    expect(cmds).toContain(`sudo rm -f ${AUTO_UPGRADES}`);
+    expect(cmds).toContain("sudo ufw --force disable");
+    expect(cmds.at(-1)).toBe("rm -f /h/.setupvibe/state/security.json");
+  });
+
+  test("what existed before stays", () => {
+    const steps = securityRemovePlan({ schemaVersion: 1, at: "", ufwActive: true, fail2banActive: true, existed: [SSHD_DROPIN, FAIL2BAN_JAIL, AUTO_UPGRADES] });
+    const cmds = steps.flatMap((s) => s.commands.map(describeCmd));
+    expect(cmds.some((c) => c.includes("rm -f /etc"))).toBe(false);
+    expect(cmds.some((c) => c.includes("ufw"))).toBe(false);
+    expect(cmds.some((c) => c.includes("disable --now fail2ban"))).toBe(false);
+  });
+
+  test("the probe reads UFW, fail2ban and the files", async () => {
+    const runner = dryRunner({ "sudo ufw status": { stdout: "Status: active\n" }, "systemctl is-active fail2ban": { code: 3, stdout: "inactive\n" } });
+    const r = await probeSecurity(runner, (p) => p === AUTO_UPGRADES);
+    expect(r).toMatchObject({ ufwActive: true, fail2banActive: false, existed: [AUTO_UPGRADES] });
+  });
+});
+
+describe("sudo check before a plan", () => {
+  const { ensureSudo } = require("../commands/execute") as typeof import("../commands/execute");
+  const { planNeedsSudo } = require("../exec/runner") as typeof import("../exec/runner");
+  const root = typeof process.getuid === "function" && process.getuid() === 0;
+
+  test("plans with sudo commands or sudo actions need the check", () => {
+    expect(planNeedsSudo([{ id: "a", description: "", commands: [{ argv: ["true"] }] }])).toBe(false);
+    expect(planNeedsSudo([{ id: "a", description: "", commands: [{ argv: ["apt-get"], sudo: true }] }])).toBe(true);
+    expect(planNeedsSudo([{ id: "a", description: "", commands: [], actionSudo: true }])).toBe(true);
+  });
+
+  test.skipIf(root)("passwordless sudo passes; a terminal asks once; no terminal stops", () => {
+    const calls: string[] = [];
+    expect(ensureSudo(false, (a) => (calls.push(a[1]!), 0))).toBeUndefined();
+    expect(ensureSudo(true, (a) => (calls.push(a[1]!), a[1] === "-v" ? 0 : 1))).toBeUndefined();
+    expect(calls.at(-1)).toBe("-v");
+    expect(ensureSudo(false, () => 1)).toContain("no terminal");
+    expect(ensureSudo(true, () => 1)).toContain("did not accept");
+  });
+});

@@ -4,6 +4,42 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.14] - 2026-11-12
+
+### Added
+
+- Start-up checks on every command: refusal to run as root outside `user`, `auto --user`, `security` and read-only commands (exit 12); the TUI exits with 11 on an unsupported system; config.json, selection.json and external.json are checked against their schemas; a newer release of the configured channel is announced on stderr.
+- JSON Schemas of the state files in `shared/schemas/`, generated from `shared/state/schemas.ts` (`bun run state:schemas`). config.json accepts `network.caFile` and `network.cacheDir` as defaults for `--ca-file` and `--cache-dir`.
+- `security remove`: the module records the previous state in `~/.setupvibe/state/security.json` and the command undoes only what SetupVibe changed.
+- `setupvibe-server swarm token [worker|manager]` with `--rotate`.
+- `auto --tailscale-ssh`. Desktops reachable from outside get `"ip": "127.0.0.1"` in the Docker `daemon.json`.
+- Status `other` in `list` and the TUI for tools found outside the mise folders; `install` warns about them and `doctor` names the path.
+- `doctor` reports the variant, both editions installed and containers publishing ports on every interface (remote variants).
+- TUI redesign: a Home tab first (machine, state, items with a progress bar, last run, next step and keys); numbered tabs; interface text in Portuguese or English from `SETUPVIBE_LANG` or `LANG`; the Inventory with category counts, item columns (status, pinned and installed version), a symbol legend, a details panel beside the facts, the plan before install or remove (press the key again to run) and a status summary; the User checklist grouped with the agent aliases warning; the Doctor with the same findings as the CLI, grouped, with `f` for the safe fixes; Logs with readable run names; system and variant in the header and on About; spacing between panels, wrapped text aligned with its line and a layout that adapts to small terminals.
+- Commands that need sudo check it once before the plan: in a terminal `sudo -v` asks for the password; without a terminal they stop with SUDO_PASSWORD (13) instead of failing step by step.
+- `init` asks for the Git identity once and adopts items that already pass their check; `user create` asks for the name when it is missing.
+- `--verbose` streams every command; each command has a 30-minute limit; APT waits up to 10 minutes for the dpkg lock.
+- WSL: Docker Desktop integration and services are skipped when systemd is off; aliases never replace ones the user already has; the shell blocks load the completion.
+- PowerShell completion, checked in the Windows CI job.
+- Windows restart: pending restarts are read from the registry and `--reboot` resumes through a self-deleting logon task.
+- `upgrade` checks the Sigstore signature of `SHA256SUMS` when cosign is installed.
+- `docs inventory` (and `--skill`) generated from the embedded inventory.
+- `inventory:bump` also updates release archives and their checksums.
+- Agent skills `setupvibe` and `setupvibe-server` for operating the binaries, a `setupvibe-v2-dev` skill for development and a bug form that asks for `setupvibe report`.
+
+### Fixed
+
+- The PowerShell completion read `"$state:$token"` as a scoped variable; option values are now offered only after their option.
+
+### Validation
+
+- `bun run validate` with 294 tests.
+- Container tests: Debian 13 desktop (two runs with 0 failures, inventory commands, shell, MCP, ssh copy-id, self uninstall) and Ubuntu 24.04 server from root (security record, `security remove` stopping with 13 without sudo and undoing the module with it, `security apply` again, `swarm token`).
+- PowerShell completion checked in a real PowerShell 7 container; the release signature of v2.0.0-dev.13 verified by `upgrade` with cosign, and a tampered file refused.
+- TUI frames captured at 120×36 and 90×28 in both languages; the compiled binary opened in a pseudo-terminal.
+
+---
+
 ## [v2.0.0-dev.13] - 2026-11-12
 
 ### Added

@@ -6,18 +6,24 @@ encerra com exit code 8.
 
 ## Abas
 
+As abas são numeradas, e a tecla com o número vai direto para a aba. O
+texto da interface segue `SETUPVIBE_LANG` e, sem ela, `LANG`: português ou
+inglês, como a documentação embutida.
+
 | Aba | Conteúdo |
 | --- | --- |
-| Inventory | Categorias à esquerda, itens à direita com status e versão fixada, detalhes embaixo. `h`/`l` trocam a categoria, `j`/`k` movem, `espaço` marca, `i` instala e `r` remove os itens marcados (ou o atual). As ações rodam o CLI em outro processo. |
-| User | Usuário de trabalho e a checklist: grupo sudo, sudo sem senha, permissões de `~/.setupvibe`, `~/.local/bin` no PATH, `~/.ssh`, `authorized_keys` e init. |
-| Doctor | Pré-requisitos pendentes, itens que falham no check e itens desatualizados, com o comando que resolve cada um. |
-| Logs | Execuções em `~/.setupvibe/logs`, da mais recente para a mais antiga, com os eventos de cada uma. |
-| Overview | Environment, estado de settings.json e do cofre, settings em vigor e next steps. |
-| About | Binary, project, license, credits e standards seguidos. |
+| 1 Início | Máquina (sistema, variação, arquitetura, edição), estado (init, usuário, canal), itens por status com uma barra de progresso, a última execução, o próximo passo recomendado e os atalhos principais. |
+| 2 Inventário | Categorias à esquerda com a contagem `instalados/total`; à direita, os itens da categoria em colunas (status, nome, versão fixada, versão instalada) e a legenda dos símbolos; embaixo, os detalhes do item ou o plano. `h`/`l` (ou `[`/`]`) trocam a categoria, `j`/`k` movem, `g`/`End` vão ao início e ao fim, `espaço` marca, `i` instala e `r` remove os itens marcados (ou o atual). O primeiro toque mostra o plano; o segundo toque na mesma tecla executa, e qualquer outra tecla cancela. As ações rodam o CLI em outro processo. A linha de status resume os itens por status ou mostra o resultado da última ação. |
+| 3 Usuário | Usuário de trabalho, edição, sistema e variação, e a checklist agrupada em Permissões (grupo sudo, sudo sem senha), Pastas (`~/.setupvibe`, `~/.local/bin` no PATH, `~/.ssh`, `authorized_keys`) e SetupVibe (init e o aviso dos aliases `cc`, `cx` e `oc`, que pulam as confirmações de permissão). O título mostra quantas pendências existem. |
+| 4 Doctor | Os mesmos achados do `doctor`, agrupados em Problemas, Avisos e Em ordem, cada um com o comando que resolve. `f` aplica as correções seguras (`doctor --fix`), marcadas com `[f]`; `u` atualiza a tela. |
+| 5 Logs | Execuções em `~/.setupvibe/logs`, da mais recente para a mais antiga, com data, hora e comando; à direita, os eventos de cada uma, com a mensagem de erro abaixo de cada falha. |
+| 6 Sobre | Binário com sistema e variação detectados, projeto, licença, créditos e padrões seguidos. |
 
-A aba inicial é Inventory, ou a que estiver em `tui.initialTab` no
-settings.json ou em `--tab`. Na aba Inventory, `[` e `]` trocam a categoria;
-as setas continuam trocando de aba.
+A aba inicial é Início, ou a que estiver em `tui.initialTab` no
+settings.json ou em `--tab` (`overview`, `inventory`, `user`, `doctor`,
+`logs` ou `about`). Num terminal com menos de 110 colunas ou 32 linhas, o
+Inventário estreita as colunas e reduz os espaços; as categorias e os itens
+rolam quando não cabem.
 
 ## Teclas
 
@@ -25,7 +31,7 @@ as setas continuam trocando de aba.
 | --- | --- |
 | `←` `→` `[` `]` | aba anterior ou seguinte |
 | `Tab` | próxima aba |
-| `1` … `9` | ir para a aba de mesmo número |
+| `1` … `6` | ir para a aba de mesmo número |
 | `?` | mostrar ou esconder o help de teclas |
 | `q` `Esc` `Ctrl+C` | sair |
 
@@ -45,7 +51,8 @@ Princípios do visual, no estilo modern unix:
 - uma cor de accent para o que está ativo, uma secundária para links e
   origens externas; verde, âmbar e vermelho só para estado;
 - barra de status com teclas em blocos invertidos;
-- sem espaços vazios entre painéis vizinhos; padding interno de uma célula;
+- duas colunas de respiro entre painéis vizinhos e uma linha entre faixas; padding interno de uma célula e uma linha vazia antes do conteúdo;
+- texto que quebra continua alinhado ao texto, não ao símbolo da linha;
 - nada pisca, nada rola sozinho.
 
 ## Como criar uma screen

@@ -11,8 +11,8 @@
  * - `self uninstall --yes [--keep-data] [--items]`: removes SetupVibe;
  * - `ssh copy-id <user@host>`: installs a public key on a remote server.
  */
-import { chmodSync, existsSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, renameSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { currentUser } from "../system/user.ts";
 import { dirname, join } from "node:path";
 import { manifest } from "../core/app/manifest.ts";
@@ -29,13 +29,13 @@ import { ensureStateDirs, readState, statePath, writeJsonAtomic } from "../state
 import type { InitRecord } from "../init/plan.ts";
 import { readAnswersFile } from "../auto/answers.ts";
 import { checkForUpdate, compareSemver, type Channel } from "../state/update.ts";
-import { RELEASES_BASE } from "../repo.ts";
+import { cosignVerifyArgv, RELEASES_BASE } from "../repo.ts";
 import { fetchWithRetries } from "../install/methods.ts";
 import { findInChecksumList, verify } from "../state/checksum.ts";
 import { shellRemoveSteps, shellSteps } from "../shell/config.ts";
 import { logTail } from "../tui/model.ts";
 import { findAgent } from "./mcp-install.ts";
-import { selfArgv } from "./auto.ts";
+import { rebootRequired, selfArgv } from "./auto.ts";
 import { DRY_RUN_OPTION, executePlan } from "./execute.ts";
 import { installItemsFor } from "./inventory.ts";
 import { removePlan, type ExternalApp, type SelectedItem } from "../ops/inventory-ops.ts";
@@ -52,6 +52,7 @@ import {
   upgradeAsset,
   type Finding,
 } from "../ops/maintenance.ts";
+import { otherManagerPath } from "../ops/other-manager.ts";
 
 function context() {
   const inventory = edition().inventory as Inventory;
@@ -70,7 +71,45 @@ function rcFile(system: string | undefined): string {
 export function machineFindings(): Finding[] {
   const c = context();
   const rc = rcFile(c.detected.system);
-  return setupvibeFindings({ inventory: c.inventory, supported: c.detected.unsupportedReason, init: c.init, selection: c.selection, rcHasBlock: existsSync(rc) && hasBlock(readFileSync(rc, "utf8")) });
+  return setupvibeFindings({
+    inventory: c.inventory,
+    supported: c.detected.unsupportedReason,
+    init: c.init,
+    selection: c.selection,
+    rcHasBlock: existsSync(rc) && hasBlock(readFileSync(rc, "utf8")),
+    variant: c.detected.variant,
+    otherEdition: Bun.which(manifest.edition === "desktop" ? "setupvibe-server" : "setupvibe") ?? undefined,
+    // Only matters where the machine is reachable from outside; Docker publishes past UFW.
+    exposedContainers: c.detected.variant === "local" ? [] : exposedContainers(),
+    rebootPending: rebootRequired(),
+    wslOnWindows: c.detected.system === "windows" && c.selection.some((s) => s.id === "wsl"),
+    elsewhere: c.selection
+      .map((s) => c.inventory.items.find((i) => i.id === s.id))
+      .filter((i): i is NonNullable<typeof i> => Boolean(i))
+      .flatMap((i) => {
+        const path = otherManagerPath(i);
+        return path ? [{ id: i.id, path }] : [];
+      }),
+  });
+}
+
+/**
+ * Containers that publish a port on 0.0.0.0 or [::], read from docker ps.
+ * Empty when Docker is missing or the user cannot reach the daemon.
+ */
+export function exposedContainers(): string[] {
+  if (!Bun.which("docker")) return [];
+  const r = Bun.spawnSync(["docker", "ps", "--format", "{{.Names}} {{.Ports}}"], { stdout: "pipe", stderr: "ignore", timeout: 5000 });
+  if (r.exitCode !== 0) return [];
+  return parseExposed(r.stdout.toString());
+}
+
+/** Lines of `docker ps --format "{{.Names}} {{.Ports}}"` with a port bound to every interface. */
+export function parseExposed(text: string): string[] {
+  return text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => /(^|[\s,])(0\.0\.0\.0|\[::\]|:::):\d+->/.test(l));
 }
 
 const mark = (l: string) => (l === "ok" ? color.ok("✓") : l === "warn" ? color.warn("!") : color.error("✗"));
@@ -93,7 +132,7 @@ export const doctorCommand: Command = {
       chmodSync(statePath(), 0o700);
       applied.push("~/.setupvibe mode 700");
       if (findings.some((f) => f.id === "shell" && f.level !== "ok") && c.detected.system) {
-        steps.push(...shellSteps({ system: c.detected.system, edition: manifest.edition, user: currentUser().username, zsh: Boolean(Bun.which("zsh")), tmux: Boolean(Bun.which("tmux")), starship: Boolean(findAgent("starship")) }));
+        steps.push(...shellSteps({ system: c.detected.system, edition: manifest.edition, bin: manifest.bin, user: currentUser().username, zsh: Boolean(Bun.which("zsh")), tmux: Boolean(Bun.which("tmux")), starship: Boolean(findAgent("starship")) }));
       }
       const results = await runSteps(steps, realRunner());
       applied.push(...results.filter((r) => r.status !== "fail").map((r) => r.id));
@@ -173,9 +212,33 @@ const importCommand: Command = {
 /** Adds export and import to the core config command. */
 export const configSubcommands = [exportCommand, importCommand];
 
+/**
+ * Checks the keyless Sigstore signature of SHA256SUMS when cosign is in PATH,
+ * like install.sh. Without cosign or without a bundle in the release, the
+ * SHA-256 check alone applies.
+ */
+export async function verifySignature(base: string, sumsText: string, cosign: string | null = Bun.which("cosign")): Promise<"verified" | "invalid" | "skipped"> {
+  if (!cosign) return "skipped";
+  let bundle: string;
+  try {
+    bundle = await (await fetchWithRetries(`${base}/SHA256SUMS.sigstore.json`, 30_000)).text();
+  } catch {
+    return "skipped";
+  }
+  const dir = mkdtempSync(join(tmpdir(), "setupvibe-sig-"));
+  try {
+    writeFileSync(join(dir, "SHA256SUMS"), sumsText);
+    writeFileSync(join(dir, "SHA256SUMS.sigstore.json"), bundle);
+    const r = Bun.spawnSync(cosignVerifyArgv(join(dir, "SHA256SUMS"), join(dir, "SHA256SUMS.sigstore.json"), cosign), { stdout: "ignore", stderr: "ignore" });
+    return r.exitCode === 0 ? "verified" : "invalid";
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 export const upgradeCommand: Command = {
   name: "upgrade",
-  description: "Replace this binary with the newest release of its channel, verified against SHA256SUMS.",
+  description: "Replace this binary with the newest release of its channel, verified against SHA256SUMS and, when cosign is installed, its Sigstore signature.",
   options: [
     { name: "--check", description: "Only report whether an upgrade exists." },
     { name: "--channel", argument: { name: "channel", values: ["stable", "beta"] }, description: "Release channel; stable by default." },
@@ -183,7 +246,8 @@ export const upgradeCommand: Command = {
   exitCodes: [ExitCode.NETWORK_OR_API, ExitCode.PERMISSION],
   examples: [`${manifest.bin} upgrade --check`, `${manifest.bin} upgrade`],
   run: async (ctx) => {
-    const channel = ((ctx.options.channel as string) ?? "stable") as Channel;
+    const configured = readState<Record<string, unknown>>("config.json", {}).channel as string | undefined;
+    const channel = ((ctx.options.channel as string) ?? configured ?? "stable") as Channel;
     const status = await checkForUpdate(manifest.version, channel, { force: true });
     if (status.source === "offline" || !status.latest) return { code: ExitCode.NETWORK_OR_API, data: status, text: "✗ Could not read version.json." };
     if (compareSemver(status.latest, manifest.version) <= 0) return { data: status, text: `${color.ok("✓")} ${manifest.bin} ${manifest.version} is the latest ${channel} release.` };
@@ -195,7 +259,10 @@ export const upgradeCommand: Command = {
     const base = `${RELEASES_BASE}/v${status.latest}`;
     const [bin, sums] = await Promise.all([fetchWithRetries(`${base}/${asset}`, 300_000), fetchWithRetries(`${base}/SHA256SUMS`, 30_000)]);
     const data = new Uint8Array(await bin.arrayBuffer());
-    const expected = findInChecksumList(await sums.text(), asset);
+    const sumsText = await sums.text();
+    const signature = await verifySignature(base, sumsText);
+    if (signature === "invalid") return { code: ExitCode.NETWORK_OR_API, data: { ...status, signature }, text: "✗ The Sigstore signature of SHA256SUMS does not match the SetupVibe release workflow." };
+    const expected = findInChecksumList(sumsText, asset);
     if (!expected) return { code: ExitCode.NETWORK_OR_API, data: status, text: `✗ ${asset} is not listed in SHA256SUMS.` };
     verify(data, expected, "sha256", asset);
     const target = self[0]!;
@@ -207,7 +274,8 @@ export const upgradeCommand: Command = {
       if (existsSync(tmp)) unlinkSync(tmp);
       return { code: ExitCode.PERMISSION, data: { error: String(e) }, text: `✗ Could not replace ${target}: ${(e as Error).message}. Run with permission to write there.` };
     }
-    return { data: { ...status, upgraded: true, path: target }, text: `${color.ok("✓")} ${manifest.bin} ${manifest.version} → ${status.latest} (${target}).` };
+    const note = signature === "verified" ? "signature verified with cosign" : "SHA-256 verified; install cosign to also check the signature";
+    return { data: { ...status, upgraded: true, path: target, signature }, text: `${color.ok("✓")} ${manifest.bin} ${manifest.version} → ${status.latest} (${target}); ${note}.` };
   },
 };
 
@@ -254,7 +322,7 @@ const uninstallCommand: Command = {
     const steps: Step[] = [];
     if (ctx.options.items && c.detected.system) steps.push(...removePlan(c.inventory.items.filter((i) => c.selection.some((s) => s.id === i.id)), c.detected.system).steps);
     steps.push(...shellRemoveSteps());
-    steps.push(...selfUninstallSteps({ dataDir: statePath(), binaries, keepData: Boolean(ctx.options["keep-data"]), user, sudoersExists: existsSync(`/etc/sudoers.d/90-setupvibe-${user}`) }));
+    steps.push(...selfUninstallSteps({ dataDir: statePath(), binaries, keepData: Boolean(ctx.options["keep-data"]), user, sudoersExists: existsSync(`/etc/sudoers.d/90-setupvibe-${user}`), ...(process.platform === "win32" ? { wslconfig: join(homedir(), ".wslconfig") } : {}) }));
     if (!ctx.options["dry-run"] && !ctx.options.yes) {
       if (!ctx.interactive) return { code: ExitCode.USAGE, data: {}, text: "✗ self uninstall needs confirmation. Pass --yes in non-interactive runs." };
       if (!(await confirm("Remove SetupVibe from this machine?"))) return { code: ExitCode.INTERRUPTED, data: {}, text: "Cancelled." };

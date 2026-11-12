@@ -7,6 +7,7 @@
  * are pulled in automatically. The result is ordered so every item comes
  * after what it requires.
  */
+import { existsSync } from "node:fs";
 import type { Inventory, Item, System } from "../inventory.ts";
 import { flagsFor, profileItems, resolveInstall } from "../inventory.ts";
 
@@ -14,6 +15,8 @@ export interface SelectionInput {
   inventory: Inventory;
   system: System;
   headless: boolean;
+  /** WSL facts (spec section 2); detected when omitted on WSL. */
+  wsl?: WslProbes;
   profile?: string;
   /** Explicit items, used by `install <items>` instead of a profile. */
   ids?: string[];
@@ -25,6 +28,19 @@ export interface Selection {
   items: Item[];
   /** Items left out and why. */
   skipped: { id: string; reason: string }[];
+}
+
+/** Facts about a WSL distribution. */
+export interface WslProbes {
+  /** systemd runs as PID 1. */
+  systemd: boolean;
+  /** Docker Desktop for Windows integration is enabled. */
+  dockerDesktop: boolean;
+}
+
+/** Reads the WSL facts from the running distribution. */
+export function wslProbes(): WslProbes {
+  return { systemd: existsSync("/run/systemd/system"), dockerDesktop: existsSync("/mnt/wsl/docker-desktop") };
 }
 
 /** True when the item does something on the system. */
@@ -100,8 +116,19 @@ export function selectItems(input: SelectionInput): Selection {
       continue;
     }
     if (headless && flagsFor(item, system).includes("gui")) {
-      skipped.push({ id: item.id, reason: "graphical item on a headless machine" });
+      skipped.push({ id: item.id, reason: item.id === "nerd-fonts" ? "graphical item on a headless machine; install the fonts on the computer you connect from" : "graphical item on a headless machine" });
       continue;
+    }
+    if (system === "wsl") {
+      const probes = input.wsl ?? wslProbes();
+      if (entry.skipWhen === "docker-desktop-integration" && probes.dockerDesktop) {
+        skipped.push({ id: item.id, reason: "Docker Desktop for Windows already provides Docker in this WSL distribution" });
+        continue;
+      }
+      if (!probes.systemd && (item.flags ?? []).includes("service")) {
+        skipped.push({ id: item.id, reason: "needs systemd, which is off in this WSL distribution; set systemd=true under [boot] in /etc/wsl.conf and restart WSL" });
+        continue;
+      }
     }
     chosen.push(item);
   }

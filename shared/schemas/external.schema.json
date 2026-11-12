@@ -1,0 +1,37 @@
+{
+  "$id": "https://raw.githubusercontent.com/promovaweb/setupvibe/v2/shared/schemas/external.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "apps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "installedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool",
+          "version",
+          "installedAt"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": {},
+  "description": "~/.setupvibe/external.json: mise tools installed with install --external"
+}

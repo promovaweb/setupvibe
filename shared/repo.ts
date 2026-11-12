@@ -39,3 +39,12 @@ export const INSTALL_SH_URL = rawUrl("install.sh");
 
 /** One-line installer for Windows (spec section 9). */
 export const INSTALL_PS1_URL = rawUrl("install.ps1");
+
+/** Workflow identity that signs SHA256SUMS with keyless Sigstore (same as install.sh). */
+export const SIGNING_IDENTITY_REGEXP = "^https://github.com/promovaweb/setupvibe/\\.github/workflows/v2\\.yml@refs/tags/v2\\.";
+export const SIGNING_OIDC_ISSUER = "https://token.actions.githubusercontent.com";
+
+/** cosign command that checks the signature bundle of SHA256SUMS. */
+export function cosignVerifyArgv(sumsPath: string, bundlePath: string, cosign = "cosign"): string[] {
+  return [cosign, "verify-blob", "--bundle", bundlePath, "--certificate-identity-regexp", SIGNING_IDENTITY_REGEXP, "--certificate-oidc-issuer", SIGNING_OIDC_ISSUER, sumsPath];
+}

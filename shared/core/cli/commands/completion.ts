@@ -9,7 +9,7 @@ export function createCompletionCommand(getRoot: () => Command): Command {
     name: "completion",
     description: "Print a registry-generated completion script for bash, zsh or fish.",
     longDescription: `Install for the current session:\nBash: eval "$('${manifest.bin}' completion bash)"\nZsh: eval "$('${manifest.bin}' completion zsh)"\nFish: ${manifest.bin} completion fish | source\nAdd the matching line to your shell startup file for future sessions.`,
-    arguments: [{ name: "shell", required: true, values: COMPLETION_SHELLS, description: "Shell to generate completion for: bash, zsh or fish." }],
+    arguments: [{ name: "shell", required: true, values: COMPLETION_SHELLS, description: "Shell to generate completion for: bash, zsh, fish or powershell." }],
     run: ({ args }) => {
       const shell = args[0] as CompletionShell;
       const script = generateCompletion(getRoot(), shell);

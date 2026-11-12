@@ -16,6 +16,7 @@ let closed: Promise<void>;
 beforeAll(async () => {
   dir = mkdtempSync(join(tmpdir(), "termfy-tui-"));
   process.env[HOME_VARIABLE] = dir;
+  process.env.SETUPVIBE_LANG = "en";
   setup = await createTestRenderer({ width: 120, height: 32 });
   closed = mountTui(setup.renderer, {});
   await setup.renderOnce();
@@ -25,23 +26,21 @@ afterAll(async () => {
   await closed.catch(() => undefined);
   rmSync(dir, { recursive: true, force: true });
   delete process.env[HOME_VARIABLE];
+  delete process.env.SETUPVIBE_LANG;
 });
 
 describe("tui", () => {
-  test("opens on the Inventory tab with header, panels and key bar", async () => {
+  test("opens on the Home tab with header, numbered tabs and key bar", async () => {
     let frame = setup.captureCharFrame();
-    expect(frame).toContain("Inventory");
-    expect(frame).toContain("Categories");
-    setup.mockInput.pressKey("5");
-    await setup.renderOnce();
-    frame = setup.captureCharFrame();
     expect(frame).toContain(manifest.title);
     expect(frame).toContain(`v${manifest.version}`);
-    expect(frame).toContain("Overview");
-    expect(frame).toContain("About");
-    expect(frame).toContain("Environment");
-    expect(frame).toContain("Settings in effect");
+    for (const tab of ["1 Home", "2 Inventory", "3 User", "4 Doctor", "5 Logs", "6 About"]) expect(frame).toContain(tab);
+    expect(frame).toContain("Next step");
     expect(frame).toContain("quit");
+    setup.mockInput.pressKey("2");
+    await setup.renderOnce();
+    frame = setup.captureCharFrame();
+    expect(frame).toContain("Categories");
   });
 
   test("key 6 goes to About and ? opens the help", async () => {

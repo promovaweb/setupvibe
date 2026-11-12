@@ -22,6 +22,7 @@ import {
 } from "../ops/maintenance";
 import { currentUserName } from "../system/user";
 import { ExitCode } from "../core/app/exit-codes";
+import { parseExposed } from "../commands/maintenance";
 
 const desktop = desktopJson as Inventory;
 
@@ -40,6 +41,21 @@ describe("doctor findings", () => {
     const init = { done: true, at: "", version: "2", system: "debian" as const, prerequisites: ["build-deps", "mise"] };
     const f = setupvibeFindings({ inventory: desktop, supported: undefined, init, selection: [], home: "/h", path: "/h/.local/bin", exists: () => true, rcHasBlock: false });
     expect(f.find((x) => x.id === "shell")).toMatchObject({ level: "warn", fix: "setupvibe shell apply", safe: true });
+  });
+
+  test("variant, both editions, exposed containers and other managers are reported", () => {
+    const f = setupvibeFindings({
+      inventory: desktop, supported: undefined, init: undefined, selection: [], home: "/h", path: "", exists: () => true, rcHasBlock: true,
+      variant: "remote-exposed", otherEdition: "/usr/local/bin/setupvibe-server", exposedContainers: ["web 0.0.0.0:80->80/tcp"], elsewhere: [{ id: "node", path: "/usr/bin/node" }],
+    });
+    expect(f.find((x) => x.id === "system")!.text).toContain("remote-exposed");
+    expect(f.find((x) => x.id === "edition")!.level).toBe("warn");
+    expect(f.find((x) => x.id === "docker-exposed")!.text).toContain("web");
+    expect(f.find((x) => x.id === "other-node")!.text).toContain("/usr/bin/node");
+  });
+
+  test("docker ps lines bound to every interface are exposed", () => {
+    expect(parseExposed("web 0.0.0.0:80->80/tcp, :::80->80/tcp\ndb 127.0.0.1:5432->5432/tcp\nworker \napi [::]:8080->8080/tcp")).toEqual(["web 0.0.0.0:80->80/tcp, :::80->80/tcp", "api [::]:8080->8080/tcp"]);
   });
 
   test("SetupVibe 1 leftovers are reported (spec section 16)", () => {
@@ -212,5 +228,27 @@ describe("documentation languages", () => {
     }
     expect(docs.en.overview).toContain("# {{title}} documentation");
     expect(docs["pt-BR"].overview).toContain("# Documentação do {{title}}");
+  });
+});
+
+describe("windows and migration details", () => {
+  const { WSL_CONFIG } = require("../auto/plan") as typeof import("../auto/plan");
+
+  test("the WSL block turns on mirrored networking and keeps the Hyper-V firewall", () => {
+    expect(WSL_CONFIG).toContain("networkingMode=mirrored");
+    expect(WSL_CONFIG).toContain("firewall=true");
+    expect(WSL_CONFIG).toContain("sparseVhd=true");
+  });
+
+  test("self uninstall drops the .wslconfig block when given", () => {
+    const steps = selfUninstallSteps({ dataDir: "/h/.setupvibe", binaries: [], keepData: true, user: "u", sudoersExists: false, wslconfig: "C:\\Users\\u\\.wslconfig" });
+    expect(steps.some((s) => s.id === "wslconfig")).toBe(true);
+    expect(selfUninstallSteps({ dataDir: "/h/.setupvibe", binaries: [], keepData: true, user: "u", sudoersExists: false }).some((s) => s.id === "wslconfig")).toBe(false);
+  });
+
+  test("doctor reports a pending restart and the WSL firewall", () => {
+    const f = setupvibeFindings({ inventory: desktop, supported: undefined, init: undefined, selection: [], home: "/h", path: "", exists: () => true, rcHasBlock: true, rebootPending: true, wslOnWindows: true });
+    expect(f.find((x) => x.id === "reboot")!.level).toBe("warn");
+    expect(f.find((x) => x.id === "wsl-firewall")!.fix).toContain("New-NetFirewallHyperVRule");
   });
 });

@@ -14,6 +14,7 @@ import type { Command } from "../core/cli/registry.ts";
 import type { Inventory } from "../inventory.ts";
 import { detectSystem } from "../system/detect.ts";
 import { securityPlan } from "../security/plan.ts";
+import { readSecurityRecord, securityRecordPath, securityRemovePlan } from "../security/record.ts";
 import { DRY_RUN_OPTION, executePlan } from "./execute.ts";
 
 /** True when the user has at least one key in ~/.ssh/authorized_keys. */
@@ -55,8 +56,22 @@ const applyCommand: Command = {
   },
 };
 
+const removeCommand: Command = {
+  name: "remove",
+  description: "Undo the security module from the state recorded before it was applied; packages stay installed.",
+  longDescription: "Deletes the files SetupVibe created (SSH drop-in, fail2ban jail, automatic updates), and turns UFW and fail2ban off when they were off before. Files that existed before SetupVibe are kept.",
+  options: [DRY_RUN_OPTION],
+  exitCodes: [ExitCode.PARTIAL, ExitCode.CONFIG],
+  examples: [`${manifest.bin} security remove --dry-run`, `${manifest.bin} security remove`],
+  run: (ctx) => {
+    const record = readSecurityRecord();
+    if (!record) return { code: ExitCode.CONFIG, data: { record: false }, text: `✗ No security record in ${securityRecordPath()}: the module was not applied by this SetupVibe.` };
+    return executePlan(ctx, "security-remove", securityRemovePlan(record), { record });
+  },
+};
+
 export const securityCommand: Command = {
   name: "security",
   description: "Manage the shared security module.",
-  subcommands: [applyCommand],
+  subcommands: [applyCommand, removeCommand],
 };

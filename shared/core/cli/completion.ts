@@ -1,7 +1,7 @@
 /** Generates standalone shell completion scripts from the command registry. */
 import { GLOBAL_OPTIONS, type Command, type OptionDefinition } from "./registry.ts";
 
-export const COMPLETION_SHELLS = ["bash", "zsh", "fish"] as const;
+export const COMPLETION_SHELLS = ["bash", "zsh", "fish", "powershell"] as const;
 export type CompletionShell = (typeof COMPLETION_SHELLS)[number];
 
 interface State {
@@ -34,6 +34,45 @@ export function generateCompletion(root: Command, shell: CompletionShell): strin
   const transitions = states.flatMap((s) => s.children.map((c) => ({ key: `${s.id}:${c.name}`, id: c.id })));
   const suggestions = states.map((s) => ({ id: s.id, words: [...s.children.map((c) => c.name), ...s.options.flatMap((o) => [o.name, ...(o.aliases ?? [])])] }));
   const arguments_ = states.flatMap((s) => (s.command.arguments ?? []).map((a, i) => ({ key: `${s.id}:${i}`, values: a.values ?? [], variadic: a.variadic })));
+  if (shell === "powershell") {
+    // Walks the same transition table as the other shells: each typed word
+    // that names a subcommand moves to its state; the last word is completed.
+    const psq = (text: string) => `'${text.replaceAll("'", "''")}'`;
+    return [
+      `# Completion for ${root.name} (PowerShell). Load with: ${root.name} completion powershell | Out-String | Invoke-Expression`,
+      `$__${name}_trans = @{ ${transitions.map((t) => `${psq(t.key)} = ${psq(t.id)}`).join("; ")} }`,
+      `$__${name}_words = @{ ${states
+        .map((s) => {
+          const values = (s.command.arguments ?? []).flatMap((a) => a.values ?? []);
+          const words = [...(suggestions.find((x) => x.id === s.id)?.words ?? []), ...values];
+          return `${psq(s.id)} = @(${[...new Set(words)].map(psq).join(", ")})`;
+        })
+        .join("; ")} }`,
+      // Values of an option argument are offered only right after the option.
+      `$__${name}_optvals = @{ ${options
+        .filter((o) => o.option.argument?.values?.length)
+        .map((o) => `${psq(`${o.state}:${o.name}`)} = @(${(o.option.argument?.values ?? []).map(psq).join(", ")})`)
+        .join("; ")} }`,
+      `Register-ArgumentCompleter -Native -CommandName ${psq(root.name)} -ScriptBlock {`,
+      "  param($wordToComplete, $commandAst, $cursorPosition)",
+      "  $state = '0'",
+      "  $prev = ''",
+      "  $tokens = $commandAst.CommandElements | Select-Object -Skip 1 | ForEach-Object { $_.ToString() }",
+      "  foreach ($token in $tokens) {",
+      "    if ($token -eq $wordToComplete) { break }",
+      "    $key = \"${state}:$token\"",
+      `    if ($__${name}_trans.ContainsKey($key)) { $state = $__${name}_trans[$key] }`,
+      "    $prev = $token",
+      "  }",
+      "  $optKey = \"${state}:$prev\"",
+      `  $candidates = if ($__${name}_optvals.ContainsKey($optKey)) { $__${name}_optvals[$optKey] } else { $__${name}_words[$state] }`,
+      "  $candidates | Where-Object { $_ -like \"$wordToComplete*\" } | ForEach-Object {",
+      "    [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)",
+      "  }",
+      "}",
+      "",
+    ].join("\n");
+  }
   if (shell === "fish") {
     return [
       `# Completion for ${root.name}`, `function ${name}`,

@@ -24,6 +24,8 @@ import {
   type Renderable,
 } from "@opentui/core";
 import { manifest } from "../app/manifest.ts";
+import { systemSummary } from "../cli/commands/about.ts";
+import { tr } from "../../tui/i18n.ts";
 import { readSettings, getPath } from "../config/settings.ts";
 import { glyphs, currentTheme, type Theme } from "./theme.ts";
 import { screens } from "./screens/index.ts";
@@ -52,9 +54,10 @@ function keyBar(renderer: CliRenderer, theme: Theme, pairs: ReadonlyArray<{ key:
     gap: 2,
   });
   for (const { key, action } of pairs) {
-    const item = new BoxRenderable(renderer, { flexDirection: "row" });
-    item.add(new TextRenderable(renderer, { content: ` ${key} `, fg: theme.keyText, bg: theme.keyBackground, selectable: false }));
-    item.add(new TextRenderable(renderer, { content: ` ${action}`, fg: theme.barText, selectable: false }));
+    // Items keep their width; on a narrow terminal the bar is cut at the right instead of losing the labels.
+    const item = new BoxRenderable(renderer, { flexDirection: "row", flexShrink: 0 });
+    item.add(new TextRenderable(renderer, { content: ` ${key} `, fg: theme.keyText, bg: theme.keyBackground, selectable: false, flexShrink: 0 }));
+    item.add(new TextRenderable(renderer, { content: ` ${action}`, fg: theme.barText, selectable: false, flexShrink: 0 }));
     bar.add(item);
   }
   return bar;
@@ -85,6 +88,7 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
 
   const header = new BoxRenderable(renderer, {
     height: 1,
+    marginTop: 1,
     flexDirection: "row",
     paddingLeft: 1,
     paddingRight: 1,
@@ -95,23 +99,16 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
   brand.add(new TextRenderable(renderer, { content: manifest.title, fg: theme.textStrong, attributes: TextAttributes.BOLD }));
   brand.add(new TextRenderable(renderer, { content: ` v${manifest.version}`, fg: theme.textDim }));
   header.add(brand);
+  // The description lives on the About tab; the header shows where SetupVibe runs.
+  header.add(new BoxRenderable(renderer, { flexGrow: 1, flexShrink: 1, minWidth: 0 }));
   header.add(
     new TextRenderable(renderer, {
-      content: `${glyphs.separator}  ${manifest.description}`,
+      content: systemSummary(),
       fg: theme.textDim,
-      wrapMode: "none",
-      flexGrow: 1,
       flexShrink: 1,
       minWidth: 0,
-      height: 1,
-    }),
-  );
-  header.add(
-    new TextRenderable(renderer, {
-      content: `${process.platform}-${process.arch} ${glyphs.bullet} Bun ${Bun.version}`,
-      fg: theme.textDim,
-      flexShrink: 0,
       wrapMode: "none",
+      height: 1,
     }),
   );
   app.add(header);
@@ -123,8 +120,9 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
   const tabs = new TabSelectRenderable(renderer, {
     width: "100%",
     height: 2,
-    tabWidth: 14,
-    options: screens.map((s) => ({ name: s.title, description: s.description })),
+    // Numbered titles show the 1-9 shortcuts.
+    tabWidth: Math.max(...screens.map((s) => s.title.length)) + 6,
+    options: screens.map((s, i) => ({ name: `${i + 1} ${s.title}`, description: s.description })),
     backgroundColor: theme.background,
     textColor: theme.textDim,
     focusedBackgroundColor: theme.background,
@@ -142,10 +140,10 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
   app.add(content);
 
   const globalKeys = [
-    { key: "←/→", action: "tab" },
-    { key: "1-9", action: "go" },
-    { key: "?", action: "help" },
-    { key: "q", action: "quit" },
+    { key: "←/→", action: tr("global.tab") },
+    { key: "1-6", action: tr("global.go") },
+    { key: "?", action: tr("global.help") },
+    { key: "q", action: tr("global.quit") },
   ];
   let footer = keyBar(renderer, theme, globalKeys);
   app.add(footer);
@@ -203,18 +201,18 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
         borderStyle: "rounded",
         borderColor: theme.borderActive,
         backgroundColor: theme.surfaceHigh,
-        title: " Keys ",
+        title: ` ${tr("help.title")} `,
         titleColor: theme.accent,
         paddingLeft: 1,
         paddingRight: 1,
         zIndex: 10,
       });
       const rows: Array<[string, string]> = [
-        ["←  →  [  ]", "previous / next tab"],
-        ["Tab", "next tab"],
-        ["1 … 9", "go to the tab with that number"],
-        ["?", "show or hide this help"],
-        ["q  Esc  Ctrl+C", "quit"],
+        ["←  →  [  ]", tr("help.tabs")],
+        ["Tab", tr("help.next")],
+        ["1 … 6", tr("help.go")],
+        ["?", tr("help.toggle")],
+        ["q  Esc  Ctrl+C", tr("help.quit")],
       ];
       for (const [k, v] of rows) {
         const row = new BoxRenderable(renderer, { flexDirection: "row" });

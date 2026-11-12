@@ -137,8 +137,39 @@ try {
     if (r.code !== 0) failed = true;
   }
 
+  if (edition === "server") {
+    phase("security record, remove and apply; swarm token");
+    const manager = extra.includes("--manager");
+    const steps: [string, string[]][] = [
+      ["security record written before the module", ["sh", "-c", "test -s ~/.setupvibe/state/security.json && grep -q ufwActive ~/.setupvibe/state/security.json"]],
+      ["security remove --dry-run lists the jail", ["sh", "-c", `${bin} security remove --dry-run | grep -q jail.d/setupvibe.local`]],
+      // auto removed the temporary NOPASSWD rule: without a terminal, the command stops before changing anything.
+      ["without passwordless sudo it stops with 13", ["sh", "-c", `${bin} security remove; [ $? = 13 ]`]],
+      ["root adds a temporary NOPASSWD rule", ["sh", "-c", `sudo -n true 2>/dev/null || exit 0`]],
+      ["security remove", [bin, "security", "remove"]],
+      ["jail and record gone", ["sh", "-c", "[ ! -e /etc/fail2ban/jail.d/setupvibe.local ] && [ ! -e ~/.setupvibe/state/security.json ]"]],
+      ["security apply again", [bin, "security", "apply"]],
+      ["jail and record back", ["sh", "-c", "[ -e /etc/fail2ban/jail.d/setupvibe.local ] && [ -s ~/.setupvibe/state/security.json ]"]],
+      manager
+        ? ["swarm token prints a worker token", ["sh", "-c", `${bin} swarm token | grep -q '^SWMTKN-'`]]
+        : ["swarm token refuses outside a manager", ["sh", "-c", `${bin} swarm token; [ $? = 3 ]`]],
+    ];
+    for (const [label, cmd] of steps) {
+      // The NOPASSWD rule is root's job, as an operator would do it.
+      const asRootStep = label.startsWith("root ");
+      const command = asRootStep ? [bin, "user", "nopasswd", asRoot ? "deploy" : "tester"] : cmd;
+      const r = await sh(["docker", "exec", ...(asRootStep ? [] : runAs), name, ...command], { quiet: true, allowFail: true });
+      console.error(`${r.code === 0 ? "✓" : "✗"} ${label} (exit ${r.code})`);
+      if (r.code !== 0) {
+        failed = true;
+        console.error(r.out.split("\n").slice(-5).join("\n"));
+      }
+    }
+    await sh(["docker", "exec", name, bin, "user", "nopasswd", asRoot ? "deploy" : "tester", "--remove"], { quiet: true, allowFail: true });
+  }
+
   phase("check");
-  const r3 = await sh(["docker", "exec", ...runAs, name, bin, "check", ...(asRoot ? [] : [])], { allowFail: true });
+  const r3 =await sh(["docker", "exec", ...runAs, name, bin, "check", ...(asRoot ? [] : [])], { allowFail: true });
   if (r3.code !== 0) failed = true;
 
   if (edition === "desktop" && !asRoot) {

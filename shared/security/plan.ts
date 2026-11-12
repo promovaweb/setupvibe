@@ -16,6 +16,7 @@
 import type { System } from "../inventory.ts";
 import type { Step } from "../exec/runner.ts";
 import { nativeInstallCmd } from "../install/methods.ts";
+import { recordStep } from "./record.ts";
 
 /** Docker Swarm ports opened on the server. */
 export const SWARM_PORTS = ["2377/tcp", "7946/tcp", "7946/udp", "4789/udp"] as const;
@@ -54,6 +55,7 @@ export function securityPlan(o: SecurityOptions): SecurityPlan {
   const apt = !["arch", "omarchy"].includes(o.system);
   const packages = apt ? ["ufw", "fail2ban", "unattended-upgrades", "systemd-timesyncd"] : ["ufw", "fail2ban"];
   const steps: Step[] = [
+    recordStep(),
     { id: "security-packages", description: `Install ${packages.join(", ")}`, commands: nativeInstallCmd(o.system, packages) },
     {
       id: "ufw",

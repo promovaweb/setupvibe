@@ -26,6 +26,8 @@ export interface Cmd {
   retries?: number;
   /** Environment variables removed for this command, such as PSModulePath. */
   unsetEnv?: string[];
+  /** Time limit in milliseconds; DEFAULT_TIMEOUT_MS when omitted. */
+  timeoutMs?: number;
 }
 
 /** Environment of a command: the process environment, the defaults, the command's own, minus `unsetEnv`. */
@@ -50,6 +52,13 @@ export interface Step {
    */
   action?: (runner: Runner) => Promise<void>;
   actionDescription?: string;
+  /** The action runs sudo commands itself (so the sudo check covers it). */
+  actionSudo?: boolean;
+}
+
+/** True when a plan runs anything through sudo. */
+export function planNeedsSudo(steps: Step[]): boolean {
+  return steps.some((s) => s.actionSudo || s.skipIf?.sudo || s.commands.some((c) => c.sudo));
 }
 
 export interface CmdResult {
@@ -98,8 +107,9 @@ export function describeCmd(cmd: Cmd): string {
 }
 
 /** Runner that spawns processes. */
-export function realRunner(): Runner {
+export function realRunner(options: { verbose?: boolean } = {}): Runner {
   const root = isRoot();
+  const verbose = options.verbose ?? process.env.SETUPVIBE_VERBOSE === "1";
   return {
     dryRun: false,
     async exec(cmd) {
@@ -109,10 +119,35 @@ export function realRunner(): Runner {
         stdout: "pipe",
         stderr: "pipe",
       });
-      const [stdout, stderr] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()]);
-      return { code: await proc.exited, stdout, stderr };
+      const timeoutMs = cmd.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+      let timedOut = false;
+      const timer = setTimeout(() => {
+        timedOut = true;
+        proc.kill();
+      }, timeoutMs);
+      if (verbose) process.stderr.write(`$ ${describeCmd(cmd)}\n`);
+      const [stdout, stderr] = await Promise.all([collect(proc.stdout, verbose), collect(proc.stderr, verbose)]);
+      const code = await proc.exited;
+      clearTimeout(timer);
+      if (timedOut) return { code: 124, stdout, stderr: `${stderr}\ntimed out after ${Math.round(timeoutMs / 60_000)} min` };
+      return { code, stdout, stderr };
     },
   };
+}
+
+/** Time limit of a command unless it sets its own: 30 minutes. */
+export const DEFAULT_TIMEOUT_MS = 30 * 60_000;
+
+/** Reads a stream to text, echoing it to stderr in verbose runs. */
+async function collect(stream: ReadableStream<Uint8Array>, echo: boolean): Promise<string> {
+  const decoder = new TextDecoder();
+  let text = "";
+  for await (const chunk of stream) {
+    const part = decoder.decode(chunk, { stream: true });
+    text += part;
+    if (echo) process.stderr.write(part);
+  }
+  return text + decoder.decode();
 }
 
 /**

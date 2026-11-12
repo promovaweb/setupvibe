@@ -39,6 +39,18 @@ import { readSshKey } from "./user.ts";
 import { planText } from "./execute.ts";
 import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
 
+/**
+ * Closing text of auto: the result, the parts skipped (security parts
+ * included, so nobody assumes SSH was hardened when it was not) and the hint
+ * to open a new shell when the shell files changed.
+ */
+export function finalText(r: { failed: number; log: string; skipped: { id: string; reason: string }[]; shell: boolean }): string {
+  const head = r.failed ? `${color.error(`${r.failed} item(s) failed.`)} See ${r.log}` : `${color.ok("Everything installed and checked.")} Log: ${r.log}`;
+  const skipped = r.skipped.length ? `\n\nSkipped:\n${r.skipped.map((s) => `- ${s.id}: ${s.reason}`).join("\n")}` : "";
+  const shell = r.shell ? "\n\nOpen a new terminal, or run: exec $SHELL -l, to load the new PATH, aliases and prompt." : "";
+  return `${head}${skipped}${shell}`;
+}
+
 /** Options that only the root phase uses and the user phase must not see. */
 const ROOT_ONLY = ["--user", "--ssh-key"];
 
@@ -68,8 +80,40 @@ export function childArgs(args: string[]): string[] {
 }
 
 /** True when the system asks for a restart (Debian and Ubuntu). */
-export function rebootRequired(): boolean {
+export function rebootRequired(platform = process.platform, regKeyExists: (key: string) => boolean = windowsKeyExists): boolean {
+  if (platform === "win32") return WINDOWS_REBOOT_KEYS.some((k) => regKeyExists(k));
   return existsSync("/var/run/reboot-required");
+}
+
+/** Registry keys Windows creates while a restart is pending. */
+export const WINDOWS_REBOOT_KEYS = [
+  "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\RebootPending",
+  "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\RebootRequired",
+];
+
+function windowsKeyExists(key: string): boolean {
+  return Bun.spawnSync(["reg", "query", key], { stdout: "ignore", stderr: "ignore" }).exitCode === 0;
+}
+
+/** Name of the scheduled task that resumes auto on Windows. */
+export const WINDOWS_RESUME_TASK = "SetupVibeAutoResume";
+
+/**
+ * Windows: a scheduled task at the next logon runs auto again with the
+ * highest privileges and deletes itself, then Windows restarts.
+ */
+export function windowsRebootSteps(command: string[]): Step[] {
+  const quoted = command.map((a) => (/[\s"]/.test(a) ? `"${a.replaceAll('"', '\\"')}"` : a)).join(" ");
+  return [
+    {
+      id: "reboot",
+      description: "Schedule the rest of auto at the next logon and restart now",
+      commands: [
+        { argv: ["schtasks", "/Create", "/TN", WINDOWS_RESUME_TASK, "/SC", "ONLOGON", "/RL", "HIGHEST", "/F", "/TR", `cmd /d /c ${quoted} & schtasks /Delete /TN ${WINDOWS_RESUME_TASK} /F`] },
+        { argv: ["shutdown", "/r", "/t", "10", "/c", "SetupVibe resumes after the restart"] },
+      ],
+    },
+  ];
 }
 
 /** Steps that resume auto after a restart through a one-shot systemd unit. */
@@ -106,6 +150,7 @@ const OPTIONS = [
   { name: "--keep-nopasswd", description: "Keep the sudo rule without password created by auto. Env: SETUPVIBE_KEEP_NOPASSWD=1." },
   { name: "--encrypted-network", description: "Server: encrypt the traffic of the overlay network. Env: SETUPVIBE_SWARM_ENCRYPTED=1." },
   { name: "--pm2-autostart", description: "Start PM2 and its saved apps at boot. Env: SETUPVIBE_PM2_AUTOSTART=1." },
+  { name: "--tailscale-ssh", description: "Turn on Tailscale SSH after joining the tailnet. Env: SETUPVIBE_TAILSCALE_SSH=1." },
   { name: "--config", argument: { name: "file" }, description: "Answers file in the config export format, without secrets." },
   { name: "--plan", argument: { name: "file" }, description: "Write the plan as JSON to a file and exit without changes." },
   { name: "--dry-run", description: "Print the plan without changing anything." },
@@ -237,14 +282,15 @@ async function run(ctx: Context) {
 
     if (rebootRequired()) {
       if (answers.reboot) {
-        await runSteps(rebootSteps(user.username, [...selfArgv(), ...childArgs(process.argv.slice(2))]), runner);
+        const resume = [...selfArgv(), ...childArgs(process.argv.slice(2))];
+        await runSteps(process.platform === "win32" ? windowsRebootSteps(resume) : rebootSteps(user.username, resume), runner);
       }
       return { code: ExitCode.REBOOT_PENDING, data: lastRun, text: `${color.warn("!")} Restart needed${answers.reboot ? "; restarting and resuming automatically." : ". Run auto again after the restart, or pass --reboot."}` };
     }
     return {
       code: failed ? ExitCode.PARTIAL : ExitCode.SUCCESS,
       data: lastRun,
-      text: () => (failed ? `${color.error(`${failed} item(s) failed.`)} See ${log.path}` : `${color.ok("Everything installed and checked.")} Log: ${log.path}`),
+      text: () => finalText({ failed, log: log.path, skipped: plan.skipped, shell: plan.steps.some((s) => s.id.startsWith("shell")) }),
     };
   } finally {
     release();

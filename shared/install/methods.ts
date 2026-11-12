@@ -36,7 +36,7 @@ const list = (v: string | string[] | undefined): string[] => (v === undefined ? 
 /** Native package install command for a system. */
 export function nativeInstallCmd(system: System, packages: string[]): Cmd[] {
   if (DEBIAN_FAMILY.includes(system)) {
-    return [{ argv: ["apt-get", "install", "-y", "-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold", ...packages], sudo: true, retries: 3 }];
+    return [{ argv: ["apt-get", "install", "-y", "-o", "DPkg::Lock::Timeout=600", "-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold", ...packages], sudo: true, retries: 3 }];
   }
   if (system === "omarchy") return [{ argv: ["omarchy", "pkg", "add", ...packages] }];
   if (system === "arch") return [{ argv: ["pacman", "-S", "--noconfirm", "--needed", ...packages], sudo: true, retries: 3 }];
@@ -46,7 +46,7 @@ export function nativeInstallCmd(system: System, packages: string[]): Cmd[] {
 
 /** Refreshes the package index once before native installs. */
 export function nativeRefreshCmd(system: System): Cmd | undefined {
-  if (DEBIAN_FAMILY.includes(system)) return { argv: ["apt-get", "update"], sudo: true, retries: 3 };
+  if (DEBIAN_FAMILY.includes(system)) return { argv: ["apt-get", "-o", "DPkg::Lock::Timeout=600", "update"], sudo: true, retries: 3 };
   if (system === "arch") return { argv: ["pacman", "-Sy", "--noconfirm"], sudo: true };
   return undefined;
 }

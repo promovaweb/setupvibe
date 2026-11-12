@@ -14,12 +14,16 @@
  */
 import { runCli } from "./cli/index.ts";
 import { ExitCode } from "./app/exit-codes.ts";
+import { startup } from "../startup.ts";
 
 /** Runs the binary with the given arguments and exits the process. */
 export async function run(argv: string[]): Promise<never> {
   process.on("SIGINT", () => {
     process.exit(ExitCode.INTERRUPTED);
   });
+
+  const stop = await startup(argv);
+  if (stop !== undefined) process.exit(stop);
 
   const noArguments = argv.length === 0;
   const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY);

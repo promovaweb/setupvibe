@@ -13,7 +13,7 @@ import type { InitRecord } from "../init/plan.ts";
 import { missingPrerequisites } from "../init/plan.ts";
 import type { SelectedItem } from "./inventory-ops.ts";
 import type { Step } from "../exec/runner.ts";
-import { BLOCK_START } from "../shell/config.ts";
+import { BLOCK_START, dropBlock } from "../shell/config.ts";
 import { maskSecrets } from "../state/log.ts";
 
 export type Level = "ok" | "warn" | "fail";
@@ -50,11 +50,28 @@ export function setupvibeFindings(input: {
   path?: string;
   exists?: (p: string) => boolean;
   rcHasBlock: boolean;
+  /** Detected variant, such as desktop-remote. */
+  variant?: string;
+  /** Path of the other edition binary when both are installed. */
+  otherEdition?: string;
+  /** Docker containers publishing a port on every interface, as "name ports". */
+  exposedContainers?: string[];
+  /** Selected tools whose command resolves to another manager first. */
+  elsewhere?: Array<{ id: string; path: string }>;
+  /** A restart is pending (reboot-required on Linux, registry keys on Windows). */
+  rebootPending?: boolean;
+  /** Windows with the WSL base selected: explain the Hyper-V firewall. */
+  wslOnWindows?: boolean;
 }): Finding[] {
   const home = input.home ?? homedir();
   const exists = input.exists ?? existsSync;
   const out: Finding[] = [];
-  out.push(input.supported ? { id: "system", level: "fail", text: input.supported } : { id: "system", level: "ok", text: "system supported" });
+  out.push(input.supported ? { id: "system", level: "fail", text: input.supported } : { id: "system", level: "ok", text: `system supported${input.variant ? ` (variant ${input.variant})` : ""}` });
+  if (input.otherEdition) out.push({ id: "edition", level: "warn", text: `both editions are installed; the other one is at ${input.otherEdition}`, fix: "keep one edition per machine: run self uninstall on the one you do not use" });
+  if (input.exposedContainers?.length) out.push({ id: "docker-exposed", level: "warn", text: `containers publish ports on every interface: ${input.exposedContainers.join("; ")}`, fix: "publish on 127.0.0.1 (-p 127.0.0.1:PORT:PORT) and reach them through SSH or Tailscale" });
+  if (input.rebootPending) out.push({ id: "reboot", level: "warn", text: "a restart is pending", fix: "restart, then run auto again; auto --reboot does both" });
+  if (input.wslOnWindows) out.push({ id: "wsl-firewall", level: "warn", text: "the Hyper-V firewall blocks inbound connections to WSL; SetupVibe keeps that default", fix: "open only the port you need: New-NetFirewallHyperVRule -Name <name> -DisplayName <name> -Direction Inbound -VMCreatorId '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -Protocol TCP -LocalPorts <port>" });
+  for (const e of input.elsewhere ?? []) out.push({ id: `other-${e.id}`, level: "warn", text: `${e.id}: the command in PATH comes from ${e.path}, not from mise`, fix: "remove the other copy or put the mise shims first in PATH" });
   const missing = missingPrerequisites(input.inventory, input.init);
   out.push(missing.length ? { id: "init", level: "fail", text: `prerequisites pending: ${missing.join(", ")}`, fix: "setupvibe init" } : { id: "init", level: "ok", text: "init completed" });
   const failed = input.selection.filter((s) => s.status === "fail").map((s) => s.id);
@@ -168,7 +185,7 @@ export const SSH_TARGET = /^([a-z_][a-z0-9_.-]*@)?[A-Za-z0-9.-]+$|^([a-z_][a-z0-
 export const MANAGED_DATA = ["config.json", "selection.json", "external.json", "last-run.json", "run.lock", "state", "logs", "shell", "tmp"];
 
 /** Steps that remove SetupVibe itself (self uninstall). */
-export function selfUninstallSteps(input: { dataDir: string; binaries: string[]; keepData: boolean; user: string; sudoersExists: boolean }): Step[] {
+export function selfUninstallSteps(input: { dataDir: string; binaries: string[]; keepData: boolean; user: string; sudoersExists: boolean; wslconfig?: string }): Step[] {
   const steps: Step[] = [];
   if (input.sudoersExists) {
     steps.push({ id: "sudoers", description: `Remove the SetupVibe sudo rule of ${input.user}`, commands: [{ argv: ["rm", "-f", `/etc/sudoers.d/90-setupvibe-${input.user}`], sudo: true }] });
@@ -176,6 +193,10 @@ export function selfUninstallSteps(input: { dataDir: string; binaries: string[];
   for (const bin of input.binaries) {
     const system = bin.startsWith("/usr/") || bin.startsWith("/opt/");
     steps.push({ id: `binary:${bin}`, description: `Remove ${bin}`, commands: [{ argv: ["rm", "-f", bin], ...(system ? { sudo: true } : {}) }] });
+  }
+  if (input.wslconfig) {
+    const file = input.wslconfig;
+    steps.push({ id: "wslconfig", description: `Remove the SetupVibe block from ${file}`, commands: [], actionDescription: `drop the SetupVibe block in ${file}`, action: async () => void dropBlock(file) });
   }
   const paths = input.keepData ? [join(input.dataDir, "shell")] : MANAGED_DATA.map((p) => join(input.dataDir, p));
   steps.push({
