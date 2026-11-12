@@ -71,6 +71,9 @@ jobs:
       - run: ./dist/setupvibe system --no-update-check
       - run: ./dist/setupvibe auto --profile essencial --dry-run
       - name: auto
+        env:
+          # mise reads it to avoid the anonymous GitHub API limit.
+          GITHUB_TOKEN: ${{ github.token }}
         run: ./dist/setupvibe auto --profile essencial --skip-network-check && ./dist/setupvibe check
 
   windows:
@@ -86,6 +89,8 @@ jobs:
       - run: .\dist\setupvibe.exe system --no-update-check
       - run: .\dist\setupvibe.exe auto --profile essencial --dry-run
       - name: auto
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           .\dist\setupvibe.exe auto --profile essencial --skip-network-check
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

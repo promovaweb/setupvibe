@@ -4,6 +4,20 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.11] - 2026-11-12
+
+### Fixed
+
+- Neovim installs from its release binary (`aqua:neovim/neovim`, same pinned 0.12.6). The registry default was a vfox plugin fetched at install time, which failed on the Windows runner of the `v2.0.0-dev.10` tag.
+- CI passes the GitHub token to the real `auto` runs, so mise does not hit the anonymous GitHub API limit.
+
+### Validation
+
+- CI of `v2.0.0-dev.10`: the `v2` branch run passed every job; the tag run published the release binaries through the release job, and its Windows job hit the Neovim failure fixed here.
+- `bun run validate` with 252 tests.
+
+---
+
 ## [v2.0.0-dev.10] - 2026-11-12
 
 ### Fixed

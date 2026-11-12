@@ -27,4 +27,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run build
       - run: ./dist/setupvibe system --no-update-check
-      - run: ./dist/setupvibe auto --profile essencial --skip-network-check && ./dist/setupvibe check
+      - name: auto
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./dist/setupvibe auto --profile essencial --skip-network-check && ./dist/setupvibe check

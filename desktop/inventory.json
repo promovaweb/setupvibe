@@ -1029,7 +1029,8 @@
       "install": {
         "all": {
           "method": "mise",
-          "tool": "neovim"
+          "tool": "aqua:neovim/neovim",
+          "note": "The registry default is a vfox plugin downloaded at install time, which failed on Windows CI; aqua uses the release binary."
         },
         "omarchy": {
           "method": "preinstalled"
