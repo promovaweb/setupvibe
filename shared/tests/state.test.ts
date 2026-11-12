@@ -73,8 +73,9 @@ describe("checksums", () => {
   });
 
   test("finds a file in a checksum list", () => {
-    const list = `${"a".repeat(64)}  node-v24.tar.gz\n${"b".repeat(64)} *other.zip\n`;
+    const list = `${"a".repeat(64)}  node-v24.tar.gz\n${"b".repeat(64)} *other.zip\n${"c".repeat(64)}  ./mise-v1-linux-x64\n`;
     expect(findInChecksumList(list, "other.zip")).toBe("b".repeat(64));
+    expect(findInChecksumList(list, "mise-v1-linux-x64")).toBe("c".repeat(64));
     expect(findInChecksumList(list, "missing")).toBeUndefined();
   });
 });

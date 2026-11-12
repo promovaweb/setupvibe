@@ -43,12 +43,13 @@ export function verify(data: Uint8Array | string, expected: string, algorithm: A
 
 /**
  * Finds the digest of `fileName` in a checksums file such as
- * `SHASUMS256.txt` (`<hex>  <name>` per line).
+ * `SHASUMS256.txt` (`<hex>  <name>` per line). A leading `./` in the name
+ * is ignored, as some releases publish it that way.
  */
 export function findInChecksumList(list: string, fileName: string): string | undefined {
   for (const line of list.split("\n")) {
     const match = line.trim().match(/^([0-9a-fA-F]{64,128})\s+\*?(.+)$/);
-    if (match && match[2]!.trim() === fileName) return match[1]!.toLowerCase();
+    if (match && match[2]!.trim().replace(/^\.\//, "") === fileName) return match[1]!.toLowerCase();
   }
   return undefined;
 }

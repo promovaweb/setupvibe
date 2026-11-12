@@ -35,6 +35,8 @@ export interface DetectedSystem {
   variant: Variant;
   /** Why the system is not supported, when it is not. */
   unsupportedReason?: string;
+  /** Distribution, codename and Ubuntu base codename for APT repositories. */
+  distro?: { distro: string; codename: string; ubuntuCodename?: string };
 }
 
 /** Minimum versions per system (spec section 2). */
@@ -145,6 +147,21 @@ export function isPublicAddress(address: string): boolean {
   return true;
 }
 
+/**
+ * Distribution info for APT repositories. Mint and Zorin use the Ubuntu
+ * repositories of their base release.
+ */
+export function distroInfoFromOsRelease(fields: Record<string, string>): { distro: string; codename: string; ubuntuCodename?: string } {
+  const id = (fields.ID ?? "").toLowerCase();
+  const ubuntuCodename = fields.UBUNTU_CODENAME;
+  const ubuntuBased = id === "linuxmint" || id === "zorin";
+  return {
+    distro: ubuntuBased ? "ubuntu" : id,
+    codename: ubuntuBased && ubuntuCodename ? ubuntuCodename : (fields.VERSION_CODENAME ?? ""),
+    ...(ubuntuCodename ? { ubuntuCodename } : {}),
+  };
+}
+
 /** Variant from headless and public IP flags. */
 export function variantOf(headless: boolean, publicIp: boolean): Variant {
   if (!headless) return "local";
@@ -201,6 +218,7 @@ export function detectSystem(allowed: readonly System[]): DetectedSystem {
   let name = platform as string;
   let version = "";
   let wsl = false;
+  let distro: DetectedSystem["distro"];
 
   if (platform === "linux") {
     const fields = parseOsRelease(readText("/etc/os-release"));
@@ -210,6 +228,7 @@ export function detectSystem(allowed: readonly System[]): DetectedSystem {
     id = fields.ID ?? "linux";
     name = fields.PRETTY_NAME ?? "Linux";
     version = fields.VERSION_ID ?? "";
+    distro = distroInfoFromOsRelease(fields);
   } else if (platform === "darwin") {
     system = "macos";
     id = "darwin";
@@ -233,5 +252,6 @@ export function detectSystem(allowed: readonly System[]): DetectedSystem {
     publicIp,
     variant: variantOf(headless, publicIp),
     unsupportedReason: unsupportedReason(system, version, arch, allowed),
+    ...(distro ? { distro } : {}),
   };
 }
