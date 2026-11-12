@@ -6,7 +6,8 @@
  * returns a status and, when it fails, the exit code and the fix.
  */
 import { statfsSync } from "node:fs";
-import { homedir, totalmem } from "node:os";
+import { totalmem } from "node:os";
+import { homedir } from "../system/home.ts";
 import { ExitCode } from "../core/app/exit-codes.ts";
 
 export type CheckStatus = "ok" | "warn" | "fail";

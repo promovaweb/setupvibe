@@ -9,7 +9,7 @@
  * Spec sections 9, 12 and 18.
  */
 import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { join } from "node:path";
 import type { Inventory, Item, System } from "../inventory.ts";
 import { resolveInstall } from "../inventory.ts";

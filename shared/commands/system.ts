@@ -13,7 +13,7 @@ import { blocks, section, table } from "../core/cli/format.ts";
 import type { Command } from "../core/cli/registry.ts";
 import type { Inventory } from "../inventory.ts";
 import { detectSystem } from "../system/detect.ts";
-import { homedir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { detectV1Here } from "../legacy/v1.ts";
 import { checkForUpdate } from "../state/update.ts";
 

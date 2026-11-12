@@ -206,3 +206,13 @@ describe("inventory bump for release archives", () => {
     for (const e of Object.values(next.install)) if (e?.method === "archive") expect(e.files!.map((f) => f.sha256)).toEqual(["aa", "bb"]);
   });
 });
+
+describe("coverage minimum", () => {
+  const { totals, MINIMUM } = require("../../scripts/coverage-check") as typeof import("../../scripts/coverage-check");
+  test("the All files row is read and compared with the minimum", () => {
+    const t = totals("File | % Funcs | % Lines | Uncovered\n---\nAll files                                |   87.80 |   90.36 |\n shared/x.ts | 10 | 20 | 3-4");
+    expect(t).toEqual({ functions: 87.8, lines: 90.36 });
+    expect(t!.lines >= MINIMUM.lines && t!.functions >= MINIMUM.functions).toBe(true);
+    expect(totals("no report")).toBeUndefined();
+  });
+});

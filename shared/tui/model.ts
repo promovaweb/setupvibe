@@ -7,7 +7,7 @@
  * - doctor: requirements, pending prerequisites and failed items.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { homedir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { currentUser } from "../system/user.ts";
 import { join } from "node:path";
 import type { Inventory, Item, System } from "../inventory.ts";

@@ -4,6 +4,24 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.18] - 2026-11-12
+
+### Added
+
+- Unit test coverage from 81.7% to 89.8% of lines and from 75.5% to 87.5% of functions: commands run in-process with a simulated context (system, list, doctor, install, remove, update, check, auto, init, security, shell, user, self uninstall, config, report, ssh, migrate, about, credentials, mcp install), the MCP tool handlers with a replaceable CLI runner, plan execution with a simulated runner, the init prompts and the coverage report reader.
+- `bun run coverage` (`scripts/coverage-check.ts`) and a CI step that fails when the whole suite falls below 88% of lines or 85% of functions. The built-in Bun threshold applies per file, so the script checks the total.
+
+### Fixed
+
+- SetupVibe respects a changed `HOME` (USERPROFILE on Windows): Bun caches `os.homedir()`, which ignored `sudo -H`, CI and test homes.
+- The Git identity of `init` runs `git config` with the current environment; `Bun.spawnSync` without `env` used the environment the process started with.
+
+### Validation
+
+- `bun run validate` with 350 tests and `bun run coverage` above the minimum.
+
+---
+
 ## [v2.0.0-dev.17] - 2026-11-12
 
 ### Changed

@@ -1,4 +1,8 @@
 # Bun configuration for SetupVibe 2.
 # Tests live in shared/tests, desktop/tests and server/tests.
+#
+# Coverage is off for the everyday `bun test`. `bun run coverage` (also in the
+# CI) runs scripts/coverage-check.ts, which turns it on and fails when the
+# whole suite falls below its minimum.
 [test]
-coverage = false
+coverageReporter = ["text"]

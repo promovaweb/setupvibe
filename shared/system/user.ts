@@ -7,7 +7,8 @@
  * from `id -un`, which follows the real UID; variables are only a fallback.
  * Found by the container tests, where `chsh` targeted a user named "unknown".
  */
-import { homedir, userInfo } from "node:os";
+import { userInfo } from "node:os";
+import { homedir } from "./home.ts";
 
 /** Name of the running user: `id -un` on Unix, then USER/LOGNAME, then os.userInfo. */
 export function currentUserName(env: Record<string, string | undefined> = process.env): string {

@@ -16,7 +16,7 @@
  * - apps outside the inventory are installed through mise with a pinned
  *   version and recorded in external.json.
  */
-import { homedir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { join } from "node:path";
 import type { Inventory, Item, System } from "../inventory.ts";
 import { resolveInstall, withVersion } from "../inventory.ts";

@@ -21,7 +21,7 @@
  * - tmux: the SetupVibe settings and TPM, then ~/.tmux.conf.local.
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { dirname, join, basename } from "node:path";
 import type { System } from "../inventory.ts";
 import type { Step } from "../exec/runner.ts";

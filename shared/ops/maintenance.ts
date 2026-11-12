@@ -6,7 +6,7 @@
  * Spec sections 8, 10, 16 and 17.
  */
 import { existsSync, readdirSync } from "node:fs";
-import { homedir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { join } from "node:path";
 import type { Inventory } from "../inventory.ts";
 import type { InitRecord } from "../init/plan.ts";

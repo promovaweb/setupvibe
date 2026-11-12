@@ -11,7 +11,7 @@
  * nothing.
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { dirname, join } from "node:path";
 import { manifest } from "../core/app/manifest.ts";
 import { ExitCode } from "../core/app/exit-codes.ts";

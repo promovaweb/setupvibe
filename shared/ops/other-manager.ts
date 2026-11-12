@@ -6,7 +6,7 @@
  * It still tells the person: `list` and the TUI show the status `other`, and
  * `install` prints where the existing command comes from.
  */
-import { homedir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { join } from "node:path";
 import type { Item } from "../inventory.ts";
 

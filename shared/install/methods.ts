@@ -10,7 +10,7 @@
  * here; their modules build the steps instead.
  */
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { dirname, join } from "node:path";
 import type { InstallEntry, Inventory, Item, Repository, System } from "../inventory.ts";
 import { resolveInstall, withVersion } from "../inventory.ts";

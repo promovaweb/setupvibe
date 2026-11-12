@@ -12,7 +12,8 @@
  * - `ssh copy-id <user@host>`: installs a public key on a remote server.
  */
 import { chmodSync, existsSync, mkdtempSync, readFileSync, renameSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
-import { homedir, tmpdir } from "node:os";
+import { tmpdir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { currentUser } from "../system/user.ts";
 import { dirname, join } from "node:path";
 import { manifest } from "../core/app/manifest.ts";

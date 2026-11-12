@@ -16,7 +16,7 @@
  * `--dry-run` prints the plan, including the lines that would move.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { join } from "node:path";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";

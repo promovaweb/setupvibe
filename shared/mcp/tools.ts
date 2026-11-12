@@ -67,26 +67,26 @@ function reply(run: CliRun) {
 const items = z.array(z.string().regex(/^[a-z0-9][a-z0-9-]*$/)).min(1).describe("Inventory item ids, as listed by the list tool.");
 
 /** Registers the SetupVibe tools on the MCP server. */
-export function registerSetupVibeTools({ server, catalog }: Registrar): void {
+export function registerSetupVibeTools({ server, catalog }: Registrar, runCli: (args: string[]) => Promise<CliRun> = runCliJson): void {
   const add = (name: string, description: string) => catalog.tools.push({ name, description });
 
   add("system", "Detected system, version, architecture, WSL, headless and public IP flags, and the machine variant.");
   server.registerTool("system", { title: "Detected system", description: "Returns what SetupVibe detected about this machine.", inputSchema: {}, annotations: { readOnlyHint: true } }, async () =>
-    reply(await runCliJson(["system", "--no-update-check"])),
+    reply(await runCli(["system", "--no-update-check"])),
   );
 
   add("list", "Inventory items with their status on this system.");
   server.registerTool(
     "list",
     { title: "Inventory", description: "Lists inventory items with status (installed, outdated, failed, available, gui, system, init, unavailable).", inputSchema: { category: z.string().optional().describe("Only one category id.") }, annotations: { readOnlyHint: true } },
-    async ({ category }) => reply(await runCliJson(["list", ...(category ? ["--category", category] : [])])),
+    async ({ category }) => reply(await runCli(["list", ...(category ? ["--category", category] : [])])),
   );
 
   add("check", "Verifies installed items against their pinned versions.");
   server.registerTool(
     "check",
     { title: "Check items", description: "Runs each item's check. Without items, checks the selection.", inputSchema: { items: items.optional() }, annotations: { readOnlyHint: true } },
-    async ({ items: ids }) => reply(await runCliJson(["check", ...(ids ?? [])])),
+    async ({ items: ids }) => reply(await runCli(["check", ...(ids ?? [])])),
   );
 
   add("install", "Installs inventory items; a dry run unless dry_run is false.");
@@ -97,7 +97,7 @@ export function registerSetupVibeTools({ server, catalog }: Registrar): void {
       description: "Installs items and their requirements. Returns the plan when dry_run is true (default). Requires a completed init.",
       inputSchema: { items, dry_run: z.boolean().default(true).describe("Preview without changes. Set false to install."), force: z.boolean().default(false).describe("Reinstall items that already pass their check.") },
     },
-    async ({ items: ids, dry_run, force }) => reply(await runCliJson(["install", ...ids, ...(dry_run ? ["--dry-run"] : []), ...(force ? ["--force"] : [])])),
+    async ({ items: ids, dry_run, force }) => reply(await runCli(["install", ...ids, ...(dry_run ? ["--dry-run"] : []), ...(force ? ["--force"] : [])])),
   );
 
   add("remove", "Removes inventory items; needs confirm: true unless it is a dry run.");
@@ -119,7 +119,7 @@ export function registerSetupVibeTools({ server, catalog }: Registrar): void {
         const data = { exitCode: 2, ok: false, error: "Removal needs confirm: true. Show the dry-run plan to the user and ask first." };
         return { content: [{ type: "text" as const, text: JSON.stringify(data) }], structuredContent: data, isError: true };
       }
-      return reply(await runCliJson(["remove", ...ids, "--yes", ...(dry_run ? ["--dry-run"] : []), ...(include_native ? ["--include-native"] : [])]));
+      return reply(await runCli(["remove", ...ids, "--yes", ...(dry_run ? ["--dry-run"] : []), ...(include_native ? ["--include-native"] : [])]));
     },
   );
 
@@ -127,7 +127,7 @@ export function registerSetupVibeTools({ server, catalog }: Registrar): void {
   server.registerTool(
     "update",
     { title: "Update items", description: "Reinstalls selected items whose pinned version changed in the inventory.", inputSchema: { dry_run: z.boolean().default(true).describe("Preview without changes.") } },
-    async ({ dry_run }) => reply(await runCliJson(["update", ...(dry_run ? ["--dry-run"] : [])])),
+    async ({ dry_run }) => reply(await runCli(["update", ...(dry_run ? ["--dry-run"] : [])])),
   );
 
   add("health", "Pending prerequisites, failing and outdated items, with the command that fixes each.");

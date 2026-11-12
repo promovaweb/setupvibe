@@ -104,3 +104,49 @@ describe("tools over stdio", () => {
     expect(JSON.stringify(r.data.findings)).toContain("setupvibe init");
   });
 });
+
+describe("tool handlers (task 16)", () => {
+  const { registerSetupVibeTools } = require("../mcp/tools") as typeof import("../mcp/tools");
+  type Handler = (args: Record<string, unknown>) => Promise<{ structuredContent: Record<string, unknown>; isError?: boolean }>;
+  const handlers: Record<string, Handler> = {};
+  const calls: string[][] = [];
+  const server = { registerTool: (name: string, _def: unknown, handler: Handler) => void (handlers[name] = handler) };
+  const catalog = { tools: [] as Array<{ name: string; description: string }> };
+  registerSetupVibeTools({ server, catalog } as never, async (args) => {
+    calls.push(args);
+    return { exitCode: 0, envelope: { ok: true, data: { args } } };
+  });
+
+  test("every tool is registered and listed in the catalog", () => {
+    expect(Object.keys(handlers).sort()).toEqual(["check", "health", "install", "list", "remove", "system", "update"]);
+    expect(catalog.tools.length).toBe(7);
+  });
+
+  test("read-only tools pass their filters to the CLI", async () => {
+    await handlers.system!({});
+    await handlers.list!({ category: "ai" });
+    await handlers.check!({ items: ["node"] });
+    expect(calls.slice(-3)).toEqual([["system", "--no-update-check"], ["list", "--category", "ai"], ["check", "node"]]);
+  });
+
+  test("install and update default to a dry run; force and dry_run false are passed", async () => {
+    await handlers.install!({ items: ["go"], dry_run: true, force: false });
+    await handlers.install!({ items: ["go"], dry_run: false, force: true });
+    await handlers.update!({ dry_run: true });
+    expect(calls.slice(-3)).toEqual([["install", "go", "--dry-run"], ["install", "go", "--force"], ["update", "--dry-run"]]);
+  });
+
+  test("a real removal needs confirm; the dry run does not", async () => {
+    const refused = await handlers.remove!({ items: ["go"], dry_run: false, confirm: false, include_native: false });
+    expect(refused.isError).toBe(true);
+    await handlers.remove!({ items: ["go"], dry_run: true, confirm: false, include_native: true });
+    expect(calls.at(-1)).toEqual(["remove", "go", "--yes", "--dry-run", "--include-native"]);
+  });
+
+  test("health returns the doctor findings without running the CLI", async () => {
+    const before = calls.length;
+    const r = await handlers.health!({});
+    expect(Array.isArray(r.structuredContent.findings)).toBe(true);
+    expect(calls.length).toBe(before);
+  });
+});

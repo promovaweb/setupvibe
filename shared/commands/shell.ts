@@ -11,7 +11,7 @@ import type { Inventory } from "../inventory.ts";
 import { detectSystem } from "../system/detect.ts";
 import { readState } from "../state/store.ts";
 import { shellRemoveSteps, shellSteps } from "../shell/config.ts";
-import { homedir } from "node:os";
+import { homedir } from "../system/home.ts";
 import { detectV1Here, migrateSteps } from "../legacy/v1.ts";
 import { DRY_RUN_OPTION, executePlan } from "./execute.ts";
 

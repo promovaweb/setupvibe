@@ -9,7 +9,7 @@
  *
  * The `<BIN>_HOME` variable overrides the root, useful in tests and CI.
  */
-import { homedir } from "node:os";
+import { homedir } from "../../system/home.ts";
 import { join } from "node:path";
 import { mkdirSync, statSync } from "node:fs";
 import { manifest } from "../app/manifest.ts";
