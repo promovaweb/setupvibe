@@ -1,0 +1,2809 @@
+{
+  "$schema": "../shared/inventory.schema.json",
+  "schemaVersion": 1,
+  "edition": "desktop",
+  "updated": "2026-11-12",
+  "systems": [
+    "ubuntu",
+    "debian",
+    "mint",
+    "zorin",
+    "arch",
+    "omarchy",
+    "macos",
+    "windows",
+    "wsl"
+  ],
+  "categories": [
+    {
+      "id": "system",
+      "name": {
+        "en": "System",
+        "pt-BR": "Sistema"
+      }
+    },
+    {
+      "id": "languages",
+      "name": {
+        "en": "Languages",
+        "pt-BR": "Linguagens"
+      }
+    },
+    {
+      "id": "terminal",
+      "name": {
+        "en": "Terminal tools",
+        "pt-BR": "Ferramentas de terminal"
+      }
+    },
+    {
+      "id": "shell",
+      "name": {
+        "en": "Shell",
+        "pt-BR": "Shell"
+      }
+    },
+    {
+      "id": "devops",
+      "name": {
+        "en": "DevOps",
+        "pt-BR": "DevOps"
+      }
+    },
+    {
+      "id": "network",
+      "name": {
+        "en": "Network and monitoring",
+        "pt-BR": "Rede e monitoramento"
+      }
+    },
+    {
+      "id": "ai",
+      "name": {
+        "en": "AI agents",
+        "pt-BR": "Agentes de IA"
+      }
+    },
+    {
+      "id": "security",
+      "name": {
+        "en": "Security",
+        "pt-BR": "Segurança"
+      }
+    },
+    {
+      "id": "remote",
+      "name": {
+        "en": "Remote access",
+        "pt-BR": "Acesso remoto"
+      }
+    }
+  ],
+  "repositories": {
+    "docker": {
+      "type": "apt",
+      "url": "https://download.docker.com/linux/{distro}",
+      "suite": "{codename}",
+      "components": [
+        "stable"
+      ],
+      "key": "https://download.docker.com/linux/{distro}/gpg",
+      "fingerprints": [
+        "9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
+      ],
+      "systems": [
+        "ubuntu",
+        "debian",
+        "mint",
+        "zorin",
+        "wsl"
+      ]
+    },
+    "sury": {
+      "type": "apt",
+      "url": "https://packages.sury.org/php/",
+      "suite": "{codename}",
+      "components": [
+        "main"
+      ],
+      "key": "https://packages.sury.org/php/apt.gpg",
+      "fingerprints": [
+        "15058500A0235D97F5D10063B188E2B695BD4743"
+      ],
+      "systems": [
+        "debian"
+      ]
+    },
+    "ondrej": {
+      "type": "apt",
+      "url": "https://ppa.launchpadcontent.net/ondrej/php/ubuntu",
+      "suite": "{ubuntu_codename}",
+      "components": [
+        "main"
+      ],
+      "key": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x4F4EA0AAE5267A6C",
+      "fingerprints": [
+        "14AA40EC0831756756D7F66C4F4EA0AAE5267A6C"
+      ],
+      "systems": [
+        "ubuntu",
+        "mint",
+        "zorin",
+        "wsl"
+      ]
+    },
+    "tailscale": {
+      "type": "apt",
+      "url": "https://pkgs.tailscale.com/stable/{distro}",
+      "suite": "{codename}",
+      "components": [
+        "main"
+      ],
+      "key": "https://pkgs.tailscale.com/stable/{distro}/{codename}.noarmor.gpg",
+      "fingerprints": [
+        "2596A99EAAB33821893C0A79458CA832957F5868"
+      ],
+      "systems": [
+        "ubuntu",
+        "debian",
+        "mint",
+        "zorin"
+      ]
+    }
+  },
+  "profiles": {
+    "essencial": {
+      "description": {
+        "en": "Default desktop selection.",
+        "pt-BR": "Seleção padrão do desktop."
+      },
+      "items": [
+        "build-deps",
+        "mise",
+        "sshpass",
+        "node",
+        "python",
+        "uv",
+        "php",
+        "composer",
+        "pnpm",
+        "bat",
+        "eza",
+        "zoxide",
+        "fzf",
+        "ripgrep",
+        "fd",
+        "lazygit",
+        "neovim",
+        "glow",
+        "tlrc",
+        "fastfetch",
+        "duf",
+        "jq",
+        "starship",
+        "zsh",
+        "oh-my-zsh",
+        "zsh-autosuggestions",
+        "zsh-syntax-highlighting",
+        "tmux",
+        "tpm",
+        "nerd-fonts",
+        "windows-essentials",
+        "gh",
+        "claude-code",
+        "codex",
+        "opencode",
+        "skills",
+        "herdr",
+        "wsl"
+      ]
+    },
+    "remoto": {
+      "description": {
+        "en": "Remote development on a server or VPS (spec section 18).",
+        "pt-BR": "Desenvolvimento por acesso remoto em servidor ou VPS (seção 18 da especificação)."
+      },
+      "extends": "essencial",
+      "items": [
+        "linger",
+        "mosh",
+        "tailscale",
+        "openssh-server",
+        "swap",
+        "ufw",
+        "fail2ban",
+        "unattended-upgrades",
+        "time-sync"
+      ]
+    }
+  },
+  "items": [
+    {
+      "id": "build-deps",
+      "name": "Build dependencies",
+      "category": "system",
+      "description": {
+        "en": "Compilers and libraries that mise needs to build runtimes such as Ruby.",
+        "pt-BR": "Compiladores e bibliotecas de que o mise precisa para compilar linguagens como o Ruby."
+      },
+      "homepage": "https://mise.jdx.dev/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "initOnly": true,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "packages": [
+            "build-essential",
+            "git",
+            "curl",
+            "wget",
+            "unzip",
+            "xz-utils",
+            "file",
+            "procps",
+            "ca-certificates",
+            "gnupg",
+            "libssl-dev",
+            "zlib1g-dev",
+            "libbz2-dev",
+            "libreadline-dev",
+            "libsqlite3-dev",
+            "libncurses-dev",
+            "libffi-dev",
+            "liblzma-dev",
+            "libyaml-dev",
+            "libxml2-dev",
+            "libxmlsec1-dev",
+            "tk-dev",
+            "autoconf",
+            "bison",
+            "llvm"
+          ]
+        },
+        "arch-family": {
+          "method": "native",
+          "packages": [
+            "base-devel",
+            "git",
+            "curl",
+            "wget",
+            "unzip",
+            "openssl",
+            "zlib",
+            "readline",
+            "sqlite",
+            "libyaml",
+            "libffi",
+            "tk"
+          ]
+        },
+        "macos": {
+          "method": "native",
+          "packages": [
+            "xcode-command-line-tools"
+          ],
+          "note": "Installed through softwareupdate, without the GUI dialog."
+        },
+        "windows": {
+          "method": "winget",
+          "id": "Git.Git"
+        }
+      },
+      "verify": {
+        "command": "git --version"
+      }
+    },
+    {
+      "id": "mise",
+      "name": "mise",
+      "category": "system",
+      "description": {
+        "en": "Runtime and tool manager that installs and pins most inventory items.",
+        "pt-BR": "Gerenciador de linguagens e ferramentas que instala e fixa a maior parte do inventário."
+      },
+      "homepage": "https://mise.jdx.dev/",
+      "version": "2026.11.6",
+      "versionPolicy": "exact",
+      "default": true,
+      "initOnly": true,
+      "install": {
+        "all": {
+          "method": "installer",
+          "url": "https://github.com/jdx/mise/releases/download/v{version}/mise-v{version}-{os}-{arch}",
+          "checksum": "release-sha256sums"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "mise --version",
+        "expect": "2026.11.6"
+      }
+    },
+    {
+      "id": "sshpass",
+      "name": "sshpass",
+      "category": "system",
+      "description": {
+        "en": "Non-interactive SSH password helper used by `setupvibe ssh copy-id`.",
+        "pt-BR": "Auxiliar de senha SSH usado pelo `setupvibe ssh copy-id`."
+      },
+      "homepage": "https://sourceforge.net/projects/sshpass/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "packages": [
+            "sshpass"
+          ]
+        },
+        "arch-family": {
+          "method": "native",
+          "packages": [
+            "sshpass"
+          ]
+        },
+        "macos": {
+          "method": "brew",
+          "formula": "sshpass"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "The Windows copy-id uses OpenSSH and PowerShell."
+        }
+      },
+      "verify": {
+        "command": "sshpass -V"
+      }
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "category": "languages",
+      "description": {
+        "en": "JavaScript runtime, LTS line.",
+        "pt-BR": "Runtime JavaScript, linha LTS."
+      },
+      "homepage": "https://nodejs.org/",
+      "version": "24.22.3",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "node"
+        },
+        "omarchy": {
+          "method": "mise",
+          "tool": "node",
+          "note": "Omarchy already manages Node with mise; SetupVibe only pins the version when it is missing."
+        }
+      },
+      "verify": {
+        "command": "node --version",
+        "expect": "v24.22.3"
+      }
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "category": "languages",
+      "description": {
+        "en": "Python with prebuilt binaries, independent from the system Python.",
+        "pt-BR": "Python com binários pré-compilados, independente do Python do sistema."
+      },
+      "homepage": "https://www.python.org/",
+      "version": "3.14.10",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "python"
+        }
+      },
+      "verify": {
+        "command": "python --version",
+        "expect": "3.14.10"
+      }
+    },
+    {
+      "id": "uv",
+      "name": "uv",
+      "category": "languages",
+      "description": {
+        "en": "Python package and tool manager. It downloads its own Python when needed.",
+        "pt-BR": "Gerenciador de pacotes e ferramentas Python. Baixa o próprio Python quando precisa."
+      },
+      "homepage": "https://docs.astral.sh/uv/",
+      "version": "0.13.7",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "uv"
+        }
+      },
+      "verify": {
+        "command": "uv --version",
+        "expect": "0.13.7"
+      }
+    },
+    {
+      "id": "php",
+      "name": "PHP",
+      "category": "languages",
+      "description": {
+        "en": "PHP from native packages, with the extensions Laravel needs.",
+        "pt-BR": "PHP pelos pacotes nativos, com as extensões de que o Laravel precisa."
+      },
+      "homepage": "https://www.php.net/",
+      "version": "8.5",
+      "versionPolicy": "series",
+      "default": true,
+      "install": {
+        "ubuntu": {
+          "method": "native",
+          "repository": "ondrej",
+          "packages": [
+            "php8.5",
+            "php8.5-cli",
+            "php8.5-common",
+            "php8.5-curl",
+            "php8.5-mbstring",
+            "php8.5-xml",
+            "php8.5-bcmath",
+            "php8.5-mysql",
+            "php8.5-pgsql",
+            "php8.5-sqlite3",
+            "php8.5-zip",
+            "php8.5-intl",
+            "php8.5-gd"
+          ],
+          "optional": [
+            "php8.5-dev",
+            "php8.5-imagick",
+            "php8.5-redis",
+            "php8.5-mongodb",
+            "php8.5-yaml",
+            "php8.5-xdebug"
+          ]
+        },
+        "mint": {
+          "method": "native",
+          "repository": "ondrej",
+          "packages": [
+            "php8.5",
+            "php8.5-cli",
+            "php8.5-common",
+            "php8.5-curl",
+            "php8.5-mbstring",
+            "php8.5-xml",
+            "php8.5-bcmath",
+            "php8.5-mysql",
+            "php8.5-pgsql",
+            "php8.5-sqlite3",
+            "php8.5-zip",
+            "php8.5-intl",
+            "php8.5-gd"
+          ]
+        },
+        "zorin": {
+          "method": "native",
+          "repository": "ondrej",
+          "packages": [
+            "php8.5",
+            "php8.5-cli",
+            "php8.5-common",
+            "php8.5-curl",
+            "php8.5-mbstring",
+            "php8.5-xml",
+            "php8.5-bcmath",
+            "php8.5-mysql",
+            "php8.5-pgsql",
+            "php8.5-sqlite3",
+            "php8.5-zip",
+            "php8.5-intl",
+            "php8.5-gd"
+          ]
+        },
+        "wsl": {
+          "method": "native",
+          "repository": "ondrej",
+          "packages": [
+            "php8.5",
+            "php8.5-cli",
+            "php8.5-common",
+            "php8.5-curl",
+            "php8.5-mbstring",
+            "php8.5-xml",
+            "php8.5-bcmath",
+            "php8.5-mysql",
+            "php8.5-pgsql",
+            "php8.5-sqlite3",
+            "php8.5-zip",
+            "php8.5-intl",
+            "php8.5-gd"
+          ]
+        },
+        "debian": {
+          "method": "native",
+          "repository": "sury",
+          "packages": [
+            "php8.5",
+            "php8.5-cli",
+            "php8.5-common",
+            "php8.5-curl",
+            "php8.5-mbstring",
+            "php8.5-xml",
+            "php8.5-bcmath",
+            "php8.5-mysql",
+            "php8.5-pgsql",
+            "php8.5-sqlite3",
+            "php8.5-zip",
+            "php8.5-intl",
+            "php8.5-gd"
+          ]
+        },
+        "arch-family": {
+          "method": "native",
+          "packages": [
+            "php",
+            "php-gd",
+            "php-intl",
+            "php-pgsql",
+            "php-sqlite"
+          ],
+          "note": "Arch ships the current PHP release; the version follows the repository."
+        },
+        "macos": {
+          "method": "brew",
+          "formula": "php@8.5"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "PHP runs inside WSL on Windows."
+        }
+      },
+      "verify": {
+        "command": "php --version",
+        "expect": "^PHP 8\\.5\\."
+      }
+    },
+    {
+      "id": "composer",
+      "name": "Composer",
+      "category": "languages",
+      "description": {
+        "en": "PHP dependency manager, from the official installer.",
+        "pt-BR": "Gerenciador de dependências do PHP, pelo instalador oficial."
+      },
+      "homepage": "https://getcomposer.org/",
+      "version": "2.11.2",
+      "versionPolicy": "exact",
+      "default": true,
+      "requires": [
+        "php"
+      ],
+      "install": {
+        "unix": {
+          "method": "installer",
+          "url": "https://getcomposer.org/installer",
+          "args": [
+            "--version={version}",
+            "--install-dir=~/.local/bin",
+            "--filename=composer"
+          ],
+          "checksum": "https://composer.github.io/installer.sig",
+          "checksumAlgorithm": "sha384"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "PHP runs inside WSL on Windows."
+        }
+      },
+      "verify": {
+        "command": "composer --version",
+        "expect": "2.11.2"
+      }
+    },
+    {
+      "id": "laravel-installer",
+      "name": "Laravel Installer",
+      "category": "languages",
+      "description": {
+        "en": "`laravel new` command.",
+        "pt-BR": "Comando `laravel new`."
+      },
+      "homepage": "https://laravel.com/docs/installation",
+      "version": "5.33.0",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "composer"
+      ],
+      "install": {
+        "unix": {
+          "method": "composer",
+          "package": "laravel/installer"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "PHP runs inside WSL on Windows."
+        }
+      },
+      "verify": {
+        "command": "laravel --version",
+        "expect": "5.33.0"
+      }
+    },
+    {
+      "id": "ruby",
+      "name": "Ruby",
+      "category": "languages",
+      "description": {
+        "en": "Ruby built by mise.",
+        "pt-BR": "Ruby compilado pelo mise."
+      },
+      "homepage": "https://www.ruby-lang.org/",
+      "version": "3.4.12",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "build-deps"
+      ],
+      "install": {
+        "unix": {
+          "method": "mise",
+          "tool": "ruby"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Ruby runs inside WSL on Windows."
+        }
+      },
+      "verify": {
+        "command": "ruby --version",
+        "expect": "3.4.12"
+      }
+    },
+    {
+      "id": "bundler",
+      "name": "Bundler",
+      "category": "languages",
+      "description": {
+        "en": "Ruby dependency manager.",
+        "pt-BR": "Gerenciador de dependências do Ruby."
+      },
+      "homepage": "https://bundler.io/",
+      "version": "4.0.24",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "ruby"
+      ],
+      "install": {
+        "unix": {
+          "method": "gem",
+          "gem": "bundler"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Ruby runs inside WSL on Windows."
+        }
+      },
+      "verify": {
+        "command": "bundle --version",
+        "expect": "4.0.24"
+      }
+    },
+    {
+      "id": "rails",
+      "name": "Ruby on Rails",
+      "category": "languages",
+      "description": {
+        "en": "Rails framework and the `rails` command.",
+        "pt-BR": "Framework Rails e o comando `rails`."
+      },
+      "homepage": "https://rubyonrails.org/",
+      "version": "8.1.4.1",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "bundler"
+      ],
+      "install": {
+        "unix": {
+          "method": "gem",
+          "gem": "rails"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Ruby runs inside WSL on Windows."
+        }
+      },
+      "verify": {
+        "command": "rails --version",
+        "expect": "8.1.4.1"
+      }
+    },
+    {
+      "id": "go",
+      "name": "Go",
+      "category": "languages",
+      "description": {
+        "en": "Go toolchain.",
+        "pt-BR": "Toolchain do Go."
+      },
+      "homepage": "https://go.dev/",
+      "version": "1.27.4",
+      "versionPolicy": "exact",
+      "default": false,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "go"
+        }
+      },
+      "verify": {
+        "command": "go version",
+        "expect": "go1.27.4"
+      }
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "category": "languages",
+      "description": {
+        "en": "Rust toolchain through rustup, managed by mise.",
+        "pt-BR": "Toolchain do Rust pelo rustup, gerenciada pelo mise."
+      },
+      "homepage": "https://www.rust-lang.org/",
+      "version": "1.99.1",
+      "versionPolicy": "exact",
+      "default": false,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "rust"
+        }
+      },
+      "verify": {
+        "command": "rustc --version",
+        "expect": "1.99.1"
+      }
+    },
+    {
+      "id": "bun",
+      "name": "Bun",
+      "category": "languages",
+      "description": {
+        "en": "JavaScript runtime and toolkit.",
+        "pt-BR": "Runtime e conjunto de ferramentas JavaScript."
+      },
+      "homepage": "https://bun.sh/",
+      "version": "1.4.4",
+      "versionPolicy": "exact",
+      "default": false,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "bun"
+        }
+      },
+      "verify": {
+        "command": "bun --version",
+        "expect": "1.4.4"
+      }
+    },
+    {
+      "id": "pnpm",
+      "name": "pnpm",
+      "category": "languages",
+      "description": {
+        "en": "Fast Node.js package manager.",
+        "pt-BR": "Gerenciador de pacotes Node.js rápido."
+      },
+      "homepage": "https://pnpm.io/",
+      "version": "12.18.0",
+      "versionPolicy": "exact",
+      "default": true,
+      "requires": [
+        "node"
+      ],
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "pnpm"
+        }
+      },
+      "verify": {
+        "command": "pnpm --version",
+        "expect": "12.18.0"
+      }
+    },
+    {
+      "id": "bat",
+      "name": "bat",
+      "category": "terminal",
+      "description": {
+        "en": "cat with syntax highlighting.",
+        "pt-BR": "cat com destaque de sintaxe."
+      },
+      "homepage": "https://github.com/sharkdp/bat",
+      "version": "0.26.1",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "bat"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "bat --version",
+        "expect": "0.26.1"
+      }
+    },
+    {
+      "id": "eza",
+      "name": "eza",
+      "category": "terminal",
+      "description": {
+        "en": "Modern ls.",
+        "pt-BR": "ls moderno."
+      },
+      "homepage": "https://eza.rocks/",
+      "version": "0.23.5",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "eza"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "eza --version",
+        "expect": "0.23.5"
+      }
+    },
+    {
+      "id": "zoxide",
+      "name": "zoxide",
+      "category": "terminal",
+      "description": {
+        "en": "Smarter cd.",
+        "pt-BR": "cd mais esperto."
+      },
+      "homepage": "https://github.com/ajeetdsouza/zoxide",
+      "version": "0.10.0",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "zoxide"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "zoxide --version",
+        "expect": "0.10.0"
+      }
+    },
+    {
+      "id": "fzf",
+      "name": "fzf",
+      "category": "terminal",
+      "description": {
+        "en": "Fuzzy finder.",
+        "pt-BR": "Busca aproximada no terminal."
+      },
+      "homepage": "https://junegunn.github.io/fzf/",
+      "version": "0.75.0",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "fzf"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "fzf --version",
+        "expect": "0.75.0"
+      }
+    },
+    {
+      "id": "ripgrep",
+      "name": "ripgrep",
+      "category": "terminal",
+      "description": {
+        "en": "Fast recursive search (`rg`).",
+        "pt-BR": "Busca recursiva rápida (`rg`)."
+      },
+      "homepage": "https://github.com/BurntSushi/ripgrep",
+      "version": "15.2.0",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "ripgrep"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "rg --version",
+        "expect": "15.2.0"
+      }
+    },
+    {
+      "id": "fd",
+      "name": "fd",
+      "category": "terminal",
+      "description": {
+        "en": "Fast file finder.",
+        "pt-BR": "Localizador de arquivos rápido."
+      },
+      "homepage": "https://github.com/sharkdp/fd",
+      "version": "10.5.2",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "fd"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "fd --version",
+        "expect": "10.5.2"
+      }
+    },
+    {
+      "id": "lazygit",
+      "name": "lazygit",
+      "category": "terminal",
+      "description": {
+        "en": "Terminal UI for Git.",
+        "pt-BR": "Interface de terminal para o Git."
+      },
+      "homepage": "https://github.com/jesseduffield/lazygit",
+      "version": "0.66.3",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "lazygit"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "lazygit --version",
+        "expect": "0.66.3"
+      }
+    },
+    {
+      "id": "neovim",
+      "name": "neovim",
+      "category": "terminal",
+      "description": {
+        "en": "Modern Vim.",
+        "pt-BR": "Vim moderno."
+      },
+      "homepage": "https://neovim.io/",
+      "version": "0.12.6",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "neovim"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "nvim --version",
+        "expect": "0.12.6"
+      }
+    },
+    {
+      "id": "glow",
+      "name": "glow",
+      "category": "terminal",
+      "description": {
+        "en": "Markdown reader for the terminal.",
+        "pt-BR": "Leitor de Markdown no terminal."
+      },
+      "homepage": "https://github.com/charmbracelet/glow",
+      "version": "3.0.0",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "glow"
+        }
+      },
+      "verify": {
+        "command": "glow --version",
+        "expect": "3.0.0"
+      }
+    },
+    {
+      "id": "tlrc",
+      "name": "tlrc",
+      "category": "terminal",
+      "description": {
+        "en": "tldr pages client.",
+        "pt-BR": "Cliente das páginas tldr."
+      },
+      "homepage": "https://github.com/tldr-pages/tlrc",
+      "version": "1.13.1",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "tlrc"
+        }
+      },
+      "verify": {
+        "command": "tldr --version",
+        "expect": "1.13.1"
+      }
+    },
+    {
+      "id": "fastfetch",
+      "name": "fastfetch",
+      "category": "terminal",
+      "description": {
+        "en": "System information.",
+        "pt-BR": "Informações do sistema."
+      },
+      "homepage": "https://github.com/fastfetch-cli/fastfetch",
+      "version": "2.71.0",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "fastfetch"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "fastfetch --version",
+        "expect": "2.71.0"
+      }
+    },
+    {
+      "id": "duf",
+      "name": "duf",
+      "category": "terminal",
+      "description": {
+        "en": "Disk usage overview.",
+        "pt-BR": "Visão do uso de disco."
+      },
+      "homepage": "https://github.com/muesli/duf",
+      "version": "0.9.1",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "duf"
+        }
+      },
+      "verify": {
+        "command": "duf --version",
+        "expect": "0.9.1"
+      }
+    },
+    {
+      "id": "jq",
+      "name": "jq",
+      "category": "terminal",
+      "description": {
+        "en": "JSON processor.",
+        "pt-BR": "Processador de JSON."
+      },
+      "homepage": "https://jqlang.org/",
+      "version": "1.8.2",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "jq"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "jq --version",
+        "expect": "1.8.2"
+      }
+    },
+    {
+      "id": "starship",
+      "name": "Starship",
+      "category": "shell",
+      "description": {
+        "en": "Cross-shell prompt, gruvbox-rainbow preset.",
+        "pt-BR": "Prompt para qualquer shell, preset gruvbox-rainbow."
+      },
+      "homepage": "https://starship.rs/",
+      "version": "1.27.0",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "unix": {
+          "method": "mise",
+          "tool": "starship"
+        },
+        "omarchy": {
+          "method": "preinstalled",
+          "note": "SetupVibe writes its own STARSHIP_CONFIG and keeps Omarchy's file."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "The Windows shell stays original."
+        }
+      },
+      "verify": {
+        "command": "starship --version",
+        "expect": "1.27.0"
+      }
+    },
+    {
+      "id": "zsh",
+      "name": "ZSH",
+      "category": "shell",
+      "description": {
+        "en": "Default interactive shell, except on Omarchy (Bash) and Windows.",
+        "pt-BR": "Shell interativo padrão, menos no Omarchy (Bash) e no Windows."
+      },
+      "homepage": "https://www.zsh.org/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "packages": [
+            "zsh"
+          ]
+        },
+        "arch": {
+          "method": "native",
+          "packages": [
+            "zsh"
+          ]
+        },
+        "macos": {
+          "method": "preinstalled"
+        },
+        "omarchy": {
+          "method": "unsupported",
+          "reason": "Omarchy keeps Bash."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "The Windows shell stays original."
+        }
+      },
+      "verify": {
+        "command": "zsh --version"
+      }
+    },
+    {
+      "id": "oh-my-zsh",
+      "name": "Oh My Zsh",
+      "category": "shell",
+      "description": {
+        "en": "ZSH framework, pinned to a commit.",
+        "pt-BR": "Framework do ZSH, preso a um commit."
+      },
+      "homepage": "https://ohmyz.sh/",
+      "version": "6010fb6260f359e71d99ba25f05f9215809b3ed2",
+      "versionPolicy": "commit",
+      "default": true,
+      "requires": [
+        "zsh"
+      ],
+      "install": {
+        "debian-family": {
+          "method": "git",
+          "repo": "https://github.com/ohmyzsh/ohmyzsh",
+          "path": "~/.oh-my-zsh"
+        },
+        "arch": {
+          "method": "git",
+          "repo": "https://github.com/ohmyzsh/ohmyzsh",
+          "path": "~/.oh-my-zsh"
+        },
+        "macos": {
+          "method": "git",
+          "repo": "https://github.com/ohmyzsh/ohmyzsh",
+          "path": "~/.oh-my-zsh"
+        },
+        "omarchy": {
+          "method": "unsupported",
+          "reason": "Omarchy keeps Bash."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "The Windows shell stays original."
+        }
+      },
+      "verify": {
+        "command": "test -d ~/.oh-my-zsh"
+      }
+    },
+    {
+      "id": "zsh-autosuggestions",
+      "name": "zsh-autosuggestions",
+      "category": "shell",
+      "description": {
+        "en": "Oh My Zsh plugin zsh-autosuggestions.",
+        "pt-BR": "Plugin zsh-autosuggestions do Oh My Zsh."
+      },
+      "homepage": "https://github.com/zsh-users/zsh-autosuggestions",
+      "version": "85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5",
+      "versionPolicy": "commit",
+      "default": true,
+      "requires": [
+        "oh-my-zsh"
+      ],
+      "install": {
+        "unix": {
+          "method": "git",
+          "repo": "https://github.com/zsh-users/zsh-autosuggestions",
+          "path": "~/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+        },
+        "omarchy": {
+          "method": "unsupported",
+          "reason": "Omarchy keeps Bash."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "The Windows shell stays original."
+        }
+      },
+      "verify": {
+        "command": "test -d ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+      }
+    },
+    {
+      "id": "zsh-syntax-highlighting",
+      "name": "zsh-syntax-highlighting",
+      "category": "shell",
+      "description": {
+        "en": "Oh My Zsh plugin zsh-syntax-highlighting.",
+        "pt-BR": "Plugin zsh-syntax-highlighting do Oh My Zsh."
+      },
+      "homepage": "https://github.com/zsh-users/zsh-syntax-highlighting",
+      "version": "e6683f20e5c38d3e5447f45845d04ddda75d0f23",
+      "versionPolicy": "commit",
+      "default": true,
+      "requires": [
+        "oh-my-zsh"
+      ],
+      "install": {
+        "unix": {
+          "method": "git",
+          "repo": "https://github.com/zsh-users/zsh-syntax-highlighting",
+          "path": "~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+        },
+        "omarchy": {
+          "method": "unsupported",
+          "reason": "Omarchy keeps Bash."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "The Windows shell stays original."
+        }
+      },
+      "verify": {
+        "command": "test -d ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+      }
+    },
+    {
+      "id": "tmux",
+      "name": "tmux",
+      "category": "shell",
+      "description": {
+        "en": "Terminal multiplexer with session restore.",
+        "pt-BR": "Multiplexador de terminal com restauração de sessões."
+      },
+      "homepage": "https://github.com/tmux/tmux",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "packages": [
+            "tmux"
+          ]
+        },
+        "arch": {
+          "method": "native",
+          "packages": [
+            "tmux"
+          ]
+        },
+        "macos": {
+          "method": "brew",
+          "formula": "tmux"
+        },
+        "omarchy": {
+          "method": "preinstalled",
+          "note": "SetupVibe does not change Omarchy's tmux configuration."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Not available natively on Windows."
+        }
+      },
+      "verify": {
+        "command": "tmux -V"
+      }
+    },
+    {
+      "id": "tpm",
+      "name": "TPM and tmux plugins",
+      "category": "shell",
+      "description": {
+        "en": "tmux plugin manager and the SetupVibe plugin set, each pinned to a commit.",
+        "pt-BR": "Gerenciador de plugins do tmux e o conjunto de plugins do SetupVibe, cada um preso a um commit."
+      },
+      "homepage": "https://github.com/tmux-plugins/tpm",
+      "version": "e261deb1b47614eed3400089ce7197dc68acc4eb",
+      "versionPolicy": "commit",
+      "default": true,
+      "requires": [
+        "tmux"
+      ],
+      "install": {
+        "unix": {
+          "method": "git",
+          "repo": "https://github.com/tmux-plugins/tpm",
+          "path": "~/.tmux/plugins/tpm"
+        },
+        "omarchy": {
+          "method": "unsupported",
+          "reason": "SetupVibe does not change Omarchy's tmux configuration."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Not available natively on Windows."
+        }
+      },
+      "plugins": {
+        "tmux-plugins/tmux-sensible": "25cb91f42d020f675bb0a2ce3fbd3a5d96119efa",
+        "tmux-plugins/tmux-pain-control": "32b760f6652f2305dfef0acd444afc311cf5c077",
+        "christoomey/vim-tmux-navigator": "e41c431a0c7b7388ae7ba341f01a0d217eb3a432",
+        "NHDaly/tmux-better-mouse-mode": "aa59077c635ab21b251bd8cb4dc24c415e64a58e",
+        "tmux-plugins/tmux-yank": "acfd36e4fcba99f8310a7dfb432111c242fe7392",
+        "CrispyConductor/tmux-copy-toolkit": "c80c2c068059fe04f840ea9f125c21b83cb6f81f",
+        "abhinav/tmux-fastcopy": "4b271092d1ba6ce887afbd5802741406549e301e",
+        "tmux-plugins/tmux-open": "763d0a852e6703ce0f5090a508330012a7e6788e",
+        "wfxr/tmux-fzf-url": "7c4838e95fde660b7f2aaf514323ac8498e0d4f4",
+        "tmux-plugins/tmux-resurrect": "cff343cf9e81983d3da0c8562b01616f12e8d548",
+        "tmux-plugins/tmux-continuum": "0698e8f4b17d6454c71bf5212895ec055c578da0",
+        "omerxx/tmux-sessionx": "8df6df56639acedb5343a6db02cf58120ff09ef7",
+        "sainnhe/tmux-fzf": "2839d6bd0e13b7c5e385e131e4c217917fa73555",
+        "Freed-Wu/tmux-digit": "547226faa6ea32b3805bcd9a5a54bf943b8e4c48",
+        "anghootys/tmux-ip-address": "3e1566827d016fa53ae2c76454afac3b6b169c52",
+        "tmux-plugins/tmux-prefix-highlight": "06cbb4ecd3a0a918ce355c70dc56d79debd455c7",
+        "alexwforsythe/tmux-which-key": "85fb9756447b989f3b94e515d1e6ee7fec76cba2",
+        "jaclu/tmux-menus": "1943234dcb00b70595dc5662b70651896aa8823e",
+        "2KAbhishek/tmux2k": "999cd9ed2175c065ff496636b32f95c535beb68d"
+      },
+      "verify": {
+        "command": "test -x ~/.tmux/plugins/tpm/tpm"
+      }
+    },
+    {
+      "id": "nerd-fonts",
+      "name": "Nerd Fonts",
+      "category": "shell",
+      "flags": [
+        "gui"
+      ],
+      "description": {
+        "en": "FiraCode and JetBrains Mono Nerd Fonts. On remote machines they belong on the client computer.",
+        "pt-BR": "Nerd Fonts FiraCode e JetBrains Mono. Em máquinas remotas, ficam no computador de onde a pessoa conecta."
+      },
+      "homepage": "https://www.nerdfonts.com/",
+      "version": "3.5.1",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "unix": {
+          "method": "archive",
+          "files": [
+            {
+              "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/v{version}/FiraCode.zip",
+              "sha256": "239395baf60c89b2eaf4862b6b09db0ef95605cd3e8eef51c00345822a81a665"
+            },
+            {
+              "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/v{version}/JetBrainsMono.zip",
+              "sha256": "fab782a66f7d3019da64f6572db9fc5d3a4bcb19f9fa13e2d8a62e3693d6396e"
+            }
+          ],
+          "path": "~/.local/share/fonts"
+        },
+        "macos": {
+          "method": "archive",
+          "files": [
+            {
+              "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/v{version}/FiraCode.zip",
+              "sha256": "239395baf60c89b2eaf4862b6b09db0ef95605cd3e8eef51c00345822a81a665"
+            },
+            {
+              "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/v{version}/JetBrainsMono.zip",
+              "sha256": "fab782a66f7d3019da64f6572db9fc5d3a4bcb19f9fa13e2d8a62e3693d6396e"
+            }
+          ],
+          "path": "~/Library/Fonts"
+        },
+        "omarchy": {
+          "method": "preinstalled",
+          "note": "Omarchy ships JetBrains Mono Nerd Font."
+        },
+        "windows": {
+          "method": "winget",
+          "id": "DEVCOM.JetBrainsMonoNerdFont"
+        }
+      },
+      "verify": {
+        "command": "fc-list | grep -i 'Nerd Font'"
+      }
+    },
+    {
+      "id": "media-tools",
+      "name": "ffmpeg and ImageMagick",
+      "category": "terminal",
+      "description": {
+        "en": "Audio, video and image conversion.",
+        "pt-BR": "Conversão de áudio, vídeo e imagem."
+      },
+      "homepage": "https://ffmpeg.org/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": false,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "packages": [
+            "ffmpeg",
+            "imagemagick"
+          ]
+        },
+        "arch-family": {
+          "method": "native",
+          "packages": [
+            "ffmpeg",
+            "imagemagick"
+          ]
+        },
+        "macos": {
+          "method": "brew",
+          "formula": [
+            "ffmpeg",
+            "imagemagick"
+          ]
+        },
+        "windows": {
+          "method": "winget",
+          "id": [
+            "Gyan.FFmpeg",
+            "ImageMagick.ImageMagick"
+          ]
+        }
+      },
+      "verify": {
+        "command": "ffmpeg -version"
+      }
+    },
+    {
+      "id": "windows-essentials",
+      "name": "Windows essentials",
+      "category": "terminal",
+      "description": {
+        "en": "7-Zip, PowerShell 7 and Windows Terminal.",
+        "pt-BR": "7-Zip, PowerShell 7 e Windows Terminal."
+      },
+      "homepage": "https://learn.microsoft.com/windows/terminal/",
+      "version": "latest",
+      "versionPolicy": "managed",
+      "default": true,
+      "flags": [
+        "gui"
+      ],
+      "install": {
+        "windows": {
+          "method": "winget",
+          "id": [
+            "7zip.7zip",
+            "Microsoft.PowerShell",
+            "Microsoft.WindowsTerminal"
+          ]
+        },
+        "all": {
+          "method": "unsupported",
+          "reason": "Windows only."
+        }
+      },
+      "verify": {
+        "command": "pwsh --version"
+      }
+    },
+    {
+      "id": "cronboard",
+      "name": "cronboard",
+      "category": "terminal",
+      "description": {
+        "en": "Terminal UI for cron jobs.",
+        "pt-BR": "Interface de terminal para tarefas do cron."
+      },
+      "homepage": "https://github.com/antoniorodr/cronboard",
+      "version": "1.2.1",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "uv"
+      ],
+      "install": {
+        "unix": {
+          "method": "mise",
+          "tool": "pipx:cronboard"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "cron is not available on Windows."
+        }
+      },
+      "verify": {
+        "command": "cronboard --version",
+        "expect": "1.2.1"
+      }
+    },
+    {
+      "id": "qrcode",
+      "name": "qrcode",
+      "category": "terminal",
+      "description": {
+        "en": "`qr` command to print QR codes in the terminal.",
+        "pt-BR": "Comando `qr` para gerar QR codes no terminal."
+      },
+      "homepage": "https://github.com/lincolnloop/python-qrcode",
+      "version": "8.2",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "uv"
+      ],
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "pipx:qrcode"
+        }
+      },
+      "verify": {
+        "command": "qr --help"
+      }
+    },
+    {
+      "id": "docker",
+      "name": "Docker",
+      "category": "devops",
+      "flags": [
+        "service"
+      ],
+      "description": {
+        "en": "Docker Engine with Buildx and Compose; Docker Desktop on macOS.",
+        "pt-BR": "Docker Engine com Buildx e Compose; Docker Desktop no macOS."
+      },
+      "homepage": "https://www.docker.com/",
+      "version": "stable",
+      "versionPolicy": "repository",
+      "default": false,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "repository": "docker",
+          "packages": [
+            "docker-ce",
+            "docker-ce-cli",
+            "containerd.io",
+            "docker-buildx-plugin",
+            "docker-compose-plugin"
+          ],
+          "conflicts": [
+            "docker.io",
+            "docker-doc",
+            "docker-compose",
+            "docker-compose-v2",
+            "podman-docker",
+            "containerd",
+            "runc"
+          ]
+        },
+        "wsl": {
+          "method": "native",
+          "repository": "docker",
+          "packages": [
+            "docker-ce",
+            "docker-ce-cli",
+            "containerd.io",
+            "docker-buildx-plugin",
+            "docker-compose-plugin"
+          ],
+          "skipWhen": "docker-desktop-integration"
+        },
+        "arch": {
+          "method": "native",
+          "packages": [
+            "docker",
+            "docker-buildx",
+            "docker-compose"
+          ]
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        },
+        "macos": {
+          "method": "brew",
+          "cask": "docker-desktop",
+          "flags": [
+            "gui"
+          ]
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Use Docker inside WSL or Docker Desktop installed by the user."
+        }
+      },
+      "verify": {
+        "command": "docker version"
+      }
+    },
+    {
+      "id": "ansible",
+      "name": "Ansible",
+      "category": "devops",
+      "description": {
+        "en": "Automation and configuration management.",
+        "pt-BR": "Automação e gerenciamento de configuração."
+      },
+      "homepage": "https://www.ansible.com/",
+      "version": "14.6.0",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "uv"
+      ],
+      "install": {
+        "unix": {
+          "method": "mise",
+          "tool": "pipx:ansible"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Ansible control nodes are not supported on Windows."
+        }
+      },
+      "verify": {
+        "command": "ansible --version"
+      }
+    },
+    {
+      "id": "gh",
+      "name": "GitHub CLI",
+      "category": "devops",
+      "description": {
+        "en": "GitHub from the terminal.",
+        "pt-BR": "GitHub pelo terminal."
+      },
+      "homepage": "https://cli.github.com/",
+      "version": "2.103.3",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "gh"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "gh --version",
+        "expect": "2.103.3"
+      }
+    },
+    {
+      "id": "pm2",
+      "name": "PM2",
+      "category": "devops",
+      "flags": [
+        "service",
+        "port"
+      ],
+      "description": {
+        "en": "Node.js process manager, with optional autostart.",
+        "pt-BR": "Gerenciador de processos Node.js, com início automático opcional."
+      },
+      "homepage": "https://pm2.keymetrics.io/",
+      "version": "7.1.2",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "node"
+      ],
+      "install": {
+        "unix": {
+          "method": "mise",
+          "tool": "npm:pm2"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Autostart is not supported on Windows."
+        }
+      },
+      "verify": {
+        "command": "pm2 --version",
+        "expect": "7.1.2"
+      }
+    },
+    {
+      "id": "portainer",
+      "name": "Portainer",
+      "category": "devops",
+      "flags": [
+        "service",
+        "port"
+      ],
+      "description": {
+        "en": "Docker web UI on port 9443, bound to 127.0.0.1 on exposed machines.",
+        "pt-BR": "Interface web do Docker na porta 9443, presa a 127.0.0.1 em máquinas expostas."
+      },
+      "homepage": "https://www.portainer.io/",
+      "version": "2.45.3",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "docker"
+      ],
+      "install": {
+        "unix": {
+          "method": "compose",
+          "image": "portainer/portainer-ce:{version}",
+          "port": 9443
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Use Portainer inside WSL."
+        }
+      },
+      "verify": {
+        "command": "docker inspect portainer"
+      }
+    },
+    {
+      "id": "ctop",
+      "name": "ctop",
+      "category": "devops",
+      "description": {
+        "en": "Top-like view of containers.",
+        "pt-BR": "Visão dos containers no estilo top."
+      },
+      "homepage": "https://ctop.sh/",
+      "version": "0.7.7",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "docker"
+      ],
+      "install": {
+        "unix": {
+          "method": "mise",
+          "tool": "ctop"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Use ctop inside WSL."
+        }
+      },
+      "verify": {
+        "command": "ctop -v",
+        "expect": "0.7.7"
+      }
+    },
+    {
+      "id": "lazydocker",
+      "name": "lazydocker",
+      "category": "devops",
+      "description": {
+        "en": "Terminal UI for Docker.",
+        "pt-BR": "Interface de terminal para o Docker."
+      },
+      "homepage": "https://github.com/jesseduffield/lazydocker",
+      "version": "0.25.2",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "docker"
+      ],
+      "install": {
+        "unix": {
+          "method": "mise",
+          "tool": "lazydocker"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Use lazydocker inside WSL."
+        }
+      },
+      "verify": {
+        "command": "lazydocker --version",
+        "expect": "0.25.2"
+      }
+    },
+    {
+      "id": "network-tools",
+      "name": "Network and monitoring tools",
+      "category": "network",
+      "description": {
+        "en": "htop, btop, glances, nmap, mtr, tcpdump, iftop, nload, iotop, sysstat and DNS tools.",
+        "pt-BR": "htop, btop, glances, nmap, mtr, tcpdump, iftop, nload, iotop, sysstat e ferramentas de DNS."
+      },
+      "homepage": "https://github.com/promovaweb/setupvibe",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": false,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "packages": [
+            "htop",
+            "btop",
+            "glances",
+            "nmap",
+            "mtr-tiny",
+            "tcpdump",
+            "iftop",
+            "nload",
+            "iotop",
+            "sysstat",
+            "rsync",
+            "net-tools",
+            "dnsutils",
+            "whois",
+            "iputils-ping",
+            "speedtest-cli"
+          ]
+        },
+        "arch-family": {
+          "method": "native",
+          "packages": [
+            "htop",
+            "btop",
+            "glances",
+            "nmap",
+            "mtr",
+            "tcpdump",
+            "iftop",
+            "nload",
+            "iotop",
+            "sysstat",
+            "rsync",
+            "net-tools",
+            "bind",
+            "whois",
+            "iputils"
+          ]
+        },
+        "macos": {
+          "method": "brew",
+          "formula": [
+            "htop",
+            "btop",
+            "glances",
+            "nmap",
+            "mtr",
+            "iftop",
+            "nload",
+            "whois",
+            "speedtest-cli"
+          ]
+        },
+        "windows": {
+          "method": "winget",
+          "id": [
+            "Insecure.Nmap",
+            "Ookla.Speedtest.CLI",
+            "aristocratos.btop4win"
+          ]
+        }
+      },
+      "verify": {
+        "command": "nmap --version"
+      }
+    },
+    {
+      "id": "gping",
+      "name": "gping",
+      "category": "network",
+      "description": {
+        "en": "Ping with a graph.",
+        "pt-BR": "Ping com gráfico."
+      },
+      "homepage": "https://github.com/orf/gping",
+      "version": "1.21.0",
+      "versionPolicy": "exact",
+      "default": false,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "gping"
+        }
+      },
+      "verify": {
+        "command": "gping --version",
+        "expect": "1.21.0"
+      }
+    },
+    {
+      "id": "bandwhich",
+      "name": "bandwhich",
+      "category": "network",
+      "description": {
+        "en": "Bandwidth per process.",
+        "pt-BR": "Banda por processo."
+      },
+      "homepage": "https://github.com/imsnif/bandwhich",
+      "version": "0.23.1",
+      "versionPolicy": "exact",
+      "default": false,
+      "install": {
+        "unix": {
+          "method": "mise",
+          "tool": "github:imsnif/bandwhich"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "No Windows build."
+        }
+      },
+      "verify": {
+        "command": "bandwhich --version",
+        "expect": "0.23.1"
+      }
+    },
+    {
+      "id": "trippy",
+      "name": "trippy",
+      "category": "network",
+      "description": {
+        "en": "Network diagnostics (`trip`).",
+        "pt-BR": "Diagnóstico de rede (`trip`)."
+      },
+      "homepage": "https://trippy.rs/",
+      "version": "0.13.0",
+      "versionPolicy": "exact",
+      "default": false,
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "github:fujiapple852/trippy"
+        }
+      },
+      "verify": {
+        "command": "trip --version",
+        "expect": "0.13.0"
+      }
+    },
+    {
+      "id": "rustscan",
+      "name": "rustscan",
+      "category": "network",
+      "description": {
+        "en": "Fast port scanner.",
+        "pt-BR": "Varredor de portas rápido."
+      },
+      "homepage": "https://github.com/bee-san/RustScan",
+      "version": "2.4.1",
+      "versionPolicy": "exact",
+      "default": false,
+      "install": {
+        "unix": {
+          "method": "mise",
+          "tool": "github:bee-san/RustScan"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "No Windows build."
+        }
+      },
+      "verify": {
+        "command": "rustscan --version",
+        "expect": "2.4.1"
+      }
+    },
+    {
+      "id": "tailscale",
+      "name": "Tailscale",
+      "category": "network",
+      "flags": [
+        "service"
+      ],
+      "description": {
+        "en": "Private network. Joins automatically with TAILSCALE_AUTHKEY.",
+        "pt-BR": "Rede privada. Entra sozinho com TAILSCALE_AUTHKEY."
+      },
+      "homepage": "https://tailscale.com/",
+      "version": "stable",
+      "versionPolicy": "repository",
+      "default": false,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "repository": "tailscale",
+          "packages": [
+            "tailscale"
+          ]
+        },
+        "wsl": {
+          "method": "unsupported",
+          "reason": "Tailscale runs on the Windows host."
+        },
+        "arch-family": {
+          "method": "native",
+          "packages": [
+            "tailscale"
+          ]
+        },
+        "macos": {
+          "method": "brew",
+          "cask": "tailscale-app",
+          "flags": [
+            "gui"
+          ]
+        },
+        "windows": {
+          "method": "winget",
+          "id": "Tailscale.Tailscale"
+        }
+      },
+      "verify": {
+        "command": "tailscale version"
+      }
+    },
+    {
+      "id": "openssh-server",
+      "name": "OpenSSH server",
+      "category": "network",
+      "flags": [
+        "service",
+        "port"
+      ],
+      "description": {
+        "en": "SSH server, never with password authentication turned on by SetupVibe.",
+        "pt-BR": "Servidor SSH, sem que o SetupVibe ligue a autenticação por senha."
+      },
+      "homepage": "https://www.openssh.com/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": false,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "packages": [
+            "openssh-server",
+            "openssh-client"
+          ]
+        },
+        "wsl": {
+          "method": "unsupported",
+          "reason": "Use the Windows OpenSSH server."
+        },
+        "arch-family": {
+          "method": "native",
+          "packages": [
+            "openssh"
+          ]
+        },
+        "macos": {
+          "method": "unsupported",
+          "reason": "Use Remote Login in System Settings."
+        },
+        "windows": {
+          "method": "installer",
+          "url": "https://github.com/PowerShell/Win32-OpenSSH/releases/latest",
+          "checksum": "authenticode"
+        }
+      },
+      "verify": {
+        "command": "sshd -t"
+      }
+    },
+    {
+      "id": "mosh",
+      "name": "mosh",
+      "category": "network",
+      "description": {
+        "en": "Mobile shell for unstable connections.",
+        "pt-BR": "Shell para conexões instáveis."
+      },
+      "homepage": "https://mosh.org/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": false,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "packages": [
+            "mosh"
+          ]
+        },
+        "arch-family": {
+          "method": "native",
+          "packages": [
+            "mosh"
+          ]
+        },
+        "macos": {
+          "method": "brew",
+          "formula": "mosh"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "No native Windows server."
+        }
+      },
+      "verify": {
+        "command": "mosh-server --version"
+      }
+    },
+    {
+      "id": "claude-code",
+      "name": "Claude Code",
+      "category": "ai",
+      "description": {
+        "en": "Anthropic coding agent, official native installer with self-update.",
+        "pt-BR": "Agente de código da Anthropic, pelo instalador nativo oficial, que se atualiza sozinho."
+      },
+      "homepage": "https://claude.com/claude-code",
+      "version": "2.1.322",
+      "versionPolicy": "minimum",
+      "default": true,
+      "install": {
+        "unix": {
+          "method": "installer",
+          "url": "https://claude.ai/install.sh",
+          "checksum": "none-official"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        },
+        "windows": {
+          "method": "installer",
+          "url": "https://claude.ai/install.ps1",
+          "checksum": "none-official"
+        }
+      },
+      "verify": {
+        "command": "claude --version",
+        "expect": ">=2.1.322"
+      }
+    },
+    {
+      "id": "codex",
+      "name": "Codex",
+      "category": "ai",
+      "description": {
+        "en": "OpenAI coding agent.",
+        "pt-BR": "Agente de código da OpenAI."
+      },
+      "homepage": "https://developers.openai.com/codex",
+      "version": "0.167.1",
+      "versionPolicy": "exact",
+      "default": true,
+      "requires": [
+        "node"
+      ],
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "npm:@openai/codex"
+        },
+        "windows": {
+          "method": "installer",
+          "url": "https://chatgpt.com/codex/install.ps1",
+          "checksum": "none-official"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "codex --version",
+        "expect": "0.167.1"
+      }
+    },
+    {
+      "id": "copilot",
+      "name": "GitHub Copilot CLI",
+      "category": "ai",
+      "description": {
+        "en": "GitHub Copilot in the terminal.",
+        "pt-BR": "GitHub Copilot no terminal."
+      },
+      "homepage": "https://github.com/features/copilot/cli",
+      "version": "1.0.109",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "node"
+      ],
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "npm:@github/copilot"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "copilot --version",
+        "expect": "1.0.109"
+      }
+    },
+    {
+      "id": "opencode",
+      "name": "OpenCode",
+      "category": "ai",
+      "description": {
+        "en": "Open source coding agent.",
+        "pt-BR": "Agente de código aberto."
+      },
+      "homepage": "https://opencode.ai/",
+      "version": "1.19.5",
+      "versionPolicy": "exact",
+      "default": true,
+      "requires": [
+        "node"
+      ],
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "npm:opencode-ai"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "opencode --version",
+        "expect": "1.19.5"
+      }
+    },
+    {
+      "id": "kimi",
+      "name": "Kimi Code",
+      "category": "ai",
+      "description": {
+        "en": "Moonshot AI coding agent.",
+        "pt-BR": "Agente de código da Moonshot AI."
+      },
+      "homepage": "https://github.com/MoonshotAI/kimi-code",
+      "version": "2.5.3",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "node"
+      ],
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "npm:@moonshot-ai/kimi-code"
+        }
+      },
+      "verify": {
+        "command": "kimi --version",
+        "expect": "2.5.3"
+      }
+    },
+    {
+      "id": "skills",
+      "name": "Skills CLI",
+      "category": "ai",
+      "description": {
+        "en": "Installs agent skills; used by `setupvibe skill`.",
+        "pt-BR": "Instala skills de agentes; usado pelo `setupvibe skill`."
+      },
+      "homepage": "https://github.com/vercel-labs/skills",
+      "version": "1.8.1",
+      "versionPolicy": "exact",
+      "default": true,
+      "requires": [
+        "node"
+      ],
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "npm:skills"
+        }
+      },
+      "verify": {
+        "command": "skills --version",
+        "expect": "1.8.1"
+      }
+    },
+    {
+      "id": "agentlytics",
+      "name": "Agentlytics",
+      "category": "ai",
+      "description": {
+        "en": "Coding agent usage dashboard, run by PM2.",
+        "pt-BR": "Painel de uso dos agentes de código, rodando pelo PM2."
+      },
+      "homepage": "https://www.npmjs.com/package/agentlytics",
+      "version": "0.2.13",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "node",
+        "pm2"
+      ],
+      "flags": [
+        "service",
+        "port"
+      ],
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "npm:agentlytics"
+        }
+      },
+      "verify": {
+        "command": "agentlytics --version",
+        "expect": "0.2.13"
+      }
+    },
+    {
+      "id": "herdr",
+      "name": "Herdr",
+      "category": "ai",
+      "description": {
+        "en": "Terminal multiplexer for coding agents.",
+        "pt-BR": "Multiplexador de terminal para agentes de código."
+      },
+      "homepage": "https://herdr.dev/",
+      "version": "0.9.5",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "unix": {
+          "method": "mise",
+          "tool": "herdr"
+        },
+        "omarchy": {
+          "method": "preinstalled"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Herdr runs on macOS and Linux."
+        }
+      },
+      "verify": {
+        "command": "herdr --version",
+        "expect": "0.9.5"
+      }
+    },
+    {
+      "id": "antigravity",
+      "name": "Antigravity CLI",
+      "category": "ai",
+      "description": {
+        "en": "Google coding agent (`agy`), official manifest with SHA-512.",
+        "pt-BR": "Agente de código do Google (`agy`), pelo manifesto oficial com SHA-512."
+      },
+      "homepage": "https://antigravity.google/",
+      "version": "manifest",
+      "versionPolicy": "managed",
+      "default": false,
+      "install": {
+        "unix": {
+          "method": "installer",
+          "url": "https://antigravity-cli-auto-updater-974169037036.us-central1.run.app/manifests/{os}_{arch}.json",
+          "checksum": "manifest-sha512",
+          "args": [
+            "--skip-aliases",
+            "--skip-path"
+          ]
+        },
+        "windows": {
+          "method": "installer",
+          "url": "https://antigravity.google/cli/install.ps1",
+          "args": [
+            "--skip-aliases",
+            "--skip-path"
+          ],
+          "checksum": "none-official"
+        }
+      },
+      "verify": {
+        "command": "agy --version"
+      }
+    },
+    {
+      "id": "hermes",
+      "name": "Hermes Agent",
+      "category": "ai",
+      "description": {
+        "en": "Nous Research agent. Its installer edits .bashrc and .profile.",
+        "pt-BR": "Agente da Nous Research. O instalador dele altera o .bashrc e o .profile."
+      },
+      "homepage": "https://github.com/NousResearch/hermes-agent",
+      "version": "latest",
+      "versionPolicy": "managed",
+      "default": false,
+      "install": {
+        "unix": {
+          "method": "installer",
+          "url": "https://hermes-agent.nousresearch.com/install.sh",
+          "args": [
+            "--skip-setup"
+          ],
+          "checksum": "none-official"
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "No Windows installer."
+        }
+      },
+      "verify": {
+        "command": "hermes --version"
+      }
+    },
+    {
+      "id": "spec-kit",
+      "name": "Spec Kit",
+      "category": "ai",
+      "description": {
+        "en": "GitHub Spec Kit (`specify`), from the official repository.",
+        "pt-BR": "Spec Kit do GitHub (`specify`), pelo repositório oficial."
+      },
+      "homepage": "https://github.com/github/spec-kit",
+      "version": "1.4.0",
+      "versionPolicy": "exact",
+      "default": false,
+      "requires": [
+        "uv"
+      ],
+      "install": {
+        "all": {
+          "method": "mise",
+          "tool": "pipx:git+https://github.com/github/spec-kit.git@v{version}"
+        }
+      },
+      "verify": {
+        "command": "specify --version"
+      }
+    },
+    {
+      "id": "ufw",
+      "name": "UFW firewall",
+      "category": "security",
+      "flags": [
+        "service"
+      ],
+      "securityModule": true,
+      "description": {
+        "en": "Firewall that allows only SSH (and Swarm ports on the server).",
+        "pt-BR": "Firewall que libera só o SSH (e as portas do Swarm, no server)."
+      },
+      "homepage": "https://github.com/promovaweb/setupvibe",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": false,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "packages": [
+            "ufw"
+          ]
+        },
+        "wsl": {
+          "method": "unsupported",
+          "reason": "The Windows host handles security for WSL."
+        },
+        "arch-family": {
+          "method": "native",
+          "packages": [
+            "ufw"
+          ]
+        },
+        "macos": {
+          "method": "unsupported",
+          "reason": "macOS has its own firewall and updates."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Windows has its own firewall and updates."
+        }
+      },
+      "verify": {
+        "command": "ufw status"
+      }
+    },
+    {
+      "id": "fail2ban",
+      "name": "fail2ban",
+      "category": "security",
+      "flags": [
+        "service"
+      ],
+      "securityModule": true,
+      "description": {
+        "en": "Bans repeated failed SSH logins.",
+        "pt-BR": "Bloqueia tentativas repetidas de login no SSH."
+      },
+      "homepage": "https://github.com/promovaweb/setupvibe",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": false,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "packages": [
+            "fail2ban"
+          ]
+        },
+        "wsl": {
+          "method": "unsupported",
+          "reason": "The Windows host handles security for WSL."
+        },
+        "arch-family": {
+          "method": "native",
+          "packages": [
+            "fail2ban"
+          ]
+        },
+        "macos": {
+          "method": "unsupported",
+          "reason": "macOS has its own firewall and updates."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Windows has its own firewall and updates."
+        }
+      },
+      "verify": {
+        "command": "fail2ban-client ping"
+      }
+    },
+    {
+      "id": "unattended-upgrades",
+      "name": "Automatic security updates",
+      "category": "security",
+      "flags": [
+        "service"
+      ],
+      "securityModule": true,
+      "description": {
+        "en": "Installs security updates automatically.",
+        "pt-BR": "Instala as atualizações de segurança sozinho."
+      },
+      "homepage": "https://github.com/promovaweb/setupvibe",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": false,
+      "install": {
+        "debian-family": {
+          "method": "native",
+          "packages": [
+            "unattended-upgrades"
+          ]
+        },
+        "wsl": {
+          "method": "unsupported",
+          "reason": "The Windows host handles security for WSL."
+        },
+        "arch-family": {
+          "method": "unsupported",
+          "reason": "Arch has no unattended upgrades; updates stay with the user."
+        },
+        "macos": {
+          "method": "unsupported",
+          "reason": "macOS has its own firewall and updates."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Windows has its own firewall and updates."
+        }
+      },
+      "verify": {
+        "command": "systemctl is-enabled unattended-upgrades"
+      }
+    },
+    {
+      "id": "linger",
+      "name": "User lingering",
+      "category": "remote",
+      "flags": [
+        "service"
+      ],
+      "description": {
+        "en": "Keeps user services, tmux, Herdr and agents running after logout.",
+        "pt-BR": "Mantém serviços do usuário, tmux, Herdr e agentes rodando depois do logout."
+      },
+      "homepage": "https://www.freedesktop.org/software/systemd/man/loginctl.html",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": false,
+      "install": {
+        "linux": {
+          "method": "config",
+          "action": "loginctl enable-linger"
+        },
+        "wsl": {
+          "method": "unsupported",
+          "reason": "WSL sessions follow the Windows host."
+        },
+        "macos": {
+          "method": "unsupported",
+          "reason": "Not needed on macOS."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Not needed on Windows."
+        }
+      },
+      "verify": {
+        "command": "loginctl show-user $USER --property=Linger"
+      }
+    },
+    {
+      "id": "swap",
+      "name": "Swap file",
+      "category": "remote",
+      "description": {
+        "en": "Creates a swap file on machines with little memory.",
+        "pt-BR": "Cria um arquivo de swap em máquinas com pouca memória."
+      },
+      "homepage": "https://github.com/promovaweb/setupvibe",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": false,
+      "install": {
+        "linux": {
+          "method": "config",
+          "action": "swapfile"
+        },
+        "wsl": {
+          "method": "unsupported",
+          "reason": "WSL memory is managed by .wslconfig."
+        },
+        "macos": {
+          "method": "unsupported",
+          "reason": "macOS manages swap."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Windows manages the page file."
+        }
+      },
+      "verify": {
+        "command": "swapon --show"
+      }
+    },
+    {
+      "id": "time-sync",
+      "name": "Time zone and time sync",
+      "category": "security",
+      "securityModule": true,
+      "description": {
+        "en": "Sets the time zone and enables systemd-timesyncd.",
+        "pt-BR": "Define o fuso horário e liga o systemd-timesyncd."
+      },
+      "homepage": "https://github.com/promovaweb/setupvibe",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": false,
+      "install": {
+        "linux": {
+          "method": "config",
+          "action": "timesyncd"
+        },
+        "wsl": {
+          "method": "unsupported",
+          "reason": "WSL uses the Windows clock."
+        },
+        "macos": {
+          "method": "unsupported",
+          "reason": "macOS manages time."
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "Windows manages time."
+        }
+      },
+      "verify": {
+        "command": "timedatectl show --property=NTPSynchronized"
+      }
+    },
+    {
+      "id": "wsl",
+      "name": "WSL 2",
+      "category": "system",
+      "description": {
+        "en": "WSL 2 base with mirrored networking, without a Linux distribution.",
+        "pt-BR": "Base do WSL 2 com rede espelhada, sem distribuição Linux."
+      },
+      "homepage": "https://learn.microsoft.com/windows/wsl/",
+      "version": "latest",
+      "versionPolicy": "managed",
+      "default": true,
+      "install": {
+        "windows": {
+          "method": "config",
+          "action": "wsl-base"
+        },
+        "all": {
+          "method": "unsupported",
+          "reason": "Windows only."
+        }
+      },
+      "verify": {
+        "command": "wsl --status"
+      }
+    }
+  ]
+}
