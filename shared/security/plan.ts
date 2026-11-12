@@ -52,7 +52,7 @@ export function securityPlan(o: SecurityOptions): SecurityPlan {
     return { steps: [], skipped: [{ part: "all", reason: `${o.system} keeps its own firewall and updates.` }] };
   }
   const apt = !["arch", "omarchy"].includes(o.system);
-  const packages = apt ? ["ufw", "fail2ban", "unattended-upgrades"] : ["ufw", "fail2ban"];
+  const packages = apt ? ["ufw", "fail2ban", "unattended-upgrades", "systemd-timesyncd"] : ["ufw", "fail2ban"];
   const steps: Step[] = [
     { id: "security-packages", description: `Install ${packages.join(", ")}`, commands: nativeInstallCmd(o.system, packages) },
     {
@@ -106,7 +106,8 @@ export function securityPlan(o: SecurityOptions): SecurityPlan {
     id: "time-sync",
     description: o.timezone ? `Time sync and time zone ${o.timezone}` : "Time sync",
     commands: [
-      { argv: ["timedatectl", "set-ntp", "true"], sudo: true },
+      // Containers and some VMs cannot sync time; that must not fail the module.
+      { argv: ["timedatectl", "set-ntp", "true"], sudo: true, optional: true },
       ...(o.timezone ? [{ argv: ["timedatectl", "set-timezone", o.timezone], sudo: true }] : []),
     ],
   });

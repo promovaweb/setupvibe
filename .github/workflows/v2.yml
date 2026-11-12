@@ -1,0 +1,104 @@
+# SetupVibe 2 CI (spec section 17).
+#
+# - validate: typecheck, unit tests and build on every push and pull request.
+# - containers: `setupvibe auto` for real in systemd containers, run twice to
+#   prove idempotency, then `check`.
+# - macos and windows: the binary on real runners.
+# - release: on a v2.* tag, builds every binary, writes SHA256SUMS and
+#   uploads them to the GitHub Release the one-line installers read.
+name: SetupVibe 2
+
+on:
+  push:
+    branches: [v2]
+    tags: ["v2.*"]
+  pull_request:
+    branches: [v2]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run validate
+
+  containers:
+    needs: validate
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { system: "debian:12", edition: desktop }
+          - { system: "debian:13", edition: desktop }
+          - { system: "ubuntu:24.04", edition: desktop }
+          - { system: "archlinux:latest", edition: desktop }
+          - { system: "ubuntu:24.04", edition: server, root: "--as-root" }
+          - { system: "debian:12", edition: server, root: "--as-root" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun run scripts/container-test.ts --system "${{ matrix.system }}" --edition "${{ matrix.edition }}" ${{ matrix.root }}
+
+  macos:
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-14, macos-13]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: ./dist/setupvibe system --no-update-check
+      - run: ./dist/setupvibe auto --profile essencial --dry-run
+      - name: auto (Apple Silicon only)
+        if: matrix.runner == 'macos-14'
+        run: ./dist/setupvibe auto --profile essencial --skip-network-check && ./dist/setupvibe check
+
+  windows:
+    needs: validate
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run build -- --edition desktop
+      - run: .\dist\setupvibe.exe system --no-update-check
+      - run: .\dist\setupvibe.exe auto --profile essencial --dry-run
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v2.')
+    needs: [validate, containers]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile --os="*" --cpu="*" --libc="*"
+      - run: bun run release:assets
+      - name: Upload binaries and SHA256SUMS
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" dist/setupvibe-* dist/SHA256SUMS --clobber

@@ -188,8 +188,8 @@ describe("re-run helpers", () => {
   });
 
   test("self argv from source and compiled", () => {
-    expect(selfArgv(["/usr/bin/bun", "/repo/desktop/src/main.ts", "auto"])).toEqual(["/usr/bin/bun", "/repo/desktop/src/main.ts"]);
-    expect(selfArgv(["/usr/local/bin/setupvibe", "/$bunfs/root/setupvibe", "auto"])).toEqual(["/usr/local/bin/setupvibe"]);
+    expect(selfArgv(["bun", "/repo/desktop/src/main.ts", "auto"], "/usr/bin/bun")).toEqual(["/usr/bin/bun", "/repo/desktop/src/main.ts"]);
+    expect(selfArgv(["bun", "/$bunfs/root/setupvibe", "auto"], "/usr/local/bin/setupvibe")).toEqual(["/usr/local/bin/setupvibe"]);
   });
 });
 
@@ -242,5 +242,24 @@ describe("command", () => {
 
   test("unknown items are a usage error", () => {
     expect(run("desktop/src/main.ts", ["auto", "--dry-run", "--only", "nope"]).code).toBe(ExitCode.USAGE);
+  });
+});
+
+describe("docker and time sync fixes from the container tests", () => {
+  test("the working user joins the docker group after a native Docker install", () => {
+    const selection = selectItems({ inventory: server, system: "ubuntu", headless: true });
+    const plan = autoPlan(ctx({ inventory: server, edition: "server", system: "ubuntu", selection }));
+    const group = plan.steps.find((s) => s.id === "docker-group")!;
+    expect(group.commands.map(describeCmd)[0]).toBe("sudo usermod --append --groups docker deploy");
+    const ids = plan.steps.map((s) => s.id);
+    expect(ids.indexOf("docker")).toBeLessThan(ids.indexOf("docker-group"));
+  });
+
+  test("NTP is optional and timesyncd is installed on Debian-family systems", () => {
+    const selection = selectItems({ inventory: server, system: "debian", headless: true });
+    const plan = autoPlan(ctx({ inventory: server, edition: "server", system: "debian", selection }));
+    const time = plan.steps.find((s) => s.id === "time-sync")!;
+    expect(time.commands[0]!.optional).toBe(true);
+    expect(plan.steps.find((s) => s.id === "security-packages")!.commands.map(describeCmd)[0]).toContain("systemd-timesyncd");
   });
 });

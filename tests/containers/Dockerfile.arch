@@ -1,0 +1,12 @@
+# systemd test image for Arch Linux.
+FROM archlinux:latest
+ENV container=docker
+RUN pacman -Syu --noconfirm --needed sudo systemd ca-certificates curl \
+    && pacman -Scc --noconfirm \
+    && echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen && locale-gen
+ENV LANG=en_US.UTF-8
+RUN useradd --create-home --shell /bin/bash tester \
+    && printf '%s\n' 'tester ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/tester \
+    && chmod 0440 /etc/sudoers.d/tester
+STOPSIGNAL SIGRTMIN+3
+CMD ["/usr/lib/systemd/systemd"]

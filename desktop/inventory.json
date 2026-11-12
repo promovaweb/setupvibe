@@ -1705,7 +1705,7 @@
         }
       },
       "verify": {
-        "command": "docker version"
+        "command": "docker --version && { [ \"$(uname -s)\" = Darwin ] || systemctl is-active --quiet docker; }"
       }
     },
     {
@@ -2323,7 +2323,8 @@
       "install": {
         "all": {
           "method": "mise",
-          "tool": "npm:opencode-ai"
+          "tool": "aqua:sst/opencode",
+          "note": "The npm package needs its postinstall script, which mise skips; the release binary does not."
         },
         "omarchy": {
           "method": "preinstalled"

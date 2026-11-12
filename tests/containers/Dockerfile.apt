@@ -1,0 +1,17 @@
+# systemd test image for Debian-family systems (Debian, Ubuntu).
+# Receipe from DEBIAN.md: systemd as PID 1, a normal user with passwordless
+# sudo, no SetupVibe preinstalled.
+ARG BASE=debian:13
+FROM ${BASE}
+ENV container=docker
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates curl dbus systemd systemd-sysv sudo locales \
+    && sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen && locale-gen \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+ENV LANG=en_US.UTF-8
+RUN useradd --create-home --shell /bin/bash tester \
+    && printf '%s\n' 'tester ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/tester \
+    && chmod 0440 /etc/sudoers.d/tester
+STOPSIGNAL SIGRTMIN+3
+CMD ["/sbin/init"]

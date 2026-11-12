@@ -39,7 +39,7 @@ export const checkCommand: Command = {
     return {
       code: failed.length ? ExitCode.PARTIAL : ExitCode.SUCCESS,
       data: { system, results },
-      text: () => results.map((r) => `${r.status === "ok" ? color.ok("✓") : color.error("✗")} ${r.id} ${color.dim(r.output || "not found")}${r.status === "fail" && r.expected ? color.dim(` (expected ${r.expected})`) : ""}`).join("\n"),
+      text: () => results.map((r) => `${r.status === "ok" ? color.ok("✓") : color.error("✗")} ${r.id} ${color.dim(r.output || (r.status === "ok" ? "present" : "not found"))}${r.status === "fail" && r.expected ? color.dim(` (expected ${r.expected})`) : ""}`).join("\n"),
     };
   },
 };

@@ -14,7 +14,7 @@
  * 5. a pending restart exits with REBOOT_PENDING, or restarts and resumes
  *    with `--reboot`.
  */
-import { copyFileSync, existsSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, realpathSync, writeFileSync } from "node:fs";
 import { userInfo } from "node:os";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";
@@ -46,8 +46,9 @@ const ROOT_ONLY = ["--user", "--ssh-key"];
  * compiled binary is its own executable. User arguments always start at
  * `process.argv[2]`.
  */
-export function selfArgv(argv = process.argv): string[] {
-  return argv[1] && /\.(ts|js)$/.test(argv[1]) ? [argv[0]!, argv[1]] : [argv[0]!];
+export function selfArgv(argv = process.argv, execPath = process.execPath): string[] {
+  // In a compiled Bun binary argv[0] is just "bun"; execPath is the real file.
+  return argv[1] && /\.(ts|js)$/.test(argv[1]) ? [execPath, argv[1]] : [execPath];
 }
 
 /** Arguments for the user phase: the original ones without root-only options. */
@@ -145,8 +146,10 @@ async function run(ctx: Context) {
     }
     let self = selfArgv();
     if (self.length === 1) {
-      copyFileSync(self[0]!, `/usr/local/bin/${manifest.bin}`);
-      self = [`/usr/local/bin/${manifest.bin}`];
+      // The user phase needs a binary it can read; root may run it from /root.
+      const target = `/usr/local/bin/${manifest.bin}`;
+      if (!existsSync(target) || realpathSync(self[0]!) !== realpathSync(target)) copyFileSync(self[0]!, target);
+      self = [target];
     }
     const child = Bun.spawn(["runuser", "-u", answers.user, "--", "env", "SETUPVIBE_AUTO_CREATED_NOPASSWD=1", ...self, ...childArgs(process.argv.slice(2))], {
       stdin: "ignore",
@@ -221,6 +224,7 @@ async function run(ctx: Context) {
     const failed = results.filter((r) => r.status === "fail").length + checked.filter((c) => c.status === "fail").length;
     const lastRun = { version: manifest.version, finishedAt: new Date().toISOString(), log: log.path, ...summary, results, checks: checked };
     writeJsonAtomic(statePath("last-run.json"), lastRun);
+    writeState("selection.json", { profile: answers.profile ?? null, items: selection.items.map((i) => ({ id: i.id, version: i.version, status: checked.find((c) => c.id === i.id)?.status ?? "ok" })) });
 
     if (rebootRequired()) {
       if (answers.reboot) {

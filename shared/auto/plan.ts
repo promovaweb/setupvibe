@@ -123,6 +123,17 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
     else steps.push(...itemSteps(item, ctx.system, { arch: ctx.arch, inventory: ctx.inventory, distro: ctx.distro, home }));
   }
 
+  if (ctx.selection.items.some((i) => i.id === "docker") && !["macos", "windows"].includes(ctx.system) && resolveInstall(ctx.selection.items.find((i) => i.id === "docker")!, ctx.system)?.method === "native") {
+    steps.push({
+      id: "docker-group",
+      description: `Add ${ctx.user} to the docker group`,
+      commands: [
+        { argv: ["usermod", "--append", "--groups", "docker", ctx.user], sudo: true },
+        { argv: ["systemctl", "enable", "--now", "docker"], sudo: true },
+      ],
+    });
+  }
+
   const security = securityApplies(ctx.edition, ctx.variant, ctx.selection);
   if (security) {
     const plan = securityPlan({

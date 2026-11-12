@@ -4,6 +4,28 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.2] - 2026-11-12
+
+Pre-release of SetupVibe 2 on the `v2` branch, rebuilt from the approved specification. It replaces the earlier `v2.0.0-dev.1` attempt, whose branch was removed. The SetupVibe 1 scripts on `main` are not affected.
+
+### Added
+
+- Two Bun binaries on the Termfy core, `setupvibe` (desktop: macOS, Ubuntu, Debian, Mint, Zorin, Arch, Omarchy, Windows and WSL) and `setupvibe-server` (Ubuntu and Debian), each with TUI, CLI and MCP in the same executable. Both keep their state in `~/.setupvibe/`.
+- The inventory: `desktop/inventory.json` (74 items) and `server/inventory.json` (35 items) with pinned versions, per-system install methods, GUI, service and port flags, and the `essencial` and `remoto` profiles, validated by a JSON Schema and tests.
+- System detection with WSL, headless and public IP flags, and the `system` command.
+- `init`: requirement checks and the prerequisites (build dependencies and mise, verified against the release checksums).
+- `auto`: unattended installation for headless machines and automation. As root, `--user` creates the working user and auto continues as it. Answers come from options, `SETUPVIBE_*` variables or `--config`. NDJSON events, `last-run.json`, a run lock, and restart handling with `--reboot`.
+- `check`, `user create`, `user nopasswd` and `security apply` (UFW, fail2ban, automatic updates, key-only SSH validated by `sshd -t`, time sync). Every command that changes the machine accepts `--dry-run`.
+- One-line installers `install.sh` and `install.ps1` that read `version.json` on the `v2` branch and verify the release binary with `SHA256SUMS`.
+- CI: unit tests, `auto` in systemd containers run twice for idempotency, macOS and Windows runners, and release assets on `v2.*` tags.
+
+### Validation
+
+- `bun run validate`: typecheck, the whole test suite and both builds.
+- `bun run scripts/container-test.ts --system debian:13`: real `auto` run, second run and `check` in a systemd container.
+
+---
+
 ## [v0.41.20] - 2026-11-12
 
 ### Added
