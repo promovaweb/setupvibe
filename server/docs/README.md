@@ -43,6 +43,29 @@ usuário e `{{bin}} update` atualiza os itens cuja versão fixada mudou.
 `{{bin}} install --external <ferramenta>` instala pelo mise um app fora do
 inventário, com versão fixada.
 
+## Ambiente do terminal
+
+`{{bin}} auto` configura o shell, o prompt e o tmux. As alterações em
+`~/.zshrc` (ou `~/.bashrc` no Omarchy) e em `~/.tmux.conf` ficam entre os
+marcadores `# >>> setupvibe >>>` e `# <<< setupvibe <<<`, com cópia de
+segurança antes da primeira mudança. Personalizações vão em `~/.zshrc.local`,
+`~/.bashrc.local` e `~/.tmux.conf.local`. `{{bin}} shell apply` refaz a
+configuração e `{{bin}} shell remove` tira os blocos.
+
+## Manutenção
+
+- `{{bin}} doctor --fix` confere o sistema, o init, os itens e restos do
+  SetupVibe 1, e aplica as correções seguras.
+- `{{bin}} upgrade` troca o binário pela versão nova, conferida pelo SHA256SUMS.
+- `{{bin}} config export arquivo.json` e `{{bin}} config import arquivo.json`
+  repetem a seleção em outra máquina.
+- `{{bin}} report` gera o relatório para anexar em issue, sem segredos.
+- `{{bin}} ssh copy-id usuario@servidor` autoriza a sua chave SSH num servidor.
+- `{{bin}} skill -- add dono/repo` usa o skills CLI da Vercel.
+- `{{bin}} self uninstall --yes` remove o SetupVibe e mantém backups e dados
+  do Portainer.
+- `{{bin}} docs` mostra esta documentação, como `--skill`.
+
 ## Mapa
 
 - [cli.md](cli.md): commands, opções globais, convenções de saída e a referência gerada do registry.

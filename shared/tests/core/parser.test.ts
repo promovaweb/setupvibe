@@ -42,7 +42,7 @@ describe("parser", () => {
 
   test("rejects a value outside the accepted list", () => {
     expect(() => parse(root, ["tui", "--tab", "nothing"])).toThrow(/Accepted/);
-    expect(() => parse(root, ["skill", "nothing"])).toThrow(/Accepted/);
+    expect(() => parse(root, ["docs", "nothing"])).toThrow(/Accepted/);
   });
 
   test("-- ends option parsing", () => {

@@ -1,0 +1,30 @@
+# SetupVibe 2 on macOS Apple Silicon.
+#
+# Kept apart from the main CI because GitHub's hosted macOS arm64 runners are
+# capacity constrained: jobs were cancelled with "The job was not acquired by
+# Runner of type hosted even after multiple attempts". This workflow runs on
+# v2.* tags and on demand, so it can be retried without turning the main CI
+# red.
+name: SetupVibe 2 · macOS arm64
+
+on:
+  push:
+    tags: ["v2.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  macos-arm64:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: ./dist/setupvibe system --no-update-check
+      - run: ./dist/setupvibe auto --profile essencial --skip-network-check && ./dist/setupvibe check

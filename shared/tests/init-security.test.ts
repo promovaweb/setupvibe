@@ -12,6 +12,8 @@ import { checkClock, checkDisk, checkEdition, checkLocale, checkMemory, checkRoo
 import { nopasswdStep, sudoersPath, userCreatePlan, validateUserOptions } from "../users/create";
 import { SSHD_DROPIN, securityPlan, SWARM_PORTS } from "../security/plan";
 import { ExitCode } from "../core/app/exit-codes";
+import { autoPlan } from "../auto/plan";
+import { resolveAnswers } from "../auto/answers";
 
 const desktop = desktopJson as Inventory;
 const server = serverJson as Inventory;
@@ -291,5 +293,30 @@ describe("network retries", () => {
     expect(itemSteps(item(desktop, "node"), "ubuntu", ctx)[0]!.commands[0]!.retries).toBe(3);
     expect(itemSteps(item(desktop, "tpm"), "macos", ctx)[1]!.commands[0]!.retries).toBe(3);
     expect(nativeInstallCmd("debian", ["zsh"])[0]!.retries).toBe(3);
+  });
+});
+
+describe("windows paths", () => {
+  test("mise comes from the release .exe and lives in ~/.local/bin/mise.exe", async () => {
+    const { miseCmd, miseSteps, miseAsset } = await import("../install/methods");
+    expect(miseAsset("2026.11.6", "windows", "x64")).toBe("mise-v2026.11.6-windows-x64.exe");
+    expect(miseCmd("C:\\Users\\u", "windows")).toEndWith("mise.exe");
+    const steps = miseSteps(item(desktop, "mise"), "windows", "x64", "/home/u");
+    expect(steps[0]!.skipIf).toBeUndefined();
+    expect(steps[0]!.actionDescription).toContain("mise-v2026.11.6-windows-x64.exe");
+  });
+
+  test("checks run through cmd with a ; separated PATH on Windows", async () => {
+    const { verifyCmd } = await import("../install/methods");
+    const cmd = verifyCmd(item(desktop, "node"), "C:/Users/u", true);
+    expect(cmd.argv.slice(0, 4)).toEqual(["cmd", "/d", "/s", "/c"]);
+    expect(cmd.env!.PATH!.split(";").length).toBeGreaterThan(2);
+    expect(verifyCmd(item(desktop, "node"), "/home/u", false).argv[0]).toBe("sh");
+  });
+
+  test("the wsl item installs the WSL base", () => {
+    const sel = { items: [item(desktop, "wsl")], skipped: [] };
+    const plan = autoPlan({ inventory: desktop, edition: "desktop", system: "windows", arch: "x64", variant: "local", user: "u", userHasKey: false, initDone: true, memoryGb: 8, answers: resolveAnswers({}, {}), selection: sel, createdNopasswd: false, home: "C:/Users/u" });
+    expect(plan.steps.find((s) => s.id === "wsl")!.commands.map((c) => describeCmd(c))[0]).toBe("wsl.exe --install --no-distribution --web-download");
   });
 });

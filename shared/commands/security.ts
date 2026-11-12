@@ -6,7 +6,7 @@
  * demand.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { userInfo } from "node:os";
+import { currentUser } from "../system/user.ts";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";
 import { ExitCode } from "../core/app/exit-codes.ts";
@@ -41,7 +41,7 @@ const applyCommand: Command = {
     if (!detected.system || detected.unsupportedReason) {
       return { code: ExitCode.UNSUPPORTED_SYSTEM, data: { system: detected }, text: `✗ ${detected.unsupportedReason}` };
     }
-    const user = userInfo();
+    const user = currentUser();
     const plan = securityPlan({
       system: detected.system,
       edition: manifest.edition,

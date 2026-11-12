@@ -66,15 +66,16 @@ test("MCP returns the shared checks and marks failures", async () => {
   } finally { await client.close(); await server.close(); }
 });
 
-test("CLI without a TTY exits successfully with warnings and fails only for failed checks", () => {
+test("CLI doctor reports TTY warnings and fails while init or settings are broken", () => {
   const run = () => Bun.spawnSync([process.execPath, "run", "desktop/src/main.ts", "doctor", "--json"], {
     env: { ...process.env }, stdin: "ignore",
   });
-  const success = run();
-  expect(success.exitCode).toBe(ExitCode.SUCCESS);
-  const data = JSON.parse(success.stdout.toString()).data;
-  expect(data.ok).toBe(true);
-  for (const name of ["stdin", "stdout"]) expect(data.checks.find((c: { name: string }) => c.name === name).status).toBe("warn");
+  const pending = run();
+  // SetupVibe adds its findings: without init the doctor fails with CONFIG.
+  expect(pending.exitCode).toBe(ExitCode.CONFIG);
+  const data = JSON.parse(pending.stdout.toString()).data;
+  expect(data.findings.find((f: { id: string }) => f.id === "init").level).toBe("fail");
+  for (const name of ["stdin", "stdout"]) expect(data.runtime.find((c: { name: string }) => c.name === name).status).toBe("warn");
   writeFileSync(paths.settings(), "invalid");
   const failure = run();
   expect(failure.exitCode).toBe(ExitCode.CONFIG);

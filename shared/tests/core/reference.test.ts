@@ -9,6 +9,6 @@ test("reference returns only generated command documentation", () => {
   expect(SKILL_TOPICS).toContain("reference");
   expect(skillText(root, "reference")).toBe(commandReference(root).trimEnd());
   expect(parse(root, ["--skill", "reference"]).options.skill).toBe("reference");
-  expect(parse(root, ["skill", "reference"]).args).toEqual(["reference"]);
+  expect(parse(root, ["docs", "reference"]).args).toEqual(["reference"]);
   expect(skillText(root).split("## Reference generated from the command registry")).toHaveLength(2);
 });

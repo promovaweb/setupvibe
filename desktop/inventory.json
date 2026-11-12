@@ -2169,7 +2169,7 @@
         }
       },
       "verify": {
-        "command": "sshd -t"
+        "command": "command -v sshd >/dev/null && { systemctl is-active --quiet ssh || systemctl is-active --quiet sshd; }"
       }
     },
     {

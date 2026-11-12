@@ -15,7 +15,7 @@
  *    with `--reboot`.
  */
 import { copyFileSync, existsSync, realpathSync, writeFileSync } from "node:fs";
-import { userInfo } from "node:os";
+import { currentUser } from "../system/user.ts";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";
 import { ExitCode } from "../core/app/exit-codes.ts";
@@ -162,7 +162,7 @@ async function run(ctx: Context) {
   }
 
   // User phase.
-  const user = userInfo();
+  const user = currentUser();
   if (!dryRun && process.platform !== "win32") {
     const sudo = await runner.exec({ argv: ["sudo", "-n", "true"] });
     if (sudo.code !== 0) {
@@ -197,6 +197,7 @@ async function run(ctx: Context) {
       answers,
       selection,
       createdNopasswd: process.env.SETUPVIBE_AUTO_CREATED_NOPASSWD === "1",
+      agentAliases: (config.shell as { agentAliases?: boolean } | undefined)?.agentAliases ?? true,
     });
   } catch (e) {
     return { code: ExitCode.USAGE, data: { error: String(e) }, text: `✗ ${(e as Error).message}` };

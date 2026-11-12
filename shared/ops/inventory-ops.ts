@@ -21,7 +21,7 @@ import { join } from "node:path";
 import type { Inventory, Item, System } from "../inventory.ts";
 import { resolveInstall, withVersion } from "../inventory.ts";
 import type { Cmd, Step } from "../exec/runner.ts";
-import { expandHome, usesApt } from "../install/methods.ts";
+import { expandHome, miseCmd, usesApt } from "../install/methods.ts";
 
 /** One entry of selection.json. */
 export interface SelectedItem {
@@ -37,7 +37,7 @@ export interface ExternalApp {
   installedAt: string;
 }
 
-const mise = (home: string) => join(home, ".local", "bin", "mise");
+const mise = (home: string) => miseCmd(home);
 
 /** Merges new entries into the selection, replacing items with the same id. */
 export function mergeSelection(current: SelectedItem[], added: SelectedItem[]): SelectedItem[] {

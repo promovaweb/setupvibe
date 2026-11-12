@@ -21,6 +21,7 @@ import {
 } from "../../config/settings.ts";
 import { blocks, color, section, table } from "../format.ts";
 import type { Command } from "../registry.ts";
+import { configSubcommands } from "../../../commands/maintenance.ts";
 
 const codes = [ExitCode.CONFIG, ExitCode.PERMISSION, ExitCode.NOT_FOUND] as const;
 
@@ -147,6 +148,6 @@ export const configCommand: Command = {
     `Preferences are stored in plain text at ${paths.settings()}. Nested keys use dot\n` +
     `notation. Keys outside the schema are accepted as text to leave room for project\n` +
     `extensions. Secrets never go here: use "${manifest.bin} credentials".`,
-  subcommands: [list, get, set, unset, path, schema],
+  subcommands: [list, get, set, unset, path, schema, ...configSubcommands],
   exitCodes: codes,
 };

@@ -102,9 +102,20 @@ try {
       ["install --external hyperfine", [bin, "install", "--external", "hyperfine"]],
       ["remove --external hyperfine", [bin, "remove", "--external", "hyperfine", "--yes"]],
       ["remove go", [bin, "remove", "go", "--yes"]],
+      ["zsh loads the SetupVibe block", ["zsh", "-ic", "alias gs >/dev/null && command -v starship >/dev/null && command -v node >/dev/null"]],
+      ["tmux loads the SetupVibe settings", ["sh", "-c", "tmux new-session -d -s sv && tmux show -gv base-index | grep -qx 1; r=$?; tmux kill-server; exit $r"]],
+      ["login shell is zsh", ["sh", "-c", "getent passwd \"$(id -un)\" | cut -d: -f7 | grep -q zsh"]],
       ["mcp install", [bin, "mcp", "install"]],
       ["mcp install again (no changes)", [bin, "mcp", "install"]],
       ["claude sees the server", ["sh", "-lc", "PATH=$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH claude mcp get setupvibe"]],
+      ["doctor --fix", [bin, "doctor", "--fix"]],
+      ["report", ["sh", "-c", `${bin} report --output /tmp/report.md && grep -q '# SetupVibe report' /tmp/report.md`]],
+      ["config export", [bin, "config", "export", "/tmp/answers.json"]],
+      ["config import (nothing new)", [bin, "config", "import", "/tmp/answers.json"]],
+      ["install openssh-server", [bin, "install", "openssh-server"]],
+      ["ssh copy-id with a password", ["sh", "-c", `echo "$(id -un):sv-pass-1" | sudo chpasswd && sudo sed -i 's/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && { sudo systemctl restart ssh 2>/dev/null || sudo systemctl restart sshd; } && ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/id_ed25519 && printf %s sv-pass-1 | ${bin} ssh copy-id "$(id -un)@127.0.0.1" --password-stdin`]],
+      ["ssh login with the key", ["sh", "-c", `ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new "$(id -un)@127.0.0.1" true`]],
+      ["ssh copy-id again keeps one key", ["sh", "-c", `printf %s sv-pass-1 | ${bin} ssh copy-id "$(id -un)@127.0.0.1" --password-stdin && [ "$(grep -c ssh-ed25519 ~/.ssh/authorized_keys)" = 1 ]`]],
     ];
     for (const [label, cmd] of steps) {
       const r = await sh(["docker", "exec", ...runAs, name, ...cmd], { quiet: true, allowFail: true });
@@ -119,6 +130,23 @@ try {
   phase("check");
   const r3 = await sh(["docker", "exec", ...runAs, name, bin, "check", ...(asRoot ? [] : [])], { allowFail: true });
   if (r3.code !== 0) failed = true;
+
+  if (edition === "desktop" && !asRoot) {
+    phase("self uninstall");
+    const steps: [string, string[]][] = [
+      ["a personal line in .zshrc", ["sh", "-c", "echo 'export MINE=1' >> ~/.zshrc"]],
+      ["self uninstall --yes --keep-data", [bin, "self", "uninstall", "--yes", "--keep-data"]],
+      ["block gone, personal line kept", ["sh", "-c", "! grep -q '>>> setupvibe >>>' ~/.zshrc && grep -q 'export MINE=1' ~/.zshrc && [ -f ~/.setupvibe/config.json ] && [ ! -e ~/.setupvibe/shell ]"]],
+    ];
+    for (const [label, cmd] of steps) {
+      const r = await sh(["docker", "exec", ...runAs, name, ...cmd], { quiet: true, allowFail: true });
+      console.error(`${r.code === 0 ? "✓" : "✗"} ${label} (exit ${r.code})`);
+      if (r.code !== 0) {
+        failed = true;
+        console.error(r.out.split("\n").slice(-5).join("\n"));
+      }
+    }
+  }
 } catch (e) {
   console.error(`✗ ${(e as Error).message}`);
   failed = true;

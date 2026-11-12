@@ -76,8 +76,13 @@ export function checkEdition(installed: string | undefined, running: "desktop" |
 
 /** Free space of the home folder in GB. */
 export function freeDiskGb(path = homedir()): number {
-  const s = statfsSync(path);
-  return (s.bavail * s.bsize) / 1e9;
+  try {
+    const s = statfsSync(path);
+    return (s.bavail * s.bsize) / 1e9;
+  } catch {
+    // statfs is not available everywhere (some Windows setups); do not block on it.
+    return Number.POSITIVE_INFINITY;
+  }
 }
 
 /** Total memory in GB. */

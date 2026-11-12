@@ -17,6 +17,7 @@ import { itemSteps, nativeRefreshCmd, type DistroInfo } from "../install/methods
 import { initPlan } from "../init/plan.ts";
 import { securityPlan } from "../security/plan.ts";
 import { removeNopasswdStep } from "../users/create.ts";
+import { shellSteps } from "../shell/config.ts";
 import type { AutoAnswers } from "./answers.ts";
 import type { Selection } from "./selection.ts";
 
@@ -37,6 +38,10 @@ export interface AutoContext {
   /** The working user was created by this run with a temporary sudo rule. */
   createdNopasswd: boolean;
   home?: string;
+  /** Configure the shell environment (spec section 7). Default true. */
+  shell?: boolean;
+  /** Load the agent aliases (cc, cx, oc). Default true. */
+  agentAliases?: boolean;
 }
 
 export interface AutoPlan {
@@ -65,6 +70,21 @@ function configSteps(item: Item, ctx: AutoContext): Step[] {
   if (!entry) return [];
   if (entry.method === "config" && entry.action === "loginctl enable-linger") {
     return [{ id: item.id, description: `Keep ${ctx.user}'s services running after logout`, commands: [{ argv: ["loginctl", "enable-linger", ctx.user], sudo: true }] }];
+  }
+  if (entry.method === "config" && entry.action === "wsl-base") {
+    // WSL 2 base without a distribution (spec section 14.6). Needs an elevated
+    // PowerShell, which auto requires on Windows; a restart may follow.
+    return [
+      {
+        id: item.id,
+        description: "Install the WSL 2 base without a Linux distribution",
+        skipIf: { argv: ["wsl.exe", "--status"] },
+        commands: [
+          { argv: ["wsl.exe", "--install", "--no-distribution", "--web-download"], retries: 2 },
+          { argv: ["wsl.exe", "--set-default-version", "2"], optional: true },
+        ],
+      },
+    ];
   }
   if (entry.method === "config" && entry.action === "swapfile") {
     const size = swapSizeGb(ctx.memoryGb);
@@ -132,6 +152,20 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
         { argv: ["systemctl", "enable", "--now", "docker"], sudo: true },
       ],
     });
+  }
+
+  if (ctx.selection.items.some((i) => i.id === "openssh-server") && resolveInstall(ctx.selection.items.find((i) => i.id === "openssh-server")!, ctx.system)?.method === "native") {
+    // Debian and Ubuntu start ssh on install; Arch ships sshd disabled.
+    steps.push({
+      id: "openssh-service",
+      description: "Enable and start the SSH server",
+      commands: [{ argv: ["sh", "-c", "systemctl enable --now ssh 2>/dev/null || systemctl enable --now sshd"], sudo: true }],
+    });
+  }
+
+  if (ctx.shell !== false && ctx.system !== "windows") {
+    const has = (id: string) => ctx.selection.items.some((i) => i.id === id) || resolveInstall(ctx.inventory.items.find((i) => i.id === id) ?? ({ install: {} } as Item), ctx.system)?.method === "preinstalled";
+    steps.push(...shellSteps({ system: ctx.system, edition: ctx.edition, user: ctx.user, home, agentAliases: ctx.agentAliases ?? true, zsh: has("zsh"), tmux: has("tmux") && has("tpm"), starship: has("starship") }));
   }
 
   const security = securityApplies(ctx.edition, ctx.variant, ctx.selection);

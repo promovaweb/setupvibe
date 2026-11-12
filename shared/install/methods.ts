@@ -126,6 +126,7 @@ export async function fetchWithRetries(url: string, timeoutMs: number, attempts 
 
 /** mise release asset name for the running platform. */
 export function miseAsset(version: string, system: System, arch: string): string {
+  if (system === "windows") return `mise-v${version}-windows-${arch}.exe`;
   const os = system === "macos" ? "macos" : "linux";
   return `mise-v${version}-${os}-${arch}`;
 }
@@ -165,17 +166,14 @@ async function downloadVerified(
 export function miseSteps(item: Item, system: System, arch: string, home = homedir()): Step[] {
   const entry = resolveInstall(item, system);
   if (!entry || entry.method === "preinstalled" || entry.method === "unsupported") return [];
-  if (system === "windows") {
-    return [{ id: "mise", description: `Install mise ${item.version} with WinGet`, commands: [{ argv: ["winget", "install", "--exact", "--id", "jdx.mise", "--version", item.version, "--silent", "--accept-package-agreements", "--accept-source-agreements", "--disable-interactivity"] }] }];
-  }
   const asset = miseAsset(item.version, system, arch);
   const base = `https://github.com/jdx/mise/releases/download/v${item.version}`;
-  const target = join(home, ".local", "bin", "mise");
+  const target = miseCmd(home, system);
   return [
     {
       id: "mise",
-      description: `Install mise ${item.version} to ~/.local/bin/mise (SHA-256 from the release)`,
-      skipIf: { argv: ["sh", "-c", `"${target}" --version 2>/dev/null | grep -q "^${item.version} "`] },
+      description: `Install mise ${item.version} to ${target} (SHA-256 from the release)`,
+      ...(system === "windows" ? {} : { skipIf: { argv: ["sh", "-c", `"${target}" --version 2>/dev/null | grep -q "^${item.version} "`] } }),
       commands: [],
       actionDescription: `download ${base}/${asset}, verify it with ${base}/SHASUMS256.txt and write ${target}`,
       action: async () => {
@@ -185,8 +183,15 @@ export function miseSteps(item: Item, system: System, arch: string, home = homed
   ];
 }
 
-function miseCmd(home: string): string {
-  return join(home, ".local", "bin", "mise");
+/** Path of the mise binary SetupVibe installs: ~/.local/bin/mise, with .exe on Windows. */
+export function miseCmd(home: string, system: System | "auto" = "auto"): string {
+  const windows = system === "windows" || (system === "auto" && process.platform === "win32");
+  return join(home, ".local", "bin", windows ? "mise.exe" : "mise");
+}
+
+/** Folder of the mise shims: ~/.local/share/mise/shims, or %LOCALAPPDATA%\mise\shims on Windows. */
+export function miseShims(home: string, windows = process.platform === "win32"): string {
+  return windows ? join(process.env.LOCALAPPDATA ?? join(home, "AppData", "Local"), "mise", "shims") : join(home, ".local", "share", "mise", "shims");
 }
 
 /**
@@ -255,7 +260,7 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
     case "mise": {
       const tool = withVersion(entry.tool ?? id, item);
       const spec = tool.includes("@v") || /@[\w.]+$/.test(tool.split(":").pop() ?? "") ? tool : `${tool}@${v}`;
-      return [{ id, description: `Install ${spec} with mise`, commands: [{ argv: [miseCmd(home), "use", "--global", "--yes", spec], retries: 3 }] }];
+      return [{ id, description: `Install ${spec} with mise`, commands: [{ argv: [miseCmd(home, system), "use", "--global", "--yes", spec], retries: 3 }] }];
     }
     case "git": {
       const path = expandHome(entry.path ?? "", home);
@@ -287,7 +292,7 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
     case "composer":
       return [{ id, description: `Install ${entry.package}:${v} with Composer`, commands: [{ argv: ["composer", "global", "require", "--no-interaction", `${entry.package}:${v}`] }] }];
     case "gem":
-      return [{ id, description: `Install the ${entry.gem} gem ${v}`, commands: [{ argv: [miseCmd(home), "exec", "--", "gem", "install", entry.gem ?? id, "-v", v, "--no-document"] }] }];
+      return [{ id, description: `Install the ${entry.gem} gem ${v}`, commands: [{ argv: [miseCmd(home, system), "exec", "--", "gem", "install", entry.gem ?? id, "-v", v, "--no-document"] }] }];
     case "archive": {
       const target = expandHome(entry.path ?? "~/.local/share/setupvibe", home);
       return (entry.files ?? []).map((file, i) => {
@@ -334,9 +339,10 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
 }
 
 /** Command that checks an item, from `verify.command`, run through a shell. */
-export function verifyCmd(item: Item, home = homedir()): Cmd {
-  const path = `${join(home, ".local", "bin")}:${join(home, ".local", "share", "mise", "shims")}:${process.env.PATH ?? ""}`;
-  return { argv: ["sh", "-c", item.verify.command], env: { PATH: path } };
+export function verifyCmd(item: Item, home = homedir(), windows = process.platform === "win32"): Cmd {
+  const sep = windows ? ";" : ":";
+  const path = [join(home, ".local", "bin"), miseShims(home, windows), process.env.PATH ?? process.env.Path ?? ""].join(sep);
+  return windows ? { argv: ["cmd", "/d", "/s", "/c", item.verify.command], env: { PATH: path, Path: path } } : { argv: ["sh", "-c", item.verify.command], env: { PATH: path } };
 }
 
 /** True when an item's verify output satisfies `verify.expect`. */

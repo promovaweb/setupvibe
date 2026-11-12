@@ -6,7 +6,7 @@
  * selection.json (or external.json for apps outside the inventory) and exits
  * with PARTIAL when some steps fail.
  */
-import { userInfo } from "node:os";
+import { currentUser } from "../system/user.ts";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";
 import { ExitCode } from "../core/app/exit-codes.ts";
@@ -136,7 +136,7 @@ async function installItems(ctx: Context, m: Machine, ids: string[], force: bool
       selection = { items: selection.items.filter((i) => !done.includes(i.id)), skipped: [...selection.skipped, ...done.map((id) => ({ id, reason: "already installed with the pinned version (use --force to reinstall)" }))] };
     }
   }
-  const user = userInfo();
+  const user = currentUser();
   const plan = autoPlan({
     inventory: m.inventory,
     edition: manifest.edition,
@@ -151,6 +151,8 @@ async function installItems(ctx: Context, m: Machine, ids: string[], force: bool
     answers: resolveAnswers({}, {}),
     selection,
     createdNopasswd: false,
+    shell: selection.items.some((i) => ["zsh", "tmux", "tpm", "starship", "oh-my-zsh"].includes(i.id)),
+    agentAliases: (m.config.shell as { agentAliases?: boolean } | undefined)?.agentAliases ?? true,
   });
   const steps = selection.items.length ? plan.steps.filter((s) => s.id !== "git-identity") : [];
   for (const s of selection.skipped) if (!ctx.json) ctx.stderr(`- ${s.id}: ${s.reason}`);
@@ -184,7 +186,7 @@ const installCommand: Command = {
     const { tool, version: given } = splitToolSpec(ctx.args[0]!);
     let version = given;
     if (!version) {
-      const latest = await realRunner().exec({ argv: [`${userInfo().homedir}/.local/bin/mise`, "latest", tool] });
+      const latest = await realRunner().exec({ argv: [`${currentUser().homedir}/.local/bin/mise`, "latest", tool] });
       version = latest.stdout.trim();
       if (latest.code !== 0 || !version) return { code: ExitCode.NOT_FOUND, data: { tool }, text: `✗ mise does not know ${tool}.` };
     }
@@ -269,6 +271,13 @@ const updateCommand: Command = {
     return { ...result, data: { ...(result.data as object), outdated: outdated.map((o) => ({ id: o.item.id, from: o.from, to: o.to })) } };
   },
 };
+
+/** Installs explicit items after the usual checks; used by config import. */
+export async function installItemsFor(ctx: Context, ids: string[]): Promise<Result> {
+  const m = machine(true);
+  if (isResult(m)) return m;
+  return installItems(ctx, m, ids, false);
+}
 
 export const inventoryCommands: Command[] = [listCommand, installCommand, removeCommand, updateCommand];
 

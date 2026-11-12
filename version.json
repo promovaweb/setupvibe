@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "channels": {
     "stable": {
-      "version": "2.0.0-dev.5",
+      "version": "2.0.0-dev.6",
       "minimum": "2.0.0-dev.2",
       "changelog": "https://github.com/promovaweb/setupvibe/blob/v2/CHANGELOG.md"
     },
     "beta": {
-      "version": "2.0.0-dev.5",
+      "version": "2.0.0-dev.6",
       "minimum": "2.0.0-dev.2",
       "changelog": "https://github.com/promovaweb/setupvibe/blob/v2/CHANGELOG.md"
     }

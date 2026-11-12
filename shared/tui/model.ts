@@ -7,7 +7,8 @@
  * - doctor: requirements, pending prerequisites and failed items.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { homedir, userInfo } from "node:os";
+import { homedir } from "node:os";
+import { currentUser } from "../system/user.ts";
 import { join } from "node:path";
 import type { Inventory, Item, System } from "../inventory.ts";
 import { resolveInstall } from "../inventory.ts";
@@ -170,5 +171,5 @@ export function doctorFindings(inventory: Inventory, init: InitRecord | undefine
 
 /** The working user name. */
 export function userName(config: Record<string, unknown>): string {
-  return typeof config.user === "string" ? config.user : userInfo().username;
+  return typeof config.user === "string" ? config.user : currentUser().username;
 }

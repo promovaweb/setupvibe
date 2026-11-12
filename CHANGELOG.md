@@ -4,6 +4,31 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.6] - 2026-11-12
+
+### Added
+
+- Environment configuration: a managed block in `~/.zshrc` (or `~/.bashrc` on Omarchy) and `~/.tmux.conf`, a backup before the first change, aliases in `~/.setupvibe/shell/` with the agent aliases optional, the Starship preset, the tmux settings and ZSH as the login shell. `auto` applies it; `shell apply` and `shell remove` run it on demand.
+- `doctor --fix` with SetupVibe findings and SetupVibe 1 leftovers; `config export` and `config import`; `upgrade` with SHA256SUMS; `report`; `self uninstall`, which keeps backups and Portainer data; `ssh copy-id`; `skill` as the Vercel skills CLI wrapper.
+- Windows: mise from the release `.exe` in `~/.local/bin`, checks through `cmd`, and the WSL 2 base. CI runs the real `auto` on Windows.
+- A separate macOS arm64 workflow: GitHub reported "The job was not acquired by Runner of type hosted even after multiple attempts" for arm64 runners, a capacity limit, so it runs on tags and on demand.
+
+### Changed
+
+- The embedded documentation command is now `docs`; `--skill` stays.
+- The `openssh-server` check uses the service state, and SetupVibe enables the service after installing it.
+
+### Fixed
+
+- The user name comes from `id -un`. Bun reported "unknown" under `docker exec --user`, so `chsh` targeted a user that did not exist.
+
+### Validation
+
+- `bun run validate` with 249 tests.
+- Container tests on Debian 13 and Arch: `auto`, second run, inventory commands, the shell block loaded by a real ZSH, tmux settings, ZSH as login shell, `mcp install`, `doctor --fix`, `report`, `config export` and `import`, `ssh copy-id` with a password and a key login, and `self uninstall` keeping the user's own lines.
+
+---
+
 ## [v2.0.0-dev.5] - 2026-11-12
 
 ### Fixed

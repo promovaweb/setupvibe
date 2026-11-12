@@ -85,6 +85,12 @@ jobs:
       - run: bun run build -- --edition desktop
       - run: .\dist\setupvibe.exe system --no-update-check
       - run: .\dist\setupvibe.exe auto --profile essencial --dry-run
+      - name: auto
+        run: |
+          .\dist\setupvibe.exe auto --profile essencial --skip-network-check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .\dist\setupvibe.exe check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
   release:
     if: startsWith(github.ref, 'refs/tags/v2.')
