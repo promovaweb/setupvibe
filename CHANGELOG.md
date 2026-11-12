@@ -4,6 +4,20 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.8] - 2026-11-12
+
+### Fixed
+
+- Checks on Windows also read the user and machine PATH from the registry, where installers such as Codex's add their folder; the running process does not see it until a new session.
+- `auto` prints failed checks in the terminal, not only in the run log.
+
+### Validation
+
+- CI of `v2.0.0-dev.7` on Windows: every install step passed, Claude Code included; one check failed without saying which, which this version shows and addresses.
+- `bun run validate` with 252 tests.
+
+---
+
 ## [v2.0.0-dev.7] - 2026-11-12
 
 ### Fixed

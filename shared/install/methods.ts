@@ -359,9 +359,24 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
 }
 
 /** Command that checks an item, from `verify.command`, run through a shell. */
+/**
+ * PATH saved in the Windows registry (user, then machine). Installers such as
+ * Codex's add their folder there, and the running process does not see it
+ * until a new session starts.
+ */
+export function registryPath(): string {
+  if (process.platform !== "win32") return "";
+  const read = (key: string) => {
+    const out = Bun.spawnSync(["reg", "query", key, "/v", "Path"], { stdout: "pipe", stderr: "ignore" }).stdout.toString();
+    const match = out.match(/Path\s+REG_(?:EXPAND_)?SZ\s+(.+)/i);
+    return (match?.[1] ?? "").trim().replace(/%([^%]+)%/g, (_m, name: string) => process.env[name] ?? `%${name}%`);
+  };
+  return [read("HKCU\\Environment"), read("HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment")].filter(Boolean).join(";");
+}
+
 export function verifyCmd(item: Item, home = homedir(), windows = process.platform === "win32"): Cmd {
   const sep = windows ? ";" : ":";
-  const path = [join(home, ".local", "bin"), miseShims(home, windows), process.env.PATH ?? process.env.Path ?? ""].join(sep);
+  const path = [join(home, ".local", "bin"), miseShims(home, windows), process.env.PATH ?? process.env.Path ?? "", ...(windows ? [registryPath()] : [])].filter(Boolean).join(sep);
   return windows ? { argv: ["cmd", "/d", "/s", "/c", item.verify.command], env: { PATH: path, Path: path } } : { argv: ["sh", "-c", item.verify.command], env: { PATH: path } };
 }
 

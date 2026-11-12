@@ -218,7 +218,10 @@ async function run(ctx: Context) {
       if (!ctx.json) ctx.stderr(`${r.status === "ok" ? "✓" : r.status === "skip" ? "-" : "✗"} ${r.id}${r.status === "fail" ? `: ${r.message}` : ""}`);
     });
     const checked = await checkItems(selection.items.filter((i) => !i.securityModule), runner);
-    for (const c of checked) log.event({ item: c.id, action: "check", status: c.status === "ok" ? "ok" : "fail", message: c.output });
+    for (const c of checked) {
+      log.event({ item: c.id, action: "check", status: c.status === "ok" ? "ok" : "fail", message: c.output });
+      if (c.status === "fail" && !ctx.json) ctx.stderr(`✗ check ${c.id}: ${c.output || "not found"}${c.expected ? ` (expected ${c.expected})` : ""}`);
+    }
     if (results.find((r) => r.id === "mise" || r.id === "build-deps")?.status !== "fail" && !init?.done) {
       writeState("config.json", { ...config, edition: manifest.edition, system, user: user.username, init: { done: true, at: new Date().toISOString(), version: manifest.version, system, prerequisites: inventory.items.filter((i) => i.initOnly).map((i) => i.id) } satisfies InitRecord });
     }

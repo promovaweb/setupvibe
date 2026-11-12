@@ -1,6 +1,6 @@
 {
   "name": "setupvibe",
-  "version": "2.0.0-dev.7",
+  "version": "2.0.0-dev.8",
   "description": "SetupVibe 2: pinned development and server environments in one command, with TUI, CLI and MCP.",
   "type": "module",
   "private": true,
