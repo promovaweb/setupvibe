@@ -57,7 +57,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [macos-15, macos-15-intel]
+        # Apple Silicon runners are not assigned to this repository; their jobs
+        # were cancelled before starting, so the real run uses Intel.
+        runner: [macos-15-intel]
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -68,8 +70,7 @@ jobs:
       - run: bun run build
       - run: ./dist/setupvibe system --no-update-check
       - run: ./dist/setupvibe auto --profile essencial --dry-run
-      - name: auto (Apple Silicon only)
-        if: matrix.runner == 'macos-15'
+      - name: auto
         run: ./dist/setupvibe auto --profile essencial --skip-network-check && ./dist/setupvibe check
 
   windows:

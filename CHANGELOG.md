@@ -4,6 +4,26 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.4] - 2026-11-12
+
+### Added
+
+- `list`, `install`, `remove` and `update`. `install` is idempotent (`--force` reinstalls) and `install --external` pins a mise tool outside the inventory in `external.json`. `remove` covers what SetupVibe installs in the user's space, removes system packages only with `--include-native`, refuses items other selected items require unless `--force`, and asks for confirmation or `--yes`.
+- TUI screens: Inventory (categories, items with status and pinned version, details; mark with space, install with `i`, remove with `r`), User (working user and the permissions checklist), Doctor and Logs. The TUI opens on Inventory.
+- MCP tools `system`, `list`, `check`, `install`, `remove`, `update` and `health`. Changes default to dry runs and a real removal needs `confirm: true`.
+- `mcp install` registers the server in Claude Code, Codex and OpenCode. It finds the agents in `~/.local/bin` and the mise shims too, so it works before the shell loads the new PATH; the first container run had skipped Claude Code for that reason.
+
+### Changed
+
+- CI runs the real macOS `auto` on `macos-15-intel`; Apple Silicon jobs were cancelled before getting a runner.
+
+### Validation
+
+- `bun run validate` with 214 tests.
+- Container test on Debian 13: `auto`, second run, `install go`, `check go`, `update`, `install --external hyperfine`, `remove --external hyperfine`, `remove go`, `mcp install` twice and `claude mcp get setupvibe`.
+
+---
+
 ## [v2.0.0-dev.3] - 2026-11-12
 
 ### Fixed

@@ -8,6 +8,7 @@
 import { manifest } from "../../app/manifest.ts";
 import { ExitCode } from "../../app/exit-codes.ts";
 import type { Command } from "../registry.ts";
+import { mcpInstallCommand } from "../../../commands/mcp-install.ts";
 
 export const mcpCommand: Command = {
   name: "mcp",
@@ -18,7 +19,8 @@ export const mcpCommand: Command = {
     `No tool returns the value of a credential.`,
   options: [{ name: "--list", description: "Instead of starting the server, list registered tools, resources and prompts and exit." }],
   exitCodes: [ExitCode.MCP],
-  examples: [`${manifest.bin} mcp`, `${manifest.bin} mcp --list --json`],
+  subcommands: [mcpInstallCommand],
+  examples: [`${manifest.bin} mcp`, `${manifest.bin} mcp --list --json`, `${manifest.bin} mcp install`],
   run: async (ctx) => {
     const { describeServer, startStdioServer } = await import("../../mcp/server.ts");
     if (ctx.options.list === true) {

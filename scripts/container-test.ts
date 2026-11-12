@@ -102,6 +102,9 @@ try {
       ["install --external hyperfine", [bin, "install", "--external", "hyperfine"]],
       ["remove --external hyperfine", [bin, "remove", "--external", "hyperfine", "--yes"]],
       ["remove go", [bin, "remove", "go", "--yes"]],
+      ["mcp install", [bin, "mcp", "install"]],
+      ["mcp install again (no changes)", [bin, "mcp", "install"]],
+      ["claude sees the server", ["sh", "-lc", "PATH=$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH claude mcp get setupvibe"]],
     ];
     for (const [label, cmd] of steps) {
       const r = await sh(["docker", "exec", ...runAs, name, ...cmd], { quiet: true, allowFail: true });

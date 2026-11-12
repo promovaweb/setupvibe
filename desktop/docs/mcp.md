@@ -80,3 +80,26 @@ A tool `doctor` usa a mesma coleta do command CLI: confere runtime, terminal,
 permissões da pasta, settings, origem da chave e leitura do cofre. Não grava
 arquivos e não retorna valores de credenciais. Cada check traz `name`,
 `status` (`ok`, `warn` ou `fail`) e `detail`.
+
+## Tools do SetupVibe
+
+Além das tools do Termfy, o servidor expõe as operações do inventário. Elas
+rodam o próprio CLI com `--json`, então o agente recebe o mesmo resultado que
+uma pessoa no terminal.
+
+| Tool | O que faz |
+| --- | --- |
+| `system` | sistema detectado, arquitetura, WSL, máquina sem interface, IP público e variante |
+| `list` | itens do inventário com o status neste sistema; `category` filtra |
+| `check` | confere os itens instalados contra as versões fixadas |
+| `install` | instala itens e dependências; `dry_run` é `true` por padrão |
+| `remove` | remove itens do espaço do usuário; `dry_run` é `true` por padrão e a remoção real exige `confirm: true` |
+| `update` | atualiza os itens cuja versão fixada mudou; `dry_run` é `true` por padrão |
+| `health` | pré-requisitos pendentes, itens que falham e desatualizados, com o comando que resolve |
+
+## Configurar nos agentes
+
+`{{bin}} mcp install` registra o servidor no Claude Code (`claude mcp add
+--scope user`), no Codex (`codex mcp add`) e no OpenCode (bloco `mcp` de
+`~/.config/opencode/opencode.json`, com cópia de segurança). Agentes que não
+estão instalados ficam de fora, e rodar de novo não muda nada.
