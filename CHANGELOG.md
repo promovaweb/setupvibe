@@ -4,6 +4,19 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.12] - 2026-11-12
+
+### Changed
+
+- CI uses `actions/checkout@v7`, which runs on Node 24. GitHub had flagged `actions/checkout@v4` because Node 20 is deprecated on its runners.
+
+### Validation
+
+- CI of `v2.0.0-dev.11`: the `v2` branch, the tag (with the release job publishing the binaries) and the macOS arm64 workflow passed, the real `auto` and `check` on Windows included.
+- `bun run validate` with 252 tests.
+
+---
+
 ## [v2.0.0-dev.11] - 2026-11-12
 
 ### Fixed
