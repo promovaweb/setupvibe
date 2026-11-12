@@ -2,6 +2,8 @@
 
 > The ultimate cross-platform development environment setup script — v0.41.20
 
+**On the `v2` branch:** SetupVibe 2 is in development here (see [V2.md](V2.md)), and the SetupVibe 1 files below live in [legacy/](legacy/README.md). The public addresses keep serving SetupVibe 1 from `main` until the launch.
+
 Installs and configures a development environment in one command, supporting Windows 11, macOS, major Linux distributions and Omarchy 4. The Windows Edition focuses on native utilities, Python, Node.js, selected native AI CLIs, and the WSL 2 base system. The Unix Desktop Edition includes complete language ecosystems and a broader AI toolkit, the Server Edition remains focused on operations tooling, and the Omarchy edition adds only the SetupVibe layer that is not already present in the operating system.
 
 ## Key Features
@@ -16,7 +18,7 @@ Installs and configures a development environment in one command, supporting Win
 - **AI Runtime Foundation:** Installs and validates Python 3.14 directly from `python.org` and Node.js 24 LTS from the official `latest-v24.x` channel on `nodejs.org`, automatically repairs missing runtime files, and exposes `python`, `pip`, `node`, `npm`, and `npx` in the Windows machine `PATH` for Claude and Codex.
 - **Native Windows AI CLIs:** Installs Claude Code through Anthropic's recommended native installer with its official npm package as a recovery path, Codex CLI through OpenAI's official standalone Windows installer, OpenCode CLI, and Google Antigravity CLI as `agy`, while preserving PowerShell profiles and restricted execution policies.
 - **Agent Skills:** Installs and validates the [Vercel Labs Skills CLI](https://github.com/vercel-labs/skills) on Desktop, Windows, and Server editions.
-- **Agent Multiplexer:** Installs and validates [Herdr](https://github.com/herdrdev/herdr) on the Unix Desktop and Server editions, with a dedicated [usage guide](docs/en/HERDR.md).
+- **Agent Multiplexer:** Installs and validates [Herdr](https://github.com/herdrdev/herdr) on the Unix Desktop and Server editions, with a dedicated [usage guide](legacy/docs/en/HERDR.md).
 - **Unix Antigravity CLI:** Installs Google's Antigravity CLI as `agy` on the Unix Desktop edition, resolving and SHA-512-verifying its versioned release manifest directly (the official Unix bootstrapper does not forward `--skip-aliases`/`--skip-path` to its own `agy install` step) and running `agy install --skip-aliases --skip-path` explicitly so shell profiles stay untouched.
 - **Hermes Agent:** Installs [Hermes Agent](https://github.com/NousResearch/hermes-agent) with the official Nous Research installer on the Unix Desktop and Omarchy editions, without running `hermes setup` or `hermes gateway install`, so provider, model, keys and gateway stay with the user.
 - **WSL 2 Ready:** Installs the WSL base without a Linux distribution and configures mirrored VPN/LAN networking and development optimizations on Windows 11.
@@ -33,14 +35,14 @@ Installs and configures a development environment in one command, supporting Win
 
 |                        | Link                                                       |
 | ---------------------- | ---------------------------------------------------------- |
-| Overview               | [docs/README.md](docs/README.md)                           |
-| Desktop Edition        | [docs/desktop/README.md](docs/desktop/README.md)           |
-| Windows Edition (Beta) | [docs/windows/README.md](docs/windows/README.md)           |
-| Server Edition         | [docs/server/README.md](docs/server/README.md)             |
-| Omarchy 4 Edition      | [docs/omarchy/README.md](docs/omarchy/README.md)           |
+| Overview               | [docs/README.md](legacy/docs/README.md)                           |
+| Desktop Edition        | [docs/desktop/README.md](legacy/docs/desktop/README.md)           |
+| Windows Edition (Beta) | [docs/windows/README.md](legacy/docs/windows/README.md)           |
+| Server Edition         | [docs/server/README.md](legacy/docs/server/README.md)             |
+| Omarchy 4 Edition      | [docs/omarchy/README.md](legacy/docs/omarchy/README.md)           |
 | Debian Engineering     | [DEBIAN.md](DEBIAN.md)                                     |
-| Tmux Guide             | [docs/desktop/en/tmux.md](docs/desktop/en/tmux.md)         |
-| PM2 Guide              | [docs/desktop/en/pm2.md](docs/desktop/en/pm2.md)           |
+| Tmux Guide             | [docs/desktop/en/tmux.md](legacy/docs/desktop/en/tmux.md)         |
+| PM2 Guide              | [docs/desktop/en/pm2.md](legacy/docs/desktop/en/pm2.md)           |
 
 ## Brand
 
@@ -65,7 +67,7 @@ Run the Windows utility installer from the canonical SetupVibe URL. It requests 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://windows.setupvibe.dev | iex
 ```
 
-See the [Windows installation guide](docs/windows/README.md) for local installation, verification, logs, restart options, and the `-Uninstall` mode.
+See the [Windows installation guide](legacy/docs/windows/README.md) for local installation, verification, logs, restart options, and the `-Uninstall` mode.
 
 ### Server (Linux only)
 
@@ -88,7 +90,7 @@ curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/omarchy.s
 ```
 
 Use `bash omarchy.sh --yes` for an unattended local run. See the [Omarchy
-installation guide](docs/omarchy/README.md) for the preserved components and
+installation guide](legacy/docs/omarchy/README.md) for the preserved components and
 the added layer.
 
 ## Contributing

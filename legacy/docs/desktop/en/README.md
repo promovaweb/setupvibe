@@ -226,13 +226,13 @@ Each platform gets a dedicated `.zshrc`:
 
 ## Contributing
 
-We welcome contributions of all sizes! Please read our [Contribution Guide](../../../CONTRIBUTING.md) to get started.
+We welcome contributions of all sizes! Please read our [Contribution Guide](../../../../CONTRIBUTING.md) to get started.
 
 ---
 
 ## License
 
-Licensed under the **GNU General Public License v3.0** — see [LICENSE](../../../LICENSE) for details.
+Licensed under the **GNU General Public License v3.0** — see [LICENSE](../../../../LICENSE) for details.
 
 Maintained by [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 

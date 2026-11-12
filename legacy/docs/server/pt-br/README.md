@@ -178,13 +178,13 @@ Ativado passando `--manager` ou respondendo **sim** ao prompt interativo exibido
 
 ## Contribuição
 
-Contribuições de todos os tamanhos são bem-vindas! Por favor, leia nosso [Guia de Contribuição](../../../CONTRIBUTING.md) para começar.
+Contribuições de todos os tamanhos são bem-vindas! Por favor, leia nosso [Guia de Contribuição](../../../../CONTRIBUTING.md) para começar.
 
 ---
 
 ## Licença
 
-Licenciado sob a **GNU General Public License v3.0** — veja [LICENSE](../../../LICENSE) para detalhes.
+Licenciado sob a **GNU General Public License v3.0** — veja [LICENSE](../../../../LICENSE) para detalhes.
 
 Mantido por [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 

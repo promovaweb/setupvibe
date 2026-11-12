@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Legacy: SetupVibe 1 moved to legacy/ for the SetupVibe 2 launch (see legacy/README.md).
+printf "%s\n" "SetupVibe 1 is legacy. Install SetupVibe 2 with: curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh | sh ; on a machine set up by SetupVibe 1, run: setupvibe migrate --dry-run" >&2
 set -Eeuo pipefail
 IFS=$'\n\t'
 

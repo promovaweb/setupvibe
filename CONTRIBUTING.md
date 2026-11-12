@@ -6,9 +6,9 @@ Please select your preferred language to read the full contribution guide:
 
 | Language | Guide |
 | --- | --- |
-| 🇺🇸 **English** | [English Contribution Guide](docs/en/CONTRIBUTING.md) |
-| 🇧🇷 **Portuguese** | [Guia de Contribuição em Português](docs/pt-br/CONTRIBUTING.md) |
-| 🇪🇸 **Spanish** | [Guía de Contribución en Español](docs/es/CONTRIBUTING.md) |
-| 🇫🇷 **French** | [Guide de Contribution en Français](docs/fr/CONTRIBUTING.md) |
+| 🇺🇸 **English** | [English Contribution Guide](legacy/docs/en/CONTRIBUTING.md) |
+| 🇧🇷 **Portuguese** | [Guia de Contribuição em Português](legacy/docs/pt-br/CONTRIBUTING.md) |
+| 🇪🇸 **Spanish** | [Guía de Contribución en Español](legacy/docs/es/CONTRIBUTING.md) |
+| 🇫🇷 **French** | [Guide de Contribution en Français](legacy/docs/fr/CONTRIBUTING.md) |
 
 ---

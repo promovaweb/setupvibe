@@ -15,6 +15,6 @@ Cross-platform setup for macOS and Linux desktops. Installs a complete developme
 
 ## Contributing
 
-We welcome contributions of all sizes! Please read our [Contribution Guide](../../CONTRIBUTING.md) to get started.
+We welcome contributions of all sizes! Please read our [Contribution Guide](../../../CONTRIBUTING.md) to get started.
 
 ---

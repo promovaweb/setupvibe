@@ -4,6 +4,19 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.17] - 2026-11-12
+
+### Changed
+
+- The SetupVibe 1 files moved to `legacy/` on the `v2` branch: `desktop.sh`, `desktop.ps1`, `server.sh`, `omarchy.sh`, `conf/`, `bin/`, `utils/`, `docs/` and `WINDOWS.md`, with `legacy/README.md` describing the launch steps. Each installer prints a notice about SetupVibe 2 and `setupvibe migrate`. `main` and the public addresses still serve SetupVibe 1; the scripts download their files from their own `v0.41.x` tags, so nothing breaks.
+- Relative links in the root README, CONTRIBUTING and the legacy docs point at the new places (34 links).
+
+### Validation
+
+- `bun run validate` with 315 tests; `bash -n` on the three shell installers and the PowerShell parser on `desktop.ps1` with 0 errors.
+
+---
+
 ## [v2.0.0-dev.16] - 2026-11-12
 
 ### Added

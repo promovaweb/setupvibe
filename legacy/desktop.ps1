@@ -7,6 +7,9 @@ param(
     [Parameter(DontShow = $true)][string]$ExpectedUserSid
 )
 
+# Legacy: SetupVibe 1 moved to legacy/ for the SetupVibe 2 launch (see legacy/README.md).
+Write-Warning "SetupVibe 1 is legacy. Install SetupVibe 2 with install.ps1 from the v2 branch; on a machine set up by SetupVibe 1, run: setupvibe migrate --dry-run"
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'Continue'

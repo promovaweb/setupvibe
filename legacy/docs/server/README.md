@@ -15,6 +15,6 @@ Lean Linux-only setup for production servers. No Homebrew, no language ecosystem
 
 ## Contributing
 
-We welcome contributions of all sizes! Please read our [Contribution Guide](../../CONTRIBUTING.md) to get started.
+We welcome contributions of all sizes! Please read our [Contribution Guide](../../../CONTRIBUTING.md) to get started.
 
 ---

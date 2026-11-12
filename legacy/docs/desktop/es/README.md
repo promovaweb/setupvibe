@@ -227,13 +227,13 @@ Cada plataforma recibe un `.zshrc` dedicado:
 
 ## Contribución
 
-¡Todas as contribuições de todos os tamanhos são bem-vindas! Por favor, leia nosso [Guia de Contribuição](../../../CONTRIBUTING.md) para começar.
+¡Todas as contribuições de todos os tamanhos são bem-vindas! Por favor, leia nosso [Guia de Contribuição](../../../../CONTRIBUTING.md) para começar.
 
 ---
 
 ## Licencia
 
-Bajo la licencia **GNU General Public License v3.0** — ver [LICENSE](../../../LICENSE) para detalles.
+Bajo la licencia **GNU General Public License v3.0** — ver [LICENSE](../../../../LICENSE) para detalles.
 
 Mantenido por [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 

@@ -64,8 +64,8 @@ Beyond the conversion above, `migrate`:
 `install.sh` serves the desktop edition and `install-server.sh` the server
 edition, both from the `v2` branch. At the launch, `desktop.setupvibe.dev`
 and `server.setupvibe.dev` point to them, `windows.setupvibe.dev` to
-`install.ps1`, and the SetupVibe 1 scripts move to `legacy/` with a notice
-about `migrate`.
+`install.ps1`. On the `v2` branch the SetupVibe 1 scripts already live in
+`legacy/`, with a notice about SetupVibe 2 and `migrate`.
 
 ## Windows
 

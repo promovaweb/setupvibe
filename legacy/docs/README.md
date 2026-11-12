@@ -126,10 +126,10 @@ installation and never executes package-removal commands.
 
 ## Contributing
 
-We welcome contributions of all sizes! Please read our [Contribution Guide](../CONTRIBUTING.md) to get started.
+We welcome contributions of all sizes! Please read our [Contribution Guide](../../CONTRIBUTING.md) to get started.
 
 ---
 
-Maintained by [promovaweb.com](https://promovaweb.com) · Licensed under [GPL-3.0](../LICENSE)
+Maintained by [promovaweb.com](https://promovaweb.com) · Licensed under [GPL-3.0](../../LICENSE)
 
 ---
