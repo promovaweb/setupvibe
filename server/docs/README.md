@@ -34,6 +34,15 @@ sem interface.
 O resultado completo fica em `~/.setupvibe/last-run.json`. Os códigos de
 saída estão na seção de exit codes.
 
+## Itens do inventário
+
+Depois do `init`, `{{bin}} list` mostra cada item e o status dele neste
+sistema, `{{bin}} install <itens>` instala itens e as dependências,
+`{{bin}} remove <itens> --yes` remove o que foi instalado no espaço do
+usuário e `{{bin}} update` atualiza os itens cuja versão fixada mudou.
+`{{bin}} install --external <ferramenta>` instala pelo mise um app fora do
+inventário, com versão fixada.
+
 ## Mapa
 
 - [cli.md](cli.md): commands, opções globais, convenções de saída e a referência gerada do registry.

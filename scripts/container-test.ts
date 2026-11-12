@@ -8,7 +8,8 @@
  *    `--user` when `--as-root` is given;
  * 2. runs the same `auto` again to prove idempotency (every step ok or
  *    skipped); as root, the second run repeats the root command;
- * 3. runs `check` on the selection.
+ * 3. on the desktop, exercises install, check, update and remove;
+ * 4. runs `check` on the selection.
  *
  * Exit code 0 means every phase passed. The container is removed at the end
  * unless `--keep` is given.
@@ -91,6 +92,26 @@ try {
   for (const e of bad) console.error(`✗ ${e.action} ${e.item}: ${e.message ?? ""}`);
   console.error(`exit code ${r2.code}, ${events.length} events, ${bad.length} failures`);
   if (r2.code !== 0 || bad.length) failed = true;
+
+  if (edition === "desktop" && !asRoot) {
+    phase("inventory commands");
+    const steps: [string, string[]][] = [
+      ["install go", [bin, "install", "go"]],
+      ["check go", [bin, "check", "go"]],
+      ["update (nothing to do)", [bin, "update"]],
+      ["install --external hyperfine", [bin, "install", "--external", "hyperfine"]],
+      ["remove --external hyperfine", [bin, "remove", "--external", "hyperfine", "--yes"]],
+      ["remove go", [bin, "remove", "go", "--yes"]],
+    ];
+    for (const [label, cmd] of steps) {
+      const r = await sh(["docker", "exec", ...runAs, name, ...cmd], { quiet: true, allowFail: true });
+      console.error(`${r.code === 0 ? "✓" : "✗"} ${label} (exit ${r.code})`);
+      if (r.code !== 0) {
+        failed = true;
+        console.error(r.out.split("\n").slice(-5).join("\n"));
+      }
+    }
+  }
 
   phase("check");
   const r3 = await sh(["docker", "exec", ...runAs, name, bin, "check", ...(asRoot ? [] : [])], { allowFail: true });

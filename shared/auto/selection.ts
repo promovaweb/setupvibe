@@ -15,6 +15,8 @@ export interface SelectionInput {
   system: System;
   headless: boolean;
   profile?: string;
+  /** Explicit items, used by `install <items>` instead of a profile. */
+  ids?: string[];
   only?: string[];
   exclude?: string[];
 }
@@ -64,10 +66,10 @@ export function orderByRequirements(items: Item[], all: Map<string, Item>): Item
 export function selectItems(input: SelectionInput): Selection {
   const { inventory, system, headless } = input;
   const byId = new Map(inventory.items.map((i) => [i.id, i]));
-  for (const id of [...(input.only ?? []), ...(input.exclude ?? [])]) {
+  for (const id of [...(input.ids ?? []), ...(input.only ?? []), ...(input.exclude ?? [])]) {
     if (!byId.has(id)) throw new Error(`Unknown inventory item: ${id}.`);
   }
-  const base = input.profile ? profileItems(inventory, input.profile) : inventory.items.map((i) => i.id);
+  const base = input.ids ? input.ids : input.profile ? profileItems(inventory, input.profile) : inventory.items.map((i) => i.id);
   const wanted = new Set([...base, ...(input.only ?? [])]);
   for (const id of input.exclude ?? []) wanted.delete(id);
 
