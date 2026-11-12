@@ -391,6 +391,18 @@ explicitamente `systemctl enable --now tailscaled`.
   `com.docker.compose.project.working_dir` com `~/.setupvibe` e preserva o
   contêiner que não pertence à pilha.
 
+### Cópias Git gerenciadas e plugins do tmux (novembro de 2026)
+
+- Um `git pull` aborta quando o projeto de origem reescreve um arquivo que
+  difere localmente. As cópias gerenciadas (rbenv, ruby-build, TPM e plugins do
+  Oh My Zsh) avançam com `merge --ff-only` e, se isso falhar, guardam o estado
+  local em `git stash` e voltam para `@{u}`. O `git stash` não inclui
+  arquivos ignorados, então `~/.rbenv/versions` é preservado.
+- `tpm/bin/install_plugins` funciona sem sessão aberta. Rode-o como
+  `REAL_USER` com um `TMUX_TMPDIR` próprio, para criar um servidor tmux
+  separado e não afetar as sessões do usuário, e encerre esse servidor depois.
+  Validado num contêiner Debian 13 com uma sessão do usuário ativa.
+
 ### Resultado da execução
 
 O `server.sh --yes` concluiu as 9 etapas no Debian 13, com Docker, Portainer,

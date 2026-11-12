@@ -33,7 +33,7 @@ readonly APT_KEY_FPR_NODESOURCE="6F71F525282841EEDAF851B42F59B5F99B1BE0B4"
 readonly APT_KEY_FPR_DOCKER="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
 readonly APT_KEY_FPR_GHCLI_1="2C6106201985B60E6C7AC87323F3D4EA75716059"
 readonly APT_KEY_FPR_GHCLI_2="7F38BBB59D064DBCB3D84D725612B36462313325"
-readonly VERSION="0.41.19"
+readonly VERSION="0.41.20"
 readonly CTOP_VERSION="0.7.7"
 readonly CTOP_SHA256_AMD64="b78374734ebe3d14b6edee3d5512c911c250d7fa7f3f964cb00acd3bc5a02a09"
 readonly CTOP_SHA256_ARM64="d8d91e0fea53a8c78fa81192f078272e5a92f0ea6c4f0e38ec7c944d76e6f02f"
@@ -529,13 +529,31 @@ run_section() {
 }
 
 
+# Update a clone managed by SetupVibe (rbenv, ruby-build, TPM, Oh My Zsh
+# plugins). A plain pull aborts when upstream rewrites a file that differs
+# locally, which left Ruby and TPM outdated. Fast-forward when possible;
+# otherwise stash the local state (recoverable with `git stash list`) and
+# reset the clone to upstream.
+git_update_managed() {
+    local dest=$1
+
+    user_do git -C "$dest" fetch --quiet || return 1
+    if user_do git -C "$dest" merge --ff-only --quiet '@{u}' 2>/dev/null; then
+        return 0
+    fi
+    warn "$dest has local changes or diverged from upstream; stashing them and following upstream."
+    user_do git -C "$dest" -c user.name=SetupVibe -c user.email=setupvibe@localhost \
+        stash push --include-untracked --quiet -m "setupvibe-$(date +%Y%m%d%H%M%S)" 2>/dev/null || true
+    user_do git -C "$dest" reset --hard --quiet '@{u}'
+}
+
 git_ensure() {
     local repo=$1
     local dest=$2
 
     if [[ -d "$dest/.git" ]]; then
         echo "Updating: $dest..."
-        user_do git -C "$dest" pull --ff-only --quiet
+        git_update_managed "$dest"
     elif [[ -e "$dest" ]]; then
         echo -e "${RED}✘ Existing path is not a Git repository: $dest${NC}" >&2
         return 1
@@ -919,6 +937,23 @@ step_6() {
     echo "Downloading tmux-server.conf..."
     backup_file_once "$REAL_HOME/.tmux.conf"
     safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/conf/tmux-server.conf "$REAL_HOME/.tmux.conf"
+
+    # Create the user override file once; SetupVibe never overwrites it.
+    if [ ! -e "$REAL_HOME/.tmux.conf.local" ]; then
+        user_do touch "$REAL_HOME/.tmux.conf.local"
+    fi
+
+    # Install the plugins now instead of waiting for prefix + I. A private
+    # TMUX_TMPDIR gives TPM its own tmux server, so the user's running
+    # sessions are not touched.
+    echo "Installing tmux plugins..."
+    local tpm_tmp
+    tpm_tmp=$(user_do mktemp -d)
+    if ! user_do env TMUX_TMPDIR="$tpm_tmp" "$REAL_HOME/.tmux/plugins/tpm/bin/install_plugins" >/dev/null; then
+        warn "Some tmux plugins could not be installed; open tmux and press prefix + I."
+    fi
+    user_do env TMUX_TMPDIR="$tpm_tmp" tmux kill-server 2>/dev/null || true
+    user_do rm -rf -- "$tpm_tmp"
 
     if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then
         sys_do mkdir -p /root/.tmux/plugins

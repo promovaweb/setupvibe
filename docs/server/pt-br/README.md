@@ -1,6 +1,6 @@
 # SetupVibe — Edição Servidor
 
-> Configuração de servidor Linux — v0.41.19
+> Configuração de servidor Linux — v0.41.20
 
 Um script de configuração focado em servidores Linux. Sem Homebrew, ecossistemas de linguagens ou ferramentas de desktop, ele instala Docker, Ansible, recursos de rede, shell, tmux e ferramentas de CLI de IA.
 
@@ -144,7 +144,7 @@ Pacotes APT:
 - Se executado como root com um `REAL_HOME` não-root, também instala em `/root/.tmux.conf`
 - Preserva as sessões tmux em execução. A nova configuração é aplicada às novas sessões
 
-Pressione `prefix + I` dentro do tmux para instalar todos os plugins. Consulte o [Guia do Tmux](../../desktop/pt-br/tmux.md) para a referência completa de plugins e atalhos.
+Os plugins são instalados durante a configuração; pressione `prefix + I` dentro do tmux se algum faltar. Configurações pessoais ficam em `~/.tmux.conf.local`, que as atualizações nunca sobrescrevem. Consulte o [Guia do Tmux](../../desktop/pt-br/tmux.md) para a referência completa de plugins e atalhos.
 
 ### Passo 7 — Ferramentas de IA CLI
 

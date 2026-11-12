@@ -11,7 +11,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'Continue'
 
-$script:Version = '0.41.19'
+$script:Version = '0.41.20'
 $script:InstallUrl = 'https://windows.setupvibe.dev'
 $script:ElevationScriptUrl = 'https://raw.githubusercontent.com/promovaweb/setupvibe/v{0}/desktop.ps1' -f $script:Version
 $script:RestartRequired = $false

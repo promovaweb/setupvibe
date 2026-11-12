@@ -27,7 +27,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.19"
+VERSION="0.41.20"
 PHP_VERSION="8.5"
 RUBY_VERSION="3.4.12"
 PYTHON_VERSION="3.14"
@@ -678,12 +678,30 @@ run_section() {
 }
 
 
+# Update a clone managed by SetupVibe (rbenv, ruby-build, TPM, Oh My Zsh
+# plugins). A plain pull aborts when upstream rewrites a file that differs
+# locally, which left Ruby and TPM outdated. Fast-forward when possible;
+# otherwise stash the local state (recoverable with `git stash list`) and
+# reset the clone to upstream.
+git_update_managed() {
+    local dest=$1
+
+    user_do git -C "$dest" fetch --quiet || return 1
+    if user_do git -C "$dest" merge --ff-only --quiet '@{u}' 2>/dev/null; then
+        return 0
+    fi
+    echo -e "${YELLOW}⚠ $dest has local changes or diverged from upstream; stashing them and following upstream.${NC}"
+    user_do git -C "$dest" -c user.name=SetupVibe -c user.email=setupvibe@localhost \
+        stash push --include-untracked --quiet -m "setupvibe-$(date +%Y%m%d%H%M%S)" 2>/dev/null || true
+    user_do git -C "$dest" reset --hard --quiet '@{u}'
+}
+
 git_ensure() {
     local repo=$1
     local dest=$2
     if [ -d "$dest" ]; then
         echo "Updating: $dest..."
-        user_do git -C "$dest" pull --quiet
+        git_update_managed "$dest"
     else
         echo "Cloning: $repo..."
         user_do git clone "$repo" "$dest" --quiet
@@ -1665,7 +1683,9 @@ step_9() {
         
         echo "Installing Network Tools (Rust)..."
         for tool in bandwhich gping trippy rustscan; do
-            if ! command -v $tool &> /dev/null; then
+            local tool_bin=$tool
+            [[ "$tool" == "trippy" ]] && tool_bin=trip
+            if ! command -v "$tool_bin" &> /dev/null; then
                 # --locked uses the lockfile the release was tested with.
                 user_do cargo install --locked $tool
             fi
@@ -1686,8 +1706,15 @@ step_9() {
         sys_do apt-get install -y rsync net-tools dnsutils mtr-tiny nmap tcpdump iftop nload iotop sysstat whois iputils-ping speedtest-cli glances htop btop
 
         echo "Installing Network Tools (Rust)..."
+        if [ ! -x "$REAL_HOME/.cargo/bin/cargo" ]; then
+            echo -e "${RED}✘ cargo was not found in ~/.cargo/bin. The Rust install in step 5 did not finish; run SetupVibe again to retry it.${NC}"
+            return 1
+        fi
         for tool in bandwhich gping trippy rustscan; do
-            if ! user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; command -v $tool" &> /dev/null; then
+            local tool_bin=$tool
+            # The trippy crate installs the `trip` command.
+            [[ "$tool" == "trippy" ]] && tool_bin=trip
+            if ! user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; command -v $tool_bin" &> /dev/null; then
                  user_do bash -c "export PATH=\$HOME/.cargo/bin:\$PATH; cargo install --locked $tool"
             fi
         done
@@ -1891,6 +1918,23 @@ step_12() {
 
     echo "Downloading tmux-desktop.conf..."
     safe_download https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}/conf/tmux-desktop.conf "$REAL_HOME/.tmux.conf"
+
+    # Create the user override file once; SetupVibe never overwrites it.
+    if [ ! -e "$REAL_HOME/.tmux.conf.local" ]; then
+        user_do touch "$REAL_HOME/.tmux.conf.local"
+    fi
+
+    # Install the plugins now instead of waiting for prefix + I. A private
+    # TMUX_TMPDIR gives TPM its own tmux server, so the user's running
+    # sessions are not touched.
+    echo "Installing tmux plugins..."
+    local tpm_tmp
+    tpm_tmp=$(user_do mktemp -d)
+    if ! user_do env TMUX_TMPDIR="$tpm_tmp" "$REAL_HOME/.tmux/plugins/tpm/bin/install_plugins" >/dev/null; then
+        echo -e "${YELLOW}⚠ Some tmux plugins could not be installed; open tmux and press prefix + I.${NC}"
+    fi
+    user_do env TMUX_TMPDIR="$tpm_tmp" tmux kill-server 2>/dev/null || true
+    user_do rm -rf -- "$tpm_tmp"
 
     # Also install to /root if running as root with a different REAL_HOME
     if [[ "$(id -u)" -eq 0 && "$REAL_HOME" != "/root" ]]; then

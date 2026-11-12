@@ -1,6 +1,6 @@
 # Guía de Tmux
 >
-> Configuración del multiplexor de terminal — v0.41.19
+> Configuración del multiplexor de terminal — v0.41.20
 
 SetupVibe instala y configura tmux con [TPM](https://github.com/tmux-plugins/tpm) y un conjunto de plugins seleccionados. La edición Desktop usa [`conf/tmux-desktop.conf`](../../../conf/tmux-desktop.conf), descargada automáticamente durante la instalación.
 
@@ -45,7 +45,13 @@ tmux attach -t mi-proyecto
 tmux kill-session -t mi-proyecto
 ```
 
-Después de abrir tmux, presiona `prefix + I` (i mayúscula) para instalar todos los plugins.
+SetupVibe instala todos los plugins durante la configuración. Si falta algún plugin más tarde, abre tmux y presiona `prefix + I` (i mayúscula).
+
+Pon tus propios ajustes en `~/.tmux.conf.local`. SetupVibe lo crea vacío, lo carga antes de TPM para que las opciones de los plugins surtan efecto y nunca lo sobrescribe. Por ejemplo, para enviar las copias de `tmux-fastcopy` al portapapeles del sistema:
+
+```tmux
+set -g @fastcopy-action 'tmux load-buffer -w -'
+```
 
 ---
 

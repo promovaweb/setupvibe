@@ -4,6 +4,21 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.20] - 2026-11-12
+
+### Added
+
+- `~/.tmux.conf.local` for personal tmux settings, in the Desktop and Server editions. SetupVibe creates it empty, loads it from `~/.tmux.conf` before TPM so plugin options set there take effect, and never overwrites it (#54).
+- The tmux plugins are installed during setup instead of waiting for `prefix + I`, in the Desktop and Server editions. TPM runs on a private tmux server, so running sessions are not touched (#30).
+
+### Fixed
+
+- Clones managed by SetupVibe (rbenv, ruby-build, TPM and the Oh My Zsh plugins) follow upstream even when upstream rewrites a file that differs locally. A plain `git pull` aborted there and left Ruby and TPM outdated. The local state is kept in `git stash` before the clone is reset (#36).
+- The Desktop Network step reports that `cargo` is missing because the Rust install in step 5 did not finish, instead of failing with `cargo: command not found` (#59).
+- The Desktop Network step looks for the `trip` command installed by the `trippy` crate, so reruns no longer try to install it again.
+
+---
+
 ## [v0.41.19] - 2026-11-12
 
 ### Fixed

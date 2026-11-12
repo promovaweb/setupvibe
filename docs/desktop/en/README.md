@@ -1,6 +1,6 @@
 # SetupVibe — Desktop Edition
 
-> Cross-platform development environment setup — v0.41.19
+> Cross-platform development environment setup — v0.41.20
 
 Installs and configures a complete developer stack in one command. Supports macOS and major Linux distributions.
 
@@ -152,7 +152,7 @@ Installed via Homebrew on both platforms.
 - Downloads [`conf/tmux-desktop.conf`](../../../conf/tmux-desktop.conf) to `~/.tmux.conf`
 - Kills any running tmux session to apply the new config
 
-Press `prefix + I` inside tmux to install all plugins. See [tmux.md](tmux.md) for the full plugin and keybinding reference.
+Plugins are installed during setup; press `prefix + I` inside tmux if any is missing. Personal settings go in `~/.tmux.conf.local`, which updates never overwrite. See [tmux.md](tmux.md) for the full plugin and keybinding reference.
 
 ### Step 13 — AI CLI Tools
 

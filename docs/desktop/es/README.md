@@ -1,6 +1,6 @@
 # SetupVibe — Edición Escritorio
 
-> Configuración de entorno de desarrollo multiplataforma — v0.41.19
+> Configuración de entorno de desarrollo multiplataforma — v0.41.20
 
 Instala y configura un stack de desarrollo completo en un solo comando. Soporta macOS y las principales distribuciones de Linux.
 
@@ -151,7 +151,7 @@ Instaladas mediante Homebrew en ambas plataformas.
 - Descarga [`conf/tmux-desktop.conf`](../../../conf/tmux-desktop.conf) a `~/.tmux.conf`
 - Finaliza cualquier sesión de tmux en ejecución para aplicar la nueva configuración
 
-Presiona `prefix + I` dentro de tmux para instalar todos los plugins. Consulta [tmux.md](tmux.md) para la referencia completa de plugins y atajos.
+Los plugins se instalan durante la configuración; presiona `prefix + I` dentro de tmux si falta alguno. Los ajustes personales van en `~/.tmux.conf.local`, que las actualizaciones nunca sobrescriben. Consulta [tmux.md](tmux.md) para la referencia completa de plugins y atajos.
 
 ### Paso 13 — Herramientas de IA (CLI)
 

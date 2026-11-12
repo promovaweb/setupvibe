@@ -1,6 +1,6 @@
 # Guia do Cronboard
 >
-> Dashboard de monitoramento Cron TUI — v0.41.19
+> Dashboard de monitoramento Cron TUI — v0.41.20
 
 O SetupVibe instala o [Cronboard](https://github.com/antoniorodr/cronboard) para fornecer uma interface visual (TUI) para gerenciamento de tarefas cron.
 
