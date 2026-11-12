@@ -62,7 +62,7 @@ test("example screen handles j/k once and leaves global tab and quit keys workin
     expect(setup.captureCharFrame()).toContain("Selected item 2");
     setup.mockInput.pressKey("r"); await setup.renderOnce();
     expect(setup.captureCharFrame()).toContain("> First item");
-    setup.mockInput.pressKey("2"); await setup.renderOnce();
+    setup.mockInput.pressKey("1"); await setup.renderOnce();
     expect(setup.captureCharFrame()).toContain("ITEM");
     setup.mockInput.pressKey("q"); await closed;
     expect(setup.renderer.isDestroyed).toBe(true);

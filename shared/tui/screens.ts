@@ -18,9 +18,6 @@
  * theme, so the day and night palettes need no change here.
  */
 import { BoxRenderable, ScrollBoxRenderable, TextAttributes, TextRenderable, fg, t, type CliRenderer, type StyledText } from "@opentui/core";
-import { existsSync, readFileSync } from "node:fs";
-import { homedir } from "../system/home.ts";
-import { detectV1Here } from "../legacy/v1.ts";
 import { agentAliasesEnabled } from "../shell/config.ts";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";
@@ -29,9 +26,8 @@ import type { Theme } from "../core/tui/theme.ts";
 import type { Screen } from "../core/tui/screen.ts";
 import type { Inventory } from "../inventory.ts";
 import { detectSystem } from "../system/detect.ts";
-import { readState, statePath } from "../state/store.ts";
+import { readState } from "../state/store.ts";
 import type { InitRecord } from "../init/plan.ts";
-import { missingPrerequisites } from "../init/plan.ts";
 import type { SelectedItem } from "../ops/inventory-ops.ts";
 import { selfArgv } from "../commands/auto.ts";
 import { machineFindings } from "../commands/maintenance.ts";
@@ -44,7 +40,6 @@ import {
   logFiles,
   markable,
   planFromEnvelope,
-  progressBar,
   runLabel,
   statusCounts,
   STATUS_GLYPH,
@@ -134,99 +129,6 @@ async function runCli(args: string[]): Promise<{ code: number; out: string }> {
   const out = await new Response(proc.stdout).text();
   return { code: await proc.exited, out };
 }
-
-/* ------------------------------------------------------------------ Home */
-
-export const homeScreen: Screen = (() => {
-  let refresh = () => {};
-  let nextTab = "inventory";
-  return {
-    id: "overview",
-    get title() {
-      return tr("tab.overview");
-    },
-    description: "Machine, state, items, last run and next step",
-    mount: ({ renderer, theme, goTo }) => {
-      const root = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, gap: 1, paddingTop: 1 });
-      const top = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, height: 10, flexShrink: 0 });
-      const machinePanel = panel(renderer, theme, { title: tr("overview.machine"), flexGrow: 3, flexBasis: 0, active: true });
-      const statePanel = panel(renderer, theme, { title: tr("overview.state"), flexGrow: 2, flexBasis: 0 });
-      const itemsPanel = panel(renderer, theme, { title: tr("overview.items"), flexGrow: 2, flexBasis: 0 });
-      const machineText = line(renderer, theme);
-      const stateText = line(renderer, theme);
-      const itemsText = line(renderer, theme);
-      for (const [p, l] of [[machinePanel, machineText], [statePanel, stateText], [itemsPanel, itemsText]] as const) {
-        p.add(gap(renderer));
-        p.add(l);
-        top.add(p);
-      }
-
-      const bottom = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, height: 10, flexShrink: 0 });
-      const runPanel = panel(renderer, theme, { title: tr("overview.lastRun"), flexGrow: 2, flexBasis: 0 });
-      const nextPanel = panel(renderer, theme, { title: tr("overview.next"), flexGrow: 3, flexBasis: 0 });
-      const runText = line(renderer, theme, { wrap: true });
-      const nextText = line(renderer, theme, { wrap: true });
-      runPanel.add(gap(renderer));
-      runPanel.add(runText);
-      nextPanel.add(gap(renderer));
-      nextPanel.add(nextText);
-      // A click on the next step opens the tab where it is done.
-      nextPanel.onMouseDown = () => goTo(nextTab);
-      const keysPanel = panel(renderer, theme, { title: tr("overview.keys"), flexGrow: 2, flexBasis: 0 });
-      const keysText = line(renderer, theme);
-      keysPanel.add(gap(renderer));
-      keysPanel.add(keysText);
-      bottom.add(nextPanel);
-      bottom.add(runPanel);
-      bottom.add(keysPanel);
-      root.add(top);
-      root.add(bottom);
-
-      refresh = () => {
-        const { inventory, detected } = machine();
-        const { config, selection, init } = state();
-        const dim = fg(theme.textDim);
-        const strong = fg(theme.textStrong);
-        const k = (key: TextKey) => dim(fit(tr(key), 12));
-        machineText.content = detected.unsupportedReason
-          ? t`${fg(theme.error)(tr("overview.unsupported"))}\n${dim(detected.unsupportedReason)}`
-          : t`${k("user.system")}${strong(detected.name)}\n${k("user.variant")}${strong(variantText(detected.variant))}\n${dim(fit("Arch", 12))}${strong(String(detected.arch))}\n${k("user.edition")}${strong(`${manifest.edition} · v${manifest.version}`)}`;
-
-        const initOk = missingPrerequisites(inventory, init).length === 0;
-        stateText.content = t`${k("overview.init")}${fg(initOk ? theme.ok : theme.warn)(initOk ? `✓ ${tr("overview.initDone")}` : `! ${tr("overview.initPending")}`)}\n${k("user.user")}${strong(userName(config))}\n${k("user.data")}${strong("~/.setupvibe")}\n${dim(fit("Canal", 12))}${strong(String(config.channel ?? "stable"))}`;
-
-        const rows = detected.system ? inventoryModel(inventory, detected.system, detected.headless, selection, tuiLanguage()).flatMap((c) => c.rows) : [];
-        const c = statusCounts(rows);
-        const done = c.installed + c.outdated + c.failed;
-        itemsText.content = t`${fg(theme.ok)(progressBar(done, c.markable, 22))}  ${strong(`${done}/${c.markable}`)}\n\n${fg(theme.ok)(`● ${String(c.installed).padStart(3)}`)}  ${dim(tr("summary.installed"))}\n${fg(theme.warn)(`↑ ${String(c.outdated).padStart(3)}`)}  ${dim(tr("summary.outdated"))}\n${fg(theme.accent)(`○ ${String(c.available).padStart(3)}`)}  ${dim(tr("summary.available"))}\n${fg(theme.warn)(`◐ ${String(c.other).padStart(3)}`)}  ${dim(tr("summary.other"))}`;
-
-        const lastRunPath = statePath("last-run.json");
-        const files = logFiles();
-        if (existsSync(lastRunPath)) {
-          try {
-            const last = JSON.parse(readFileSync(lastRunPath, "utf8")) as { finishedAt?: string; results?: Array<{ status: string }>; log?: string };
-            const ok = (last.results ?? []).filter((r) => r.status === "ok").length;
-            const fail = (last.results ?? []).filter((r) => r.status === "fail").length;
-            runText.content = t`${strong((last.finishedAt ?? "").replace("T", " ").slice(0, 16))}  ${dim("auto")}\n\n${fg(theme.ok)(`✓ ${ok}`)}   ${fg(fail ? theme.error : theme.textDim)(`✗ ${fail}`)}\n\n${dim(last.log ?? "")}`;
-          } catch {
-            runText.content = t`${dim(tr("overview.never"))}`;
-          }
-        } else {
-          runText.content = files[0] ? t`${strong(runLabel(files[0]))}` : t`${dim(tr("overview.never"))}`;
-        }
-
-        const v1 = detectV1Here(homedir());
-        const next: TextKey = v1.found && !config.migratedFromV1 ? "overview.nextMigrate" : !initOk ? "overview.nextInit" : c.failed ? "overview.nextFix" : c.outdated ? "overview.nextUpdate" : done === 0 ? "overview.nextInstall" : "overview.nextNone";
-        nextTab = next === "overview.nextFix" || next === "overview.nextInit" || next === "overview.nextMigrate" ? "doctor" : "inventory";
-        nextText.content = t`${fg(theme.accent)("→ ")}${strong(tr(next))}`;
-        keysText.content = t`${fg(theme.accent)(fit("2", 7))}${dim(tr("overview.keyInventory"))}\n${fg(theme.accent)(fit("space", 7))}${dim(tr("key.mark"))}\n${fg(theme.accent)(fit("i / r", 7))}${dim(`${tr("key.install")} / ${tr("key.remove")}`)}\n${fg(theme.accent)(fit("4  f", 7))}${dim(tr("overview.keyFix"))}\n${fg(theme.accent)(fit("?", 7))}${dim(tr("overview.keyHelp"))}`;
-      };
-      refresh();
-      return root;
-    },
-    onEnter: () => refresh(),
-  };
-})();
 
 /* ------------------------------------------------------------- Inventory */
 
@@ -546,7 +448,7 @@ const CHECKLIST_PT: Record<string, string> = {
   "cco, cxo and oco bypass prompts; turn off: config set shell.agentAliases false": "cco, cxo e oco pulam as confirmações; para desligar: config set shell.agentAliases false",
 };
 
-const checklistText = (text: string) => (tuiLanguage() === "pt-BR" ? (CHECKLIST_PT[text] ?? text) : text);
+export const checklistText = (text: string) => (tuiLanguage() === "pt-BR" ? (CHECKLIST_PT[text] ?? text) : text);
 
 export const userScreen: Screen = (() => {
   let refresh = () => {};

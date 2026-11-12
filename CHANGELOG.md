@@ -4,6 +4,28 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.20] - 2026-11-12
+
+### Changed
+
+- The TUI has no tabs: it opens on a Home bento grid with one card per module (Inventory, User, Doctor, Logs, Tailscale, Machine, About), each summing up its module, plus the next step above them. Arrows or h/j/k/l move, Enter, a click or the number opens a module full screen; inside it, a header with a **← Back** button, the module name and what it shows, and `SetupVibe › module` in the top bar. Esc or Backspace go back.
+
+### Added
+
+- Tailscale module: this machine (state, name, DNS, IPs, tailnet, MagicDNS, version, key expiry, exit node, tags, routes, capabilities), services published with serve and Funnel, health warnings, a network check on `n` (UDP, IPv4/IPv6, UPnP, NAT-PMP, PCP, hard NAT, captive portal, latency per named relay), the tailnet machines with direct or relayed connection and last contact, and the details of the chosen one. Read from the local client only.
+- Machine module: system, kernel, virtualization, uptime, user, shell, time zone and locale; live CPU, load, memory and swap; disks; network interfaces with container bridges counted apart.
+
+### Fixed
+
+- The open module stops its timers when the TUI closes or rebuilds for a language switch.
+- A module without a subtitle text no longer breaks the interface text lookup.
+
+### Validation
+
+- `bun run validate` with 365 tests and `bun run coverage` above the minimum; TUI frames checked on this machine with its real Tailscale (16 machines, 8 published services, netcheck through São Paulo at 25 ms).
+
+---
+
 ## [v2.0.0-dev.19] - 2026-11-12
 
 ### Changed

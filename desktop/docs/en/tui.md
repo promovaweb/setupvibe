@@ -4,50 +4,56 @@ The terminal interface opens with `{{bin}}` with no arguments or with
 `{{bin}} tui`. It requires stdin and stdout on a TTY; otherwise the process
 exits with exit code 8.
 
-## Tabs
+## Home and modules
 
-Tabs are numbered, and the number key goes straight to the tab.
+The TUI has no tabs. It opens on the **Home**, a bento grid with one card per
+module. Each card sums up its module and shows the number that opens it:
+
+| Card | Summary on the Home | The module |
+| --- | --- | --- |
+| 1 Inventory | progress bar, items by status and one bar per category | categories with the `installed/total` count; items in columns (status, name, pinned version, installed version) with a legend; details or the plan; **Install** and **Remove** buttons. `h`/`l` switch the category, `j`/`k` move, `g`/`End` go to the first and last item, `space` marks, `i` installs and `r` removes. The first press (or click) shows the plan and the second runs it; any other key cancels. The actions run the CLI in another process. |
+| 2 User | user, pending items and sudo | checklist grouped in Permissions, Folders and SetupVibe, with the warning about the `cco`, `cxo` and `oco` aliases |
+| 3 Doctor | problems, warnings, init and the main findings | the `doctor` findings grouped, each with the command that fixes it; **Apply safe fixes** or `f`; `u` refreshes |
+| 4 Logs | last run and the previous ones | runs in `~/.setupvibe/logs` and their events, with the error under each failure |
+| 5 Tailscale | state, IP, tailnet and the online machines | this machine (state, name, DNS, IPs, tailnet, MagicDNS, version, key expiry, exit node, tags, routes, capabilities); services published with serve and Funnel; health warnings; a network check with `n` (UDP, IPv4, IPv6, UPnP, NAT-PMP, PCP, hard NAT, captive portal and latency per relay); tailnet machines with system, IP, direct or relayed connection and last contact; details of the chosen machine (IPs, user, direct address, traffic, key expiry). Everything comes from the local client, without the Tailscale API. |
+| 6 Machine | host, cores, uptime, load, memory and disk | system (host, distribution, kernel, virtualization, variant, uptime, user, shell, time zone, locale); live CPU, load, memory and swap, refreshed every 2 seconds; disks with usage; network interfaces (container and bridge interfaces are counted, not listed) |
+| 7 About | version, edition, system and variant | binary, project, license, credits and standards |
+
+Above the cards, the recommended **next step**; a click on it opens the module
+where it is done.
+
+Inside a module, the top shows the **← Back** button, the module name and what
+it shows; the header reads `SetupVibe › module`. The button, the `SetupVibe`
+name, `Esc` or `Backspace` go back to the Home.
 
 **Language.** The interface speaks Portuguese by default. The `PT · EN`
-switch in the header (click) or the `L` key switches to English and back;
-the choice is saved in `tui.language` in settings.json and the current tab
-stays open. When `SETUPVIBE_LANG` is set, it pins the language.
+switch in the header (click) or the `L` key switches to English and back; the
+choice is saved in `tui.language` in settings.json and the open module stays
+open. When `SETUPVIBE_LANG` is set, it pins the language.
 
-**Mouse.** With `tui.mouse` on (the default), click a tab to open it, a
-category to select it, an item to see its details and the `◻` marker to
-mark it. The **Install** and **Remove** buttons follow the same flow as the
-keys: the first click shows the plan, the second runs it. On the Doctor tab
-the **Apply safe fixes** button does what `f` does; on Logs a click picks the
-run; on Home a click on the next step opens the tab where it is done. Every
-key in the bottom bar is also a button, the wheel scrolls the lists and a
-click outside closes the help. Hold `Shift` while dragging to select text.
-The keyboard stays complete.
+**Mouse.** With `tui.mouse` on (the default), click a card to open its module,
+a category, an item, the `◻` marker, a tailnet machine or a run. Every key in
+the bottom bar is also a button, the wheel scrolls the lists and a click
+outside closes the help. Hold `Shift` while dragging to select text. The
+keyboard stays complete.
 
-| Tab | Content |
-| --- | --- |
-| 1 Home | Machine (system, variant, architecture, edition), state (init, user, channel), items by status with a progress bar, the last run, the recommended next step and the main keys. |
-| 2 Inventory | Categories on the left with the `installed/total` count; on the right, the items of the category in columns (status, name, pinned version, installed version) and the symbol legend; below, the item details or the plan. `h`/`l` (or `[`/`]`) switch the category, `j`/`k` move, `g`/`End` go to the first and last item, `space` marks, `i` installs and `r` removes the marked items (or the current one). The first press shows the plan; a second press of the same key runs it, and any other key cancels. The actions run the CLI in another process. The status line sums up the items by status or shows the result of the last action. |
-| 3 User | Working user, edition, system and variant, and the checklist grouped in Permissions (sudo group, passwordless sudo), Folders (`~/.setupvibe`, `~/.local/bin` in PATH, `~/.ssh`, `authorized_keys`) and SetupVibe (init and the warning about the `cco`, `cxo` and `oco` aliases, which skip the permission prompts). The title shows how many items are pending. |
-| 4 Doctor | The same findings as `doctor`, grouped in Problems, Warnings and In order, each with the command that fixes it. `f` applies the safe fixes (`doctor --fix`), marked with `[f]`; `u` refreshes the screen. |
-| 5 Logs | Runs in `~/.setupvibe/logs`, newest first, with date, time and command; on the right, the events of each run, with the error message under each failure. |
-| 6 About | Binary with the detected system and variant, project, license, credits and the standards followed. |
-
-The initial tab is Home, or the one set in `tui.initialTab` in
-settings.json or in `--tab` (`overview`, `inventory`, `user`, `doctor`,
-`logs` or `about`). On a terminal with fewer than 110 columns or 32 rows, the
-Inventory narrows its columns and spacing; categories and items scroll when
-they do not fit.
+The TUI opens on the Home, or on the module set in `tui.initialTab` in
+settings.json or in `--tab` (`overview` is the Home; `inventory`, `user`,
+`doctor`, `logs`, `tailscale`, `machine` or `about`). On a terminal with fewer
+than 110 columns or 32 rows, the Inventory narrows its columns and spacing;
+lists scroll when they do not fit.
 
 ## Keys
 
 | Key | Action |
 | --- | --- |
-| `←` `→` `[` `]` | previous or next tab |
-| `Tab` | next tab |
-| `1` … `6` | go to the tab with that number |
+| `←` `↑` `↓` `→`, `h` `j` `k` `l` | on the Home, move between cards |
+| `Enter`, `space` | open the selected card |
+| `1` … `7` | open the module with that number, from anywhere |
+| `Esc`, `Backspace` | back to the Home; on the Home, `Esc` quits |
 | `L` | switch the language (PT · EN) |
 | `?` | show or hide the key help |
-| `q` `Esc` `Ctrl+C` | quit |
+| `q`, `Ctrl+C` | quit |
 
 Each screen can declare its own keys in `keys` and handle them in `onKey`.
 They appear in the bottom bar before the global keys.

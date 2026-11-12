@@ -21,8 +21,12 @@ export interface ScreenKey {
 export interface ScreenContext {
   renderer: CliRenderer;
   theme: Theme;
-  /** Switches the active tab by id. */
+  /** Opens a module by id (the Home is "overview"). */
+  open: (id: string) => void;
+  /** Same as open, kept for screens written for tabs. */
   goTo: (id: string) => void;
+  /** Back to the Home. */
+  back: () => void;
   /** Closes the TUI. */
   quit: () => void;
 }

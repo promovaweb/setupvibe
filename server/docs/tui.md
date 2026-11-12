@@ -4,50 +4,56 @@ A interface de terminal abre com `{{bin}}` sem argumentos ou com
 `{{bin}} tui`. Ela exige stdin e stdout em um TTY; fora disso o processo
 encerra com exit code 8.
 
-## Abas
+## Início e módulos
 
-As abas são numeradas, e a tecla com o número vai direto para a aba.
+A TUI não tem abas. Ela abre no **Início**, um bento grid com um cartão por
+módulo. Cada cartão resume o módulo e mostra o número que o abre:
+
+| Cartão | Resumo no Início | O módulo |
+| --- | --- | --- |
+| 1 Inventário | barra de progresso, itens por status e uma barra por categoria | categorias com a contagem `instalados/total`; itens em colunas (status, nome, versão fixada, versão instalada) com legenda; detalhes ou o plano; botões **Instalar** e **Remover**. `h`/`l` trocam a categoria, `j`/`k` movem, `g`/`End` vão ao início e ao fim, `espaço` marca, `i` instala e `r` remove. O primeiro toque (ou clique) mostra o plano e o segundo executa; qualquer outra tecla cancela. As ações rodam o CLI em outro processo. |
+| 2 Usuário | usuário, pendências e sudo | checklist agrupada em Permissões, Pastas e SetupVibe, com o aviso dos aliases `cco`, `cxo` e `oco` |
+| 3 Doctor | problemas, avisos, init e os principais achados | os achados do `doctor` agrupados, cada um com o comando que resolve; **Aplicar correções seguras** ou `f`; `u` atualiza |
+| 4 Logs | última execução e as anteriores | execuções em `~/.setupvibe/logs` e os eventos de cada uma, com o erro abaixo de cada falha |
+| 5 Tailscale | estado, IP, tailnet e as máquinas online | esta máquina (estado, nome, DNS, IPs, tailnet, MagicDNS, versão, expiração da chave, exit node, tags, rotas, recursos); serviços publicados com serve e Funnel; avisos de saúde; teste de rede com `n` (UDP, IPv4, IPv6, UPnP, NAT-PMP, PCP, NAT difícil, portal cativo e latência por relay); máquinas da tailnet com sistema, IP, conexão direta ou por relay e último contato; detalhes da máquina escolhida (IPs, usuário, endereço direto, tráfego, expiração). Tudo vem do cliente local, sem a API da Tailscale. |
+| 6 Máquina | host, núcleos, tempo ligado, carga, memória e disco | sistema (host, distribuição, kernel, virtualização, variação, tempo ligado, usuário, shell, fuso, locale); CPU, carga, memória e swap ao vivo, atualizados a cada 2 segundos; discos com uso; interfaces de rede (as de contêiner e ponte são contadas, não listadas) |
+| 7 Sobre | versão, edição, sistema e variação | binário, projeto, licença, créditos e padrões |
+
+Acima dos cartões, o **próximo passo** recomendado; um clique nele abre o
+módulo onde ele se resolve.
+
+Dentro de um módulo, o topo mostra o botão **← Voltar**, o nome do módulo e o
+que ele mostra; o cabeçalho traz `SetupVibe › módulo`. O botão, o nome
+`SetupVibe`, `Esc` ou `Backspace` voltam ao Início.
 
 **Idioma.** A interface fala português por padrão. O seletor `PT · EN` no
 cabeçalho (clique) ou a tecla `L` troca para inglês e volta; a escolha fica
-em `tui.language` no settings.json e a aba atual continua aberta. Quando
+em `tui.language` no settings.json e o módulo aberto continua aberto. Quando
 `SETUPVIBE_LANG` está definida, ela fixa o idioma.
 
-**Mouse.** Com `tui.mouse` ligado (padrão), clique numa aba para abri-la,
-numa categoria para selecioná-la, num item para ver os detalhes e no
-marcador `◻` para marcar. Os botões **Instalar** e **Remover** seguem o mesmo
-fluxo das teclas: o primeiro clique mostra o plano, o segundo executa. No
-Doctor, o botão **Aplicar correções seguras** faz o mesmo que `f`; nos Logs, o
-clique escolhe a execução; no Início, o clique no próximo passo abre a aba
-onde ele se resolve. Cada tecla da barra inferior também é um botão, a roda
-rola as listas e um clique fora fecha a ajuda. Para selecionar texto, segure
-`Shift` ao arrastar. O teclado continua completo.
+**Mouse.** Com `tui.mouse` ligado (padrão), clique num cartão para abrir o
+módulo, numa categoria, num item, no marcador `◻`, numa máquina da tailnet ou
+numa execução. Cada tecla da barra inferior também é um botão, a roda rola as
+listas e um clique fora fecha a ajuda. Para selecionar texto, segure `Shift`
+ao arrastar. O teclado continua completo.
 
-| Aba | Conteúdo |
-| --- | --- |
-| 1 Início | Máquina (sistema, variação, arquitetura, edição), estado (init, usuário, canal), itens por status com uma barra de progresso, a última execução, o próximo passo recomendado e os atalhos principais. |
-| 2 Inventário | Categorias à esquerda com a contagem `instalados/total`; à direita, os itens da categoria em colunas (status, nome, versão fixada, versão instalada) e a legenda dos símbolos; embaixo, os detalhes do item ou o plano. `h`/`l` (ou `[`/`]`) trocam a categoria, `j`/`k` movem, `g`/`End` vão ao início e ao fim, `espaço` marca, `i` instala e `r` remove os itens marcados (ou o atual). O primeiro toque mostra o plano; o segundo toque na mesma tecla executa, e qualquer outra tecla cancela. As ações rodam o CLI em outro processo. A linha de status resume os itens por status ou mostra o resultado da última ação. |
-| 3 Usuário | Usuário de trabalho, edição, sistema e variação, e a checklist agrupada em Permissões (grupo sudo, sudo sem senha), Pastas (`~/.setupvibe`, `~/.local/bin` no PATH, `~/.ssh`, `authorized_keys`) e SetupVibe (init e o aviso dos aliases `cco`, `cxo` e `oco`, que pulam as confirmações de permissão). O título mostra quantas pendências existem. |
-| 4 Doctor | Os mesmos achados do `doctor`, agrupados em Problemas, Avisos e Em ordem, cada um com o comando que resolve. `f` aplica as correções seguras (`doctor --fix`), marcadas com `[f]`; `u` atualiza a tela. |
-| 5 Logs | Execuções em `~/.setupvibe/logs`, da mais recente para a mais antiga, com data, hora e comando; à direita, os eventos de cada uma, com a mensagem de erro abaixo de cada falha. |
-| 6 Sobre | Binário com sistema e variação detectados, projeto, licença, créditos e padrões seguidos. |
-
-A aba inicial é Início, ou a que estiver em `tui.initialTab` no
-settings.json ou em `--tab` (`overview`, `inventory`, `user`, `doctor`,
-`logs` ou `about`). Num terminal com menos de 110 colunas ou 32 linhas, o
-Inventário estreita as colunas e reduz os espaços; as categorias e os itens
-rolam quando não cabem.
+A TUI abre no Início, ou no módulo de `tui.initialTab` no settings.json ou de
+`--tab` (`overview` é o Início; `inventory`, `user`, `doctor`, `logs`,
+`tailscale`, `machine` ou `about`). Num terminal com menos de 110 colunas ou 32
+linhas, o Inventário estreita as colunas e reduz os espaços; as listas rolam
+quando não cabem.
 
 ## Teclas
 
 | Tecla | Ação |
 | --- | --- |
-| `←` `→` `[` `]` | aba anterior ou seguinte |
-| `Tab` | próxima aba |
-| `1` … `6` | ir para a aba de mesmo número |
-| `L` | trocar o idioma (PT · EN) |
-| `?` | mostrar ou esconder o help de teclas |
-| `q` `Esc` `Ctrl+C` | sair |
+| `←` `↑` `↓` `→`, `h` `j` `k` `l` | no Início, move entre os cartões |
+| `Enter`, `espaço` | abre o cartão selecionado |
+| `1` … `7` | abre o módulo de mesmo número, de qualquer lugar |
+| `Esc`, `Backspace` | volta ao Início; no Início, `Esc` sai |
+| `L` | troca o idioma (PT · EN) |
+| `?` | mostra ou esconde a ajuda de teclas |
+| `q`, `Ctrl+C` | sai |
 
 Cada screen pode declarar teclas próprias em `keys` e tratá-las em `onKey`.
 Elas aparecem na barra inferior antes das teclas globais.

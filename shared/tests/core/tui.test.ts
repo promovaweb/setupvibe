@@ -30,21 +30,23 @@ afterAll(async () => {
 });
 
 describe("tui", () => {
-  test("opens on the Home tab with header, numbered tabs and key bar", async () => {
+  test("opens on the Home bento with header, cards and key bar", async () => {
     let frame = setup.captureCharFrame();
     expect(frame).toContain(manifest.title);
     expect(frame).toContain(`v${manifest.version}`);
-    for (const tab of ["1 Home", "2 Inventory", "3 User", "4 Doctor", "5 Logs", "6 About"]) expect(frame).toContain(tab);
-    expect(frame).toContain("Next step");
+    for (const card of ["1 Inventory", "2 User", "3 Doctor", "4 Logs", "5 Tailscale", "6 Machine", "7 About"]) expect(frame).toContain(card);
     expect(frame).toContain("quit");
-    setup.mockInput.pressKey("2");
+    setup.mockInput.pressEnter();
     await setup.renderOnce();
     frame = setup.captureCharFrame();
     expect(frame).toContain("Categories");
+    setup.mockInput.pressEscape();
+    await Bun.sleep(60);
+    await setup.renderOnce();
   });
 
-  test("key 6 goes to About and ? opens the help", async () => {
-    setup.mockInput.pressKey("6");
+  test("key 7 goes to About and ? opens the help", async () => {
+    setup.mockInput.pressKey("7");
     await setup.renderOnce();
     let frame = setup.captureCharFrame();
     expect(frame).toContain("Credits");

@@ -14,7 +14,7 @@ export const tuiCommand: Command = {
   options: [
     {
       name: "--tab",
-      argument: { name: "tab", values: ["overview", "inventory", "user", "doctor", "logs", "about"] },
+      argument: { name: "tab", values: ["overview", "inventory", "user", "doctor", "logs", "tailscale", "machine", "about"] },
       description: "Initial tab. Overrides tui.initialTab from settings.json.",
     },
   ],

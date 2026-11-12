@@ -39,16 +39,16 @@ describe("mouse and language", () => {
   });
 
   test("Portuguese is the default and the header switch changes the language", async () => {
-    expect(setup.captureCharFrame()).toContain("1 Início");
+    expect(setup.captureCharFrame()).toContain("1 Inventário");
     expect(setup.captureCharFrame()).toContain("[PT]");
     await click("EN", 0);
-    expect(setup.captureCharFrame()).toContain("1 Home");
+    expect(setup.captureCharFrame()).toContain("1 Inventory");
     expect(setup.captureCharFrame()).toContain("[EN]");
     expect(readFileSync(join(dir, "settings.json"), "utf8")).toContain('"language": "en"');
   });
 
-  test("L switches back and keeps the tab", async () => {
-    setup.mockInput.pressKey("3");
+  test("L switches back and keeps the open module", async () => {
+    setup.mockInput.pressKey("2");
     await setup.renderOnce();
     setup.mockInput.pressKey("L");
     await setup.renderOnce();
@@ -56,8 +56,15 @@ describe("mouse and language", () => {
     expect(setup.captureCharFrame()).toContain("Checklist");
   });
 
-  test("a click on a tab opens it", async () => {
-    await click("2 Inventário");
+  test("Esc goes back to the Home and a click on a card opens it", async () => {
+    setup.mockInput.pressEscape();
+    await Bun.sleep(60);
+    await setup.renderOnce();
+    // Click inside the card body, two rows under its title.
+    const card = find("1 Inventário");
+    await setup.mockMouse.click(card.x + 2, card.y + 2);
+    await setup.renderOnce();
+    expect(setup.captureCharFrame()).toContain("› Inventário");
     expect(setup.captureCharFrame()).toContain("Categorias");
   });
 

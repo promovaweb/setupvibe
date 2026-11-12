@@ -111,46 +111,51 @@ describe("screens", () => {
     delete process.env.SETUPVIBE_LANG;
   });
 
-  test("home: machine, state, items and next step", () => {
+  test("home: a bento grid with one card per module and the next step", () => {
     const frame = setup.captureCharFrame();
-    for (const text of ["1 Home", "Machine", "State", "Items", "Next step", "Last run", "Keys"]) expect(frame).toContain(text);
+    for (const text of ["1 Inventory", "2 User", "3 Doctor", "4 Logs", "5 Tailscale", "6 Machine", "7 About", "→"]) expect(frame).toContain(text);
+    expect(frame).not.toContain("▬▬▬");
   });
 
-  test("inventory: categories with counts, item columns, marking and details", async () => {
-    setup.mockInput.pressKey("2");
+  test("inventory: opened with 1, categories, columns, marking and details; Esc goes back", async () => {
+    setup.mockInput.pressKey("1");
     await setup.renderOnce();
     let frame = setup.captureCharFrame();
+    expect(frame).toContain("› Inventory");
     expect(frame).toContain("Categories");
-    expect(frame).toContain("ITEM");
     expect(frame).toContain("PINNED");
-    expect(frame).toContain("sshpass");
     setup.mockInput.pressKey("l");
     await setup.renderOnce();
-    frame = setup.captureCharFrame();
-    expect(frame).toContain("Node.js");
+    expect(setup.captureCharFrame()).toContain("Node.js");
     setup.mockInput.pressKey(" ");
     await setup.renderOnce();
     frame = setup.captureCharFrame();
     expect(frame).toContain("◼");
     expect(frame).toContain("1 marked");
     expect(frame).toContain("24.22.3 (exact)");
+    setup.mockInput.pressEscape();
+    await Bun.sleep(60);
+    await setup.renderOnce();
+    expect(setup.captureCharFrame()).toContain("6 Machine");
   });
 
-  test("user, doctor and logs tabs render", async () => {
+  test("user, doctor, logs and machine render", async () => {
+    setup.mockInput.pressKey("2");
+    await setup.renderOnce();
+    expect(setup.captureCharFrame()).toContain("Permissions");
     setup.mockInput.pressKey("3");
     await setup.renderOnce();
-    expect(setup.captureCharFrame()).toContain("Checklist");
-    expect(setup.captureCharFrame()).toContain("Permissions");
+    expect(setup.captureCharFrame()).toContain("Problems");
     setup.mockInput.pressKey("4");
     await setup.renderOnce();
-    expect(setup.captureCharFrame()).toContain("prerequisites pending");
-    expect(setup.captureCharFrame()).toContain("Problems");
-    setup.mockInput.pressKey("5");
+    expect(setup.captureCharFrame()).toContain("12/11 10:00  auto");
+    setup.mockInput.pressKey("6");
     await setup.renderOnce();
     const frame = setup.captureCharFrame();
-    expect(frame).toContain("12/11 10:00  auto");
-    expect(frame).toContain("node");
-    expect(frame).toContain("install");
+    expect(frame).toContain("CPU and memory");
+    expect(frame).toContain("Disks");
+    setup.mockInput.pressEscape();
+    await Bun.sleep(60);
+    await setup.renderOnce();
   });
 });
-
