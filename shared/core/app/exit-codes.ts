@@ -30,6 +30,20 @@ export const ExitCode = {
   NO_TTY: 8,
   /** The MCP server failed to start or lost the stdio transport. */
   MCP: 9,
+  /** Some inventory items failed; the others were installed. */
+  PARTIAL: 10,
+  /** Operating system, version or architecture not supported. */
+  UNSUPPORTED_SYSTEM: 11,
+  /** Running as root without `--user`. */
+  ROOT: 12,
+  /** sudo asks for a password in a non-interactive run. */
+  SUDO_PASSWORD: 13,
+  /** Not enough free disk space. */
+  DISK_SPACE: 14,
+  /** A restart is needed before the remaining steps. */
+  REBOOT_PENDING: 20,
+  /** Another SetupVibe run holds the lock. */
+  LOCKED: 30,
   /** User input cancelled or process interrupted (Ctrl+C). */
   INTERRUPTED: 130,
 } as const;
@@ -49,6 +63,13 @@ export const exitCodeDescriptions: ReadonlyArray<{ code: ExitCode; name: string;
     { code: ExitCode.PERMISSION, name: "PERMISSION", description: "Permission denied on the file system." },
     { code: ExitCode.NO_TTY, name: "NO_TTY", description: "The TUI requires an interactive terminal (TTY)." },
     { code: ExitCode.MCP, name: "MCP", description: "The MCP server failed to start or lost the stdio transport." },
+    { code: ExitCode.PARTIAL, name: "PARTIAL", description: "Some inventory items failed; the others were installed." },
+    { code: ExitCode.UNSUPPORTED_SYSTEM, name: "UNSUPPORTED_SYSTEM", description: "Operating system, version or architecture not supported." },
+    { code: ExitCode.ROOT, name: "ROOT", description: "Running as root without --user." },
+    { code: ExitCode.SUDO_PASSWORD, name: "SUDO_PASSWORD", description: "sudo asks for a password in a non-interactive run." },
+    { code: ExitCode.DISK_SPACE, name: "DISK_SPACE", description: "Not enough free disk space." },
+    { code: ExitCode.REBOOT_PENDING, name: "REBOOT_PENDING", description: "A restart is needed before the remaining steps." },
+    { code: ExitCode.LOCKED, name: "LOCKED", description: "Another SetupVibe run holds the lock." },
     { code: ExitCode.INTERRUPTED, name: "INTERRUPTED", description: "Input cancelled or process interrupted." },
   ]);
 

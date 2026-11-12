@@ -15,6 +15,13 @@ devem tratar o code antes de interpretar a mensagem.
 | 7 | `PERMISSION` | permissão negada no sistema de arquivos |
 | 8 | `NO_TTY` | a TUI exige um terminal interativo |
 | 9 | `MCP` | o servidor MCP falhou ao iniciar ou perdeu o transporte |
+| 10 | `PARTIAL` | parte dos itens do inventário falhou; o resto ficou instalado |
+| 11 | `UNSUPPORTED_SYSTEM` | sistema, versão ou arquitetura sem suporte nesta edição |
+| 12 | `ROOT` | execução como root sem `--user` |
+| 13 | `SUDO_PASSWORD` | o sudo pede senha numa execução sem interação |
+| 14 | `DISK_SPACE` | espaço em disco insuficiente |
+| 20 | `REBOOT_PENDING` | é preciso reiniciar antes das etapas restantes |
+| 30 | `LOCKED` | outra execução do SetupVibe está em andamento |
 | 130 | `INTERRUPTED` | entrada cancelada ou processo interrompido com Ctrl+C |
 
 A fonte única é `shared/core/app/exit-codes.ts`. A mesma tabela aparece em `--help`,

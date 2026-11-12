@@ -14,14 +14,16 @@ import { createSkillCommand } from "./commands/skill.ts";
 import { tuiCommand } from "./commands/tui.ts";
 import { doctorCommand } from "./commands/doctor.ts";
 import { createCompletionCommand } from "./commands/completion.ts";
+import { systemCommand } from "../../commands/system.ts";
 import type { Command } from "./registry.ts";
 
 export const root: Command = {
   name: manifest.bin,
   description: manifest.description,
-  subcommands: [tuiCommand, aboutCommand, configCommand, credentialsCommand, mcpCommand, createSkillCommand(() => root), doctorCommand, createCompletionCommand(() => root)],
+  subcommands: [tuiCommand, systemCommand, aboutCommand, configCommand, credentialsCommand, mcpCommand, createSkillCommand(() => root), doctorCommand, createCompletionCommand(() => root)],
   examples: [
     `${manifest.bin}`,
+    `${manifest.bin} system`,
     `${manifest.bin} about --json`,
     `${manifest.bin} config set output.format json`,
     `${manifest.bin} credentials set openai.api_key`,
