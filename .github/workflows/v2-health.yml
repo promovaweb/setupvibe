@@ -1,0 +1,35 @@
+# SetupVibe 2 inventory health (spec section 17).
+#
+# Every day, downloads the APT repository keys, the pinned archives and the
+# installers listed in the inventories. A rotated key fingerprint, a changed
+# archive checksum or a missing URL fails the run before it breaks a user's
+# installation.
+name: SetupVibe 2 · inventory health
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: v2
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run inventory:health
+      - uses: jdx/mise-action@v5.2.8
+        with:
+          install: false
+      - name: Newer versions (report only)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bun run inventory:bump

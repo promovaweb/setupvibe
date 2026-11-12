@@ -127,6 +127,16 @@ try {
     }
   }
 
+  phase("environment settings");
+  const settings: [string, string[]][] = edition === "server"
+    ? [["docker daemon.json rotates logs, without live-restore", ["sh", "-c", "grep -q max-size /etc/docker/daemon.json && ! grep -q live-restore /etc/docker/daemon.json"]]]
+    : [["mise.lock records the tools", ["sh", "-c", "test -s ~/.config/mise/mise.lock && grep -q node ~/.config/mise/mise.lock"]]];
+  for (const [label, cmd] of settings) {
+    const r = await sh(["docker", "exec", ...runAs, name, ...cmd], { quiet: true, allowFail: true });
+    console.error(`${r.code === 0 ? "✓" : "✗"} ${label} (exit ${r.code})`);
+    if (r.code !== 0) failed = true;
+  }
+
   phase("check");
   const r3 = await sh(["docker", "exec", ...runAs, name, bin, "check", ...(asRoot ? [] : [])], { allowFail: true });
   if (r3.code !== 0) failed = true;

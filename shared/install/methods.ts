@@ -9,13 +9,14 @@
  * Methods that need a dedicated module (`config`, `compose`) return no steps
  * here; their modules build the steps instead.
  */
-import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import type { InstallEntry, Inventory, Item, Repository, System } from "../inventory.ts";
 import { resolveInstall, withVersion } from "../inventory.ts";
 import type { Cmd, Step } from "../exec/runner.ts";
 import { findInChecksumList, verify } from "../state/checksum.ts";
+import { downloadCacheDir } from "../exec/network.ts";
 
 const DEBIAN_FAMILY: System[] = ["ubuntu", "debian", "mint", "zorin", "wsl"];
 const ARCH_FAMILY: System[] = ["arch", "omarchy"];
@@ -141,6 +142,17 @@ async function downloadVerified(
   check: { sha256?: string; listUrl?: string; listName?: string; digestUrl?: string; algorithm?: "sha256" | "sha384" | "sha512" },
   mode = 0o644,
 ): Promise<Uint8Array> {
+  const cacheDir = downloadCacheDir();
+  const cached = cacheDir && check.sha256 ? join(cacheDir, check.sha256) : undefined;
+  if (cached && existsSync(cached)) {
+    // A pinned download already verified once: reuse it, even offline.
+    const data = new Uint8Array(readFileSync(cached));
+    verify(data, check.sha256!, "sha256", cached);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, data);
+    chmodSync(target, mode);
+    return data;
+  }
   const response = await fetchWithRetries(url, 120_000);
   const data = new Uint8Array(await response.arrayBuffer());
   let expected = check.sha256;
@@ -156,6 +168,10 @@ async function downloadVerified(
     expected = (await digestResponse.text()).trim().split(/\s+/)[0];
   }
   if (expected) verify(data, expected, check.algorithm ?? "sha256", url);
+  if (cacheDir && expected && (check.algorithm ?? "sha256") === "sha256") {
+    mkdirSync(cacheDir, { recursive: true });
+    writeFileSync(join(cacheDir, expected.toLowerCase()), data);
+  }
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, data);
   chmodSync(target, mode);

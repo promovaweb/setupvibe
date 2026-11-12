@@ -1,6 +1,6 @@
 {
   "name": "setupvibe",
-  "version": "2.0.0-dev.12",
+  "version": "2.0.0-dev.13",
   "description": "SetupVibe 2: pinned development and server environments in one command, with TUI, CLI and MCP.",
   "type": "module",
   "private": true,
@@ -19,7 +19,9 @@
     "test": "bun test",
     "typecheck": "bunx tsc --noEmit",
     "validate": "bun run typecheck && bun test && bun run build",
-    "release:assets": "bun run scripts/build.ts --all && bun run scripts/checksums.ts"
+    "release:assets": "bun run scripts/build.ts --all && bun run scripts/checksums.ts && bun run scripts/sbom.ts",
+    "inventory:bump": "bun run scripts/inventory-bump.ts",
+    "inventory:health": "bun run scripts/inventory-health.ts"
   },
   "engines": {
     "bun": ">=1.4.4"

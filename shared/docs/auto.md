@@ -50,6 +50,10 @@ Each answer comes from an option, then an environment variable, then the
 | Time zone | `--timezone` | `SETUPVIBE_TIMEZONE` |
 | Restart and resume | `--reboot` | `SETUPVIBE_REBOOT` |
 | Keep passwordless sudo | `--keep-nopasswd` | `SETUPVIBE_KEEP_NOPASSWD` |
+| Encrypted overlay network (server) | `--encrypted-network` | `SETUPVIBE_SWARM_ENCRYPTED` |
+| PM2 at boot | `--pm2-autostart` | `SETUPVIBE_PM2_AUTOSTART` |
+| Download cache | `--cache-dir` | `SETUPVIBE_CACHE_DIR` |
+| Corporate CA bundle | `--ca-file` | `SETUPVIBE_CA_FILE` |
 
 Secrets never appear in an argv: Tailscale and Swarm tokens reach their
 commands through environment variables, and the run log masks them.
@@ -77,3 +81,9 @@ both go to the GitHub Release.
 
 `auto --dry-run` prints the plan; `auto --plan plan.json` writes it as JSON
 for review. Neither changes the machine.
+
+After the items, `auto` writes `~/.config/mise/mise.lock` with `mise lock
+--global`, and, when Docker comes from the system packages, merges log
+rotation into `/etc/docker/daemon.json` (plus `live-restore` on the desktop;
+dockerd refuses it in Swarm mode). Examples for cloud-init, Ansible,
+Dockerfile, GitHub Actions and Vagrant are in `provisioning.md`.

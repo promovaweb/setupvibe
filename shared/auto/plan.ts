@@ -8,12 +8,13 @@
  *
  * Spec sections 9, 12 and 18.
  */
+import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { Inventory, Item, System } from "../inventory.ts";
 import { resolveInstall } from "../inventory.ts";
 import type { Step } from "../exec/runner.ts";
-import { itemSteps, nativeRefreshCmd, type DistroInfo } from "../install/methods.ts";
+import { itemSteps, miseCmd, nativeRefreshCmd, type DistroInfo } from "../install/methods.ts";
 import { initPlan } from "../init/plan.ts";
 import { securityPlan } from "../security/plan.ts";
 import { removeNopasswdStep } from "../users/create.ts";
@@ -163,6 +164,30 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
     });
   }
 
+  const dockerItem = ctx.selection.items.find((i) => i.id === "docker");
+  if (dockerItem && resolveInstall(dockerItem, ctx.system)?.method === "native") steps.push(dockerDaemonStep(ctx.edition));
+
+  const pm2Item = ctx.selection.items.find((i) => i.id === "pm2");
+  if (pm2Item && ctx.answers.pm2Autostart && !["windows", "macos"].includes(ctx.system)) {
+    const mise = join(home, ".local", "bin", "mise");
+    steps.push({
+      id: "pm2-autostart",
+      description: "Start PM2 and its saved apps at boot (systemd)",
+      commands: [
+        { argv: ["sh", "-c", `"${mise}" exec -- pm2 save --force`] },
+        { argv: ["sh", "-c", `env PATH="$("${mise}" bin-paths | tr '\\n' ':')$PATH" "$("${mise}" which pm2)" startup systemd -u "$1" --hp "$2"`, "sh", ctx.user, home], sudo: true },
+      ],
+    });
+  }
+
+  if (ctx.selection.items.some((i) => resolveInstall(i, ctx.system)?.method === "mise")) {
+    steps.push({
+      id: "mise-lock",
+      description: "Record the checksums of the mise tools in ~/.config/mise/mise.lock",
+      commands: [{ argv: [miseCmd(home, ctx.system), "lock", "--global"], retries: 2, optional: true }],
+    });
+  }
+
   if (ctx.shell !== false && ctx.system !== "windows") {
     const has = (id: string) => ctx.selection.items.some((i) => i.id === id) || resolveInstall(ctx.inventory.items.find((i) => i.id === id) ?? ({ install: {} } as Item), ctx.system)?.method === "preinstalled";
     steps.push(...shellSteps({ system: ctx.system, edition: ctx.edition, user: ctx.user, home, agentAliases: ctx.agentAliases ?? true, zsh: has("zsh"), tmux: has("tmux") && has("tpm"), starship: has("starship") }));
@@ -216,6 +241,48 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
   return { steps, skipped, security };
 }
 
+/**
+ * Docker daemon settings (spec section 11): log rotation everywhere, and
+ * live-restore on the desktop only, because dockerd refuses live-restore in
+ * Swarm mode. An existing daemon.json is merged, not replaced.
+ */
+export function daemonSettings(edition: "desktop" | "server", current: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    ...current,
+    "log-driver": current["log-driver"] ?? "json-file",
+    "log-opts": { "max-size": "10m", "max-file": "3", ...(current["log-opts"] as Record<string, string> | undefined) },
+    ...(edition === "desktop" ? { "live-restore": true } : {}),
+  };
+}
+
+function dockerDaemonStep(edition: "desktop" | "server"): Step {
+  const file = "/etc/docker/daemon.json";
+  return {
+    id: "docker-daemon",
+    description: `Docker daemon: log rotation${edition === "desktop" ? " and live-restore" : ""} in ${file}`,
+    commands: [],
+    actionDescription: `merge the SetupVibe settings into ${file} and restart Docker`,
+    action: async (runner) => {
+      let current: Record<string, unknown> = {};
+      try {
+        current = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
+      } catch {
+        // Missing or unreadable: start from the defaults.
+      }
+      const next = daemonSettings(edition, current);
+      if (JSON.stringify(next) === JSON.stringify(current)) return;
+      for (const cmd of [
+        { argv: ["install", "-d", "-m", "0755", "/etc/docker"], sudo: true },
+        { argv: ["tee", file], sudo: true, input: `${JSON.stringify(next, null, 2)}\n` },
+        { argv: ["systemctl", "restart", "docker"], sudo: true },
+      ]) {
+        const r = await runner.exec(cmd);
+        if (r.code !== 0) throw new Error(`${cmd.argv.join(" ")} failed: ${r.stderr.trim()}`);
+      }
+    },
+  };
+}
+
 /** Docker Swarm steps: init as manager or join an existing swarm. */
 export function swarmSteps(answers: AutoAnswers): Step[] {
   const active = { argv: ["sh", "-c", "docker info --format '{{.Swarm.LocalNodeState}}' | grep -q active"], sudo: true };
@@ -242,7 +309,7 @@ export function swarmSteps(answers: AutoAnswers): Step[] {
       id: "swarm-network",
       description: "Create the overlay network network_swarm_public",
       skipIf: { argv: ["docker", "network", "inspect", "network_swarm_public"], sudo: true },
-      commands: [{ argv: ["docker", "network", "create", "--driver", "overlay", "--attachable", "network_swarm_public"], sudo: true }],
+      commands: [{ argv: ["docker", "network", "create", "--driver", "overlay", "--attachable", ...(answers.encryptedNetwork ? ["--opt", "encrypted"] : []), "network_swarm_public"], sudo: true }],
     },
   ];
 }

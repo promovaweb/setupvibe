@@ -14,10 +14,12 @@ export function createSkillCommand(getRoot: () => Command): Command {
     name: "docs",
     description: "Print the embedded documentation, whole or by topic. Same effect as --skill.",
     arguments: [{ name: "topic", description: "Desired section. Without it, prints everything.", values: SKILL_TOPICS }],
+    options: [{ name: "--lang", argument: { name: "language", values: ["pt-BR", "en"] }, description: "Documentation language; follows SETUPVIBE_LANG, then LANG." }],
     examples: [`${manifest.bin} docs`, `${manifest.bin} docs mcp`, `${manifest.bin} --skill cli`],
     run: (ctx) => {
       const topic = ctx.args[0];
-      const text = skillText(getRoot(), topic);
+      const lang = ctx.options.lang === "en" || ctx.options.lang === "pt-BR" ? ctx.options.lang : undefined;
+      const text = skillText(getRoot(), topic, lang);
       return { data: { topic: topic ?? "all", markdown: text }, text };
     },
   };

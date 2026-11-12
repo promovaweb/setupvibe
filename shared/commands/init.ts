@@ -29,6 +29,7 @@ import {
   type RequirementCheck,
 } from "../init/requirements.ts";
 import { DRY_RUN_OPTION, executePlan } from "./execute.ts";
+import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
 
 const icon = (c: RequirementCheck) => (c.status === "ok" ? color.ok("✓") : c.status === "warn" ? color.warn("!") : color.error("✗"));
 
@@ -40,10 +41,11 @@ export const initCommand: Command = {
   name: "init",
   description: "Check requirements and install the prerequisites (build dependencies and mise).",
   longDescription: "Install commands, the TUI and auto only install inventory items after init has completed. Run init again when doctor reports new prerequisites.",
-  options: [DRY_RUN_OPTION, { name: "--skip-network-check", description: "Skip the network and clock check.", hidden: true }],
+  options: [DRY_RUN_OPTION, { name: "--skip-network-check", description: "Skip the network and clock check.", hidden: true }, ...NETWORK_OPTIONS],
   exitCodes: [ExitCode.PARTIAL, ExitCode.UNSUPPORTED_SYSTEM, ExitCode.ROOT, ExitCode.DISK_SPACE, ExitCode.NETWORK_OR_API],
   examples: [`${manifest.bin} init --dry-run`, `${manifest.bin} init`, `${manifest.bin} init --json`],
   run: async (ctx) => {
+    applyNetworkOptions(ctx.options);
     const inventory = edition().inventory as Inventory;
     const detected = detectSystem(inventory.systems);
     if (detected.unsupportedReason || !detected.system) {

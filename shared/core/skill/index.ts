@@ -8,7 +8,7 @@
  * codes. The CLI section ends with the reference generated from the command
  * registry, so it never drifts from what the parser accepts.
  */
-import { edition } from "../app/edition.ts";
+import { docsLanguage, edition, type DocsLanguage } from "../app/edition.ts";
 import { manifest } from "../app/manifest.ts";
 import { exitCodeDescriptions } from "../app/exit-codes.ts";
 import { GLOBAL_OPTIONS, type Command, type OptionDefinition } from "../cli/registry.ts";
@@ -74,8 +74,8 @@ export function commandReference(root: Command): string {
 }
 
 /** Returns the requested section or the whole documentation. */
-export function skillText(root: Command, topic?: string): string {
-  const { overview, cli: cliDoc, tui: tuiDoc, mcp: mcpDoc, config: configDoc, exitCodes: exitCodesDoc } = edition().docs;
+export function skillText(root: Command, topic?: string, language: DocsLanguage = docsLanguage()): string {
+  const { overview, cli: cliDoc, tui: tuiDoc, mcp: mcpDoc, config: configDoc, exitCodes: exitCodesDoc } = edition().docs[language];
   const sections: Record<SkillTopic, () => string> = {
     reference: () => commandReference(root),
     cli: () => `${substitute(cliDoc)}\n\n${commandReference(root)}`,

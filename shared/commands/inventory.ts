@@ -25,6 +25,7 @@ import { autoPlan } from "../auto/plan.ts";
 import { checkItems } from "../auto/check.ts";
 import { hasAuthorizedKey } from "./security.ts";
 import { executePlan, DRY_RUN_OPTION } from "./execute.ts";
+import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
 import { totalMemoryGb } from "../init/requirements.ts";
 import {
   dependentsOf,
@@ -122,6 +123,7 @@ const listCommand: Command = {
 
 /** Builds and runs the plan for explicit items, then records the selection. */
 async function installItems(ctx: Context, m: Machine, ids: string[], force: boolean): Promise<Result> {
+  applyNetworkOptions(ctx.options);
   let selection;
   try {
     selection = selectItems({ inventory: m.inventory, system: m.system, headless: m.detected.headless, ids });
@@ -174,6 +176,7 @@ const installCommand: Command = {
     { name: "--external", description: "Install a mise tool that is not in the inventory; the version is pinned and recorded in external.json." },
     { name: "--force", description: "Reinstall items that already pass their check." },
     DRY_RUN_OPTION,
+    ...NETWORK_OPTIONS,
   ],
   exitCodes: [ExitCode.PARTIAL, ExitCode.CONFIG, ExitCode.UNSUPPORTED_SYSTEM],
   examples: [`${manifest.bin} install docker`, `${manifest.bin} install go rust --dry-run`, `${manifest.bin} install --external terraform@1.13.4`],
@@ -258,7 +261,7 @@ const removeCommand: Command = {
 const updateCommand: Command = {
   name: "update",
   description: "Update the selected items whose pinned version changed in this SetupVibe's inventory.",
-  options: [DRY_RUN_OPTION],
+  options: [DRY_RUN_OPTION, ...NETWORK_OPTIONS],
   exitCodes: [ExitCode.PARTIAL, ExitCode.CONFIG, ExitCode.UNSUPPORTED_SYSTEM],
   examples: [`${manifest.bin} update --dry-run`, `${manifest.bin} update`],
   run: async (ctx) => {

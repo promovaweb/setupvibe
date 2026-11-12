@@ -194,3 +194,23 @@ describe("commands", () => {
 
   test("cleanup", () => rmSync(home, { recursive: true, force: true }));
 });
+
+describe("documentation languages", () => {
+  test("SETUPVIBE_LANG wins, then a pt* LANG means Portuguese, anything else English", async () => {
+    const { docsLanguage } = await import("../core/app/edition");
+    expect(docsLanguage({ SETUPVIBE_LANG: "en", LANG: "pt_BR.UTF-8" })).toBe("en");
+    expect(docsLanguage({ LANG: "pt_BR.UTF-8" })).toBe("pt-BR");
+    expect(docsLanguage({ LANG: "en_US.UTF-8" })).toBe("en");
+    expect(docsLanguage({})).toBe("en");
+  });
+
+  test("both editions embed Portuguese and English with the same sections", async () => {
+    const { edition } = await import("../core/app/edition");
+    const docs = edition().docs;
+    for (const lang of ["pt-BR", "en"] as const) {
+      for (const key of ["overview", "cli", "tui", "mcp", "config", "exitCodes"] as const) expect(docs[lang][key].length, `${lang}.${key}`).toBeGreaterThan(200);
+    }
+    expect(docs.en.overview).toContain("# {{title}} documentation");
+    expect(docs["pt-BR"].overview).toContain("# Documentação do {{title}}");
+  });
+});

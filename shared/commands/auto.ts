@@ -37,6 +37,7 @@ import { checkItems } from "../auto/check.ts";
 import { hasAuthorizedKey } from "./security.ts";
 import { readSshKey } from "./user.ts";
 import { planText } from "./execute.ts";
+import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
 
 /** Options that only the root phase uses and the user phase must not see. */
 const ROOT_ONLY = ["--user", "--ssh-key"];
@@ -103,13 +104,17 @@ const OPTIONS = [
   { name: "--timezone", argument: { name: "zone" }, description: "Time zone, such as America/Sao_Paulo. Env: SETUPVIBE_TIMEZONE." },
   { name: "--reboot", description: "Restart when needed and resume automatically. Env: SETUPVIBE_REBOOT=1." },
   { name: "--keep-nopasswd", description: "Keep the sudo rule without password created by auto. Env: SETUPVIBE_KEEP_NOPASSWD=1." },
+  { name: "--encrypted-network", description: "Server: encrypt the traffic of the overlay network. Env: SETUPVIBE_SWARM_ENCRYPTED=1." },
+  { name: "--pm2-autostart", description: "Start PM2 and its saved apps at boot. Env: SETUPVIBE_PM2_AUTOSTART=1." },
   { name: "--config", argument: { name: "file" }, description: "Answers file in the config export format, without secrets." },
   { name: "--plan", argument: { name: "file" }, description: "Write the plan as JSON to a file and exit without changes." },
   { name: "--dry-run", description: "Print the plan without changing anything." },
   { name: "--skip-network-check", description: "Skip the network and clock check.", hidden: true },
+  ...NETWORK_OPTIONS,
 ] as const;
 
 async function run(ctx: Context) {
+  applyNetworkOptions(ctx.options);
   const inventory = edition().inventory as Inventory;
   const detected = detectSystem(inventory.systems);
   if (!detected.system || detected.unsupportedReason) {

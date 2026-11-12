@@ -4,6 +4,26 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.13] - 2026-11-12
+
+### Added
+
+- Corporate networks: proxy variables reach every command, including those run through sudo, which used to drop them; `--ca-file` adds a CA bundle for Node, Bun, curl, Git and Python tools.
+- `--cache-dir` shares mise, npm, uv, Homebrew and SetupVibe downloads across runs and machines; pinned downloads already in the cache install offline.
+- `auto` writes `~/.config/mise/mise.lock` with the tools' checksums, merges log rotation into Docker's `daemon.json` (with `live-restore` on the desktop only, since dockerd refuses it in Swarm mode), and accepts `--encrypted-network` and `--pm2-autostart`.
+- Embedded documentation in English and Portuguese, chosen by `SETUPVIBE_LANG`, then `LANG`; `docs --lang` picks one.
+- `inventory:bump` (newer versions, `--write`, `--pr`), `inventory:health` (keys, archives and installers) and a daily health workflow.
+- A CycloneDX SBOM and a keyless Sigstore signature of `SHA256SUMS` in each release built by CI; `install.sh` checks the signature when cosign is installed.
+- Mint 22 in the container matrix. Provisioning examples for cloud-init, Ansible, Dockerfile, GitHub Actions and Vagrant.
+
+### Validation
+
+- `bun run validate` with 265 tests.
+- Container tests on Debian 13 and Mint 22 (desktop, `mise.lock` checked) and Ubuntu 24.04 (server from root, `daemon.json` with log rotation and without `live-restore`).
+- `inventory:health` against the real sources: every key fingerprint, archive checksum and installer URL matched.
+
+---
+
 ## [v2.0.0-dev.12] - 2026-11-12
 
 ### Changed

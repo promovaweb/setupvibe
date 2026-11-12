@@ -9,6 +9,7 @@
  * Steps never build shell strings: each command is an argv array, so values
  * such as user names and keys are never interpreted by a shell.
  */
+import { networkEnv } from "./network.ts";
 
 /** One command, as an argv array. */
 export interface Cmd {
@@ -29,7 +30,7 @@ export interface Cmd {
 
 /** Environment of a command: the process environment, the defaults, the command's own, minus `unsetEnv`. */
 export function commandEnv(cmd: Cmd, base: Record<string, string | undefined> = process.env): Record<string, string | undefined> {
-  const env: Record<string, string | undefined> = { ...base, ...NON_INTERACTIVE_ENV, ...cmd.env };
+  const env: Record<string, string | undefined> = { ...base, ...NON_INTERACTIVE_ENV, ...networkEnv(base), ...cmd.env };
   for (const key of cmd.unsetEnv ?? []) {
     for (const k of Object.keys(env)) if (k.toLowerCase() === key.toLowerCase()) delete env[k];
   }
@@ -85,7 +86,8 @@ export function isRoot(): boolean {
 /** argv actually executed, with `sudo -n` when needed. */
 export function finalArgv(cmd: Cmd, root: boolean): string[] {
   if (!cmd.sudo || root || process.platform === "win32") return cmd.argv;
-  const envArgs = Object.entries({ ...NON_INTERACTIVE_ENV, ...cmd.env }).map(([k, v]) => `${k}=${v}`);
+  // sudo drops the environment: pass the non-interactive, proxy, CA and cache settings explicitly.
+  const envArgs = Object.entries({ ...NON_INTERACTIVE_ENV, ...networkEnv(), ...cmd.env }).map(([k, v]) => `${k}=${v}`);
   return ["sudo", "-n", "env", ...envArgs, ...cmd.argv];
 }
 

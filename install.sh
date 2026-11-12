@@ -81,6 +81,19 @@ echo "Downloading $bin $version for $os-$arch..." >&2
 fetch -o "$tmp/$asset" "$url"
 fetch -o "$tmp/SHA256SUMS" "$sums"
 
+# Releases built by CI carry a keyless Sigstore signature of SHA256SUMS. When
+# cosign is installed, the signature must match the v2 release workflow.
+if command -v cosign >/dev/null 2>&1 && fetch -o "$tmp/SHA256SUMS.sigstore.json" "$sums.sigstore.json" 2>/dev/null; then
+  if ! cosign verify-blob --bundle "$tmp/SHA256SUMS.sigstore.json" \
+    --certificate-identity-regexp '^https://github.com/promovaweb/setupvibe/\.github/workflows/v2\.yml@refs/tags/v2\.' \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+    "$tmp/SHA256SUMS" >/dev/null 2>&1; then
+    echo "setupvibe: the Sigstore signature of SHA256SUMS does not match the SetupVibe release workflow" >&2
+    exit 1
+  fi
+  echo "Signature of SHA256SUMS verified with cosign." >&2
+fi
+
 expected=$(sed -n "s/^\([0-9a-fA-F]\{64\}\)[[:space:]]\{1,\}\*\{0,1\}\(\.\/\)\{0,1\}$asset\$/\1/p" "$tmp/SHA256SUMS")
 if [ -z "$expected" ]; then
   echo "setupvibe: $asset is not listed in SHA256SUMS" >&2

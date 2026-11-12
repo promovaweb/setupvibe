@@ -26,6 +26,10 @@ export interface AutoAnswers {
   timezone?: string;
   reboot: boolean;
   keepNopasswd: boolean;
+  /** Server: encrypt the overlay network traffic. */
+  encryptedNetwork: boolean;
+  /** Start PM2 and its apps at boot. */
+  pm2Autostart: boolean;
 }
 
 /** Shape of the answers file (`--config`). Secrets are not accepted here. */
@@ -40,6 +44,8 @@ export interface AnswersFile {
   timezone?: string;
   reboot?: boolean;
   keepNopasswd?: boolean;
+  encryptedNetwork?: boolean;
+  pm2Autostart?: boolean;
 }
 
 const csv = (v: string | undefined): string[] | undefined =>
@@ -72,6 +78,8 @@ export function resolveAnswers(options: Record<string, string | boolean | undefi
     timezone: opt("timezone") ?? env.SETUPVIBE_TIMEZONE ?? file.timezone,
     reboot: flag(options.reboot) ?? flag(env.SETUPVIBE_REBOOT) ?? file.reboot ?? false,
     keepNopasswd: flag(options["keep-nopasswd"]) ?? flag(env.SETUPVIBE_KEEP_NOPASSWD) ?? file.keepNopasswd ?? false,
+    encryptedNetwork: flag(options["encrypted-network"]) ?? flag(env.SETUPVIBE_SWARM_ENCRYPTED) ?? file.encryptedNetwork ?? false,
+    pm2Autostart: flag(options["pm2-autostart"]) ?? flag(env.SETUPVIBE_PM2_AUTOSTART) ?? file.pm2Autostart ?? false,
   };
 }
 

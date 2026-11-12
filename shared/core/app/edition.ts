@@ -21,6 +21,22 @@ export interface EditionDocs {
   readonly exitCodes: string;
 }
 
+/** Languages of the embedded documentation (spec decision: Portuguese and English). */
+export type DocsLanguage = "pt-BR" | "en";
+
+export const DOCS_LANGUAGES: readonly DocsLanguage[] = ["pt-BR", "en"];
+
+/**
+ * Language of the embedded documentation: SETUPVIBE_LANG when set, otherwise
+ * Portuguese for a pt* LANG and English for anything else.
+ */
+export function docsLanguage(env: Record<string, string | undefined> = process.env): DocsLanguage {
+  const explicit = env.SETUPVIBE_LANG;
+  if (explicit === "en" || explicit === "pt-BR") return explicit;
+  const lang = env.LC_ALL || env.LC_MESSAGES || env.LANG || "";
+  return /^pt/i.test(lang) ? "pt-BR" : "en";
+}
+
 /** Identity of one SetupVibe binary. */
 export interface EditionDefinition {
   /** `desktop` or `server`. */
@@ -31,8 +47,8 @@ export interface EditionDefinition {
   readonly title: string;
   /** One-line description. */
   readonly description: string;
-  /** Embedded documentation printed by `--skill`. */
-  readonly docs: EditionDocs;
+  /** Embedded documentation printed by `--skill`, per language. */
+  readonly docs: Record<DocsLanguage, EditionDocs>;
   /** The edition inventory (desktop/inventory.json or server/inventory.json). */
   readonly inventory: unknown;
 }
