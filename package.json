@@ -1,0 +1,35 @@
+{
+  "name": "setupvibe",
+  "version": "2.0.0-dev.2",
+  "description": "SetupVibe 2: pinned development and server environments in one command, with TUI, CLI and MCP.",
+  "type": "module",
+  "private": true,
+  "license": "GPL-3.0",
+  "setupvibe": {
+    "author": "Promovaweb",
+    "site": "https://setupvibe.dev",
+    "repository": "https://github.com/promovaweb/setupvibe",
+    "branch": "v2"
+  },
+  "scripts": {
+    "desktop": "bun run desktop/src/main.ts",
+    "server": "bun run server/src/main.ts",
+    "build": "bun run scripts/build.ts",
+    "build:all": "bun run scripts/build.ts --all",
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit",
+    "validate": "bun run typecheck && bun test && bun run build"
+  },
+  "engines": {
+    "bun": ">=1.4.4"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@opentui/core": "^0.8.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.4",
+    "typescript": "^7.0.2"
+  }
+}

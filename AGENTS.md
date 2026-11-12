@@ -243,3 +243,12 @@ Each file may contain sections specific to its target agent (tool-specific invoc
 No third AI agent context is maintained for this repository. Do not add extra agent context files, skill folders, or synchronization requirements unless the project explicitly adopts that agent.
 
 ---
+
+## SetupVibe 2 (`v2` branch)
+
+On the `v2` branch, SetupVibe 2 is developed next to the SetupVibe 1 scripts.
+Read [`V2.md`](V2.md) before changing anything under `shared/`, `desktop/`,
+`server/` or `scripts/`. SetupVibe 2 is a pair of Bun binaries
+(`setupvibe` and `setupvibe-server`) built on the Termfy framework, validated
+with `bun run validate`. Every SetupVibe file URL in the v2 code points at the
+`v2` branch through `shared/repo.ts`.

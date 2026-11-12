@@ -145,7 +145,7 @@ for (const [name, inv] of inventories) {
 
     test("the essencial profile matches the default selection", () => {
       const defaults = inv.items.filter((i) => i.default).map((i) => i.id).sort();
-      expect([...inv.profiles.essencial.items].sort()).toEqual(defaults);
+      expect([...inv.profiles.essencial!.items].sort()).toEqual(defaults);
     });
 
     test("requirements of default items are installed by init or selected by default", () => {
@@ -185,7 +185,7 @@ describe("edition rules", () => {
   });
 
   test("desktop has the remoto profile built on essencial", () => {
-    expect(d.profiles.remoto.extends).toBe("essencial");
+    expect(d.profiles.remoto!.extends).toBe("essencial");
     const remoto = profileItems(d, "remoto");
     for (const id of ["linger", "ufw", "fail2ban", "openssh-server"]) expect(remoto).toContain(id);
   });

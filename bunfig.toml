@@ -1,0 +1,4 @@
+# Bun configuration for SetupVibe 2.
+# Tests live in shared/tests, desktop/tests and server/tests.
+[test]
+coverage = false
