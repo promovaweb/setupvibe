@@ -1,7 +1,7 @@
 /** doctor, config export/import, upgrade, report, self uninstall, ssh copy-id, skill and the current user (spec sections 8, 16 and 17). */
 import "../../desktop/src/edition.ts";
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import desktopJson from "../../desktop/inventory.json";
@@ -173,10 +173,23 @@ describe("commands", () => {
     expect(run(["ssh", "copy-id", "bad@@x"]).code).toBe(ExitCode.USAGE);
   });
 
-  test("skill passes its arguments to the skills CLI", () => {
-    const r = run(["skill", "--json", "--", "--version"]);
-    expect(r.code).toBe(0);
-    expect(JSON.parse(r.stdout).data.command.at(-1)).toBe("--version");
+  test("skill passes its arguments to the installed skills CLI", () => {
+    // A fake skills in the user's ~/.local/bin keeps the test off the network
+    // (the npx fallback downloaded the package and timed out on CI).
+    const fakeHome = mkdtempSync(join(tmpdir(), "sv-skill-"));
+    mkdirSync(join(fakeHome, ".local", "bin"), { recursive: true });
+    writeFileSync(join(fakeHome, ".local", "bin", "skills"), '#!/bin/sh\necho "fake skills $*"\n');
+    chmodSync(join(fakeHome, ".local", "bin", "skills"), 0o755);
+    const p = Bun.spawnSync([process.execPath, "run", "desktop/src/main.ts", "skill", "--json", "--", "--version"], {
+      cwd: root,
+      env: { ...process.env, NO_COLOR: "1", SETUPVIBE_HOME: home, HOME: fakeHome, PATH: "/usr/bin:/bin" },
+      stdin: "ignore",
+    });
+    expect(p.exitCode).toBe(0);
+    const data = JSON.parse(p.stdout.toString()).data;
+    expect(data.command).toEqual([join(fakeHome, ".local", "bin", "skills"), "--version"]);
+    expect(data.output).toContain("fake skills --version");
+    rmSync(fakeHome, { recursive: true, force: true });
   });
 
   test("cleanup", () => rmSync(home, { recursive: true, force: true }));

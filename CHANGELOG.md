@@ -4,6 +4,19 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.10] - 2026-11-12
+
+### Fixed
+
+- The `skill` command test uses a fake skills CLI in the user's `~/.local/bin` instead of the npx fallback, which downloaded the package and timed out on the CI of the `v2.0.0-dev.9` tag.
+
+### Validation
+
+- CI of `v2.0.0-dev.9` on the `v2` branch: every job passed, the real `auto` and `check` on Windows included; the macOS arm64 workflow passed too.
+- `bun run validate` with 252 tests.
+
+---
+
 ## [v2.0.0-dev.9] - 2026-11-12
 
 ### Fixed
