@@ -10,6 +10,14 @@
 import type { CliRenderer, Renderable } from "@opentui/core";
 import type { Theme } from "./theme.ts";
 
+/** A key hint of the status bar. With `press`, a click on it acts like that key. */
+export interface ScreenKey {
+  key: string;
+  action: string;
+  /** Key name sent when the hint is clicked. */
+  press?: string;
+}
+
 export interface ScreenContext {
   renderer: CliRenderer;
   theme: Theme;
@@ -27,7 +35,7 @@ export interface Screen {
   /** Line shown under the tabs when the tab is focused. */
   description: string;
   /** Screen-specific key hints, shown in the bottom bar. */
-  keys?: ReadonlyArray<{ key: string; action: string }>;
+  keys?: ReadonlyArray<ScreenKey>;
   /** Builds the content. Called once. */
   mount: (ctx: ScreenContext) => Renderable;
   /** Called when the tab is shown. */

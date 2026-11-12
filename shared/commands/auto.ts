@@ -24,7 +24,7 @@ import type { Command, Context } from "../core/cli/registry.ts";
 import type { Inventory } from "../inventory.ts";
 import { describeCmd, isRoot, realRunner, runSteps, type Runner, type Step } from "../exec/runner.ts";
 import { detectSystem } from "../system/detect.ts";
-import { readState, statePath, writeJsonAtomic, writeState } from "../state/store.ts";
+import { readState, statePath, writeJsonAtomic, writeState, ensureStateDirs } from "../state/store.ts";
 import { openRunLog } from "../state/log.ts";
 import { acquireLock } from "../state/lock.ts";
 import { checkDisk, checkLocale, checkMemory, checkNetworkAndClock, exitCodeOf, freeDiskGb, totalMemoryGb, type RequirementCheck } from "../init/requirements.ts";
@@ -37,6 +37,7 @@ import { checkItems } from "../auto/check.ts";
 import { hasAuthorizedKey } from "./security.ts";
 import { readSshKey } from "./user.ts";
 import { planText } from "./execute.ts";
+import { detectV1Here } from "../legacy/v1.ts";
 import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
 
 /**
@@ -248,6 +249,7 @@ async function run(ctx: Context) {
       selection,
       createdNopasswd: process.env.SETUPVIBE_AUTO_CREATED_NOPASSWD === "1",
       agentAliases: (config.shell as { agentAliases?: boolean } | undefined)?.agentAliases ?? true,
+      legacy: detectV1Here(user.homedir),
     });
   } catch (e) {
     return { code: ExitCode.USAGE, data: { error: String(e) }, text: `✗ ${(e as Error).message}` };
@@ -259,6 +261,7 @@ async function run(ctx: Context) {
     return { data, text: () => blocks(section("auto (dry run)"), planText(plan.steps), section("Skipped"), plan.skipped.map((s) => `- ${s.id}: ${s.reason}`).join("\n")) };
   }
 
+  ensureStateDirs();
   const release = acquireLock();
   if (!release) return { code: ExitCode.LOCKED, data: {}, text: "✗ Another SetupVibe run is in progress." };
   try {

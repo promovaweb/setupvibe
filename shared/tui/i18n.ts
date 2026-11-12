@@ -1,11 +1,14 @@
 /**
  * Interface text of the SetupVibe TUI in Portuguese and English.
  *
- * The language follows the embedded documentation: SETUPVIBE_LANG, then
- * LANG (`docsLanguage`). Inventory names and descriptions already carry both
- * languages, so the whole screen speaks one language.
+ * The language is SETUPVIBE_LANG when set, otherwise `tui.language` in
+ * settings.json (written by the L key and the PT · EN switch in the header),
+ * whose default is Portuguese.
+ * Inventory names and descriptions carry both languages, so the whole screen
+ * speaks one language. The choice is read once per mount and cached.
  */
-import { docsLanguage, type DocsLanguage } from "../core/app/edition.ts";
+import type { DocsLanguage } from "../core/app/edition.ts";
+import { getPath, readSettings, setPath, writeSettings } from "../core/config/settings.ts";
 
 const pt = {
   "tab.overview": "Início",
@@ -98,6 +101,7 @@ const pt = {
   "overview.initPending": "pendente",
   "overview.never": "nenhuma ainda",
   "overview.nextInit": "Rode setupvibe init para instalar os pré-requisitos.",
+  "overview.nextMigrate": "SetupVibe 1 encontrado. Rode setupvibe migrate --dry-run para ver o plano e depois setupvibe migrate.",
   "overview.nextInstall": "Abra a aba Inventário (2), marque com espaço e instale com i.",
   "overview.nextFix": "Abra a aba Doctor (4) e resolva os problemas.",
   "overview.nextUpdate": "Rode setupvibe update para atualizar os itens desatualizados.",
@@ -121,6 +125,12 @@ const pt = {
   "about.site": "Site",
   "about.repository": "Repositório",
   "global.tab": "aba",
+  "global.language": "idioma",
+  "help.language": "troca o idioma (PT · EN)",
+  "btn.install": "Instalar",
+  "btn.remove": "Remover",
+  "btn.fix": "Aplicar correções seguras",
+  "help.mouse": "mouse: clique em abas, itens, botões e teclas; a roda rola",
   "global.go": "ir",
   "global.help": "ajuda",
   "global.quit": "sair",
@@ -228,6 +238,7 @@ const en: Record<TextKey, string> = {
   "overview.initPending": "pending",
   "overview.never": "none yet",
   "overview.nextInit": "Run setupvibe init to install the prerequisites.",
+  "overview.nextMigrate": "SetupVibe 1 found. Run setupvibe migrate --dry-run to see the plan, then setupvibe migrate.",
   "overview.nextInstall": "Open the Inventory tab (2), mark with space and install with i.",
   "overview.nextFix": "Open the Doctor tab (4) and solve the problems.",
   "overview.nextUpdate": "Run setupvibe update to bring outdated items up to date.",
@@ -251,6 +262,12 @@ const en: Record<TextKey, string> = {
   "about.site": "Site",
   "about.repository": "Repository",
   "global.tab": "tab",
+  "global.language": "language",
+  "help.language": "switch the language (PT · EN)",
+  "btn.install": "Install",
+  "btn.remove": "Remove",
+  "btn.fix": "Apply safe fixes",
+  "help.mouse": "mouse: click tabs, items, buttons and keys; the wheel scrolls",
   "global.go": "go",
   "global.help": "help",
   "global.quit": "quit",
@@ -267,9 +284,54 @@ const en: Record<TextKey, string> = {
 
 const tables: Record<DocsLanguage, Record<TextKey, string>> = { "pt-BR": pt, en };
 
-/** Language of the TUI. */
+let current: DocsLanguage | undefined;
+
+const isLanguage = (v: unknown): v is DocsLanguage => v === "pt-BR" || v === "en";
+
+/**
+ * Resolves the TUI language: SETUPVIBE_LANG when set (it pins the language,
+ * as in automation and tests), then `tui.language` from settings.json, whose
+ * default is Portuguese.
+ */
+export function resolveTuiLanguage(env: Record<string, string | undefined> = process.env, saved: () => unknown = savedLanguage): DocsLanguage {
+  if (isLanguage(env.SETUPVIBE_LANG)) return env.SETUPVIBE_LANG;
+  const fromSettings = saved();
+  return isLanguage(fromSettings) ? fromSettings : "pt-BR";
+}
+
+function savedLanguage(): unknown {
+  try {
+    return getPath(readSettings(), "tui.language");
+  } catch {
+    return undefined;
+  }
+}
+
+/** Language of the TUI, cached until `resetTuiLanguage` or `setTuiLanguage`. */
 export function tuiLanguage(): DocsLanguage {
-  return docsLanguage();
+  return (current ??= resolveTuiLanguage());
+}
+
+/** Forgets the cached language; the next call reads settings and environment again. */
+export function resetTuiLanguage(): void {
+  current = undefined;
+}
+
+/** Switches the TUI language and saves it in settings.json (best effort). */
+export function setTuiLanguage(language: DocsLanguage): void {
+  current = language;
+  try {
+    const settings = readSettings();
+    setPath(settings, "tui.language", language);
+    writeSettings(settings);
+  } catch {
+    // A read-only settings file keeps the choice for this session only.
+  }
+}
+
+/** The other language, for the toggle. */
+export function otherLanguage(language: DocsLanguage = tuiLanguage()): DocsLanguage {
+  return language === "pt-BR" ? "en" : "pt-BR";
 }
 
 /** Text for a key, with `{name}` placeholders filled in. */

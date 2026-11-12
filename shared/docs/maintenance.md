@@ -10,6 +10,7 @@
 | `config import <file>` | Installs the items and Git identity of an exported file |
 | `upgrade [--check] [--channel]` | Replaces the compiled binary with the newest release of its channel after checking SHA256SUMS and, when cosign is in PATH, the keyless Sigstore signature of SHA256SUMS against the v2 release workflow; a signature that does not match stops the upgrade |
 | `report [--output file]` | Markdown report for a GitHub issue: system, doctor, items, external apps, last run and latest log events, with secrets masked |
+| `migrate [--dry-run] [--remove-legacy items]` | Moves a SetupVibe 1 machine to SetupVibe 2: converts `.zshrc` and `.tmux.conf` keeping the personal lines in the `.local` files, replaces the Omarchy block, keeps `ssh_copy_id` as a shortcut and removes the duplicates you confirm. See `migration.md` |
 | `self uninstall --yes [--keep-data] [--items]` | Removes the shell blocks, the SetupVibe sudo rule, the binary and the SetupVibe state. Backups of the user's files, Portainer data and SetupVibe 1 leftovers stay. `--items` also removes the selected user-space items |
 | `ssh copy-id <user@host>` | Appends your public key to the remote `authorized_keys` once, with safe modes. The key travels on stdin, never in the command line. `--password-stdin` answers the password prompt with sshpass |
 

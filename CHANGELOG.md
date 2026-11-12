@@ -4,6 +4,29 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.15] - 2026-11-12
+
+### Added
+
+- Mouse in the TUI (`tui.mouse`, on by default): click tabs, categories, items and the `◻` marker; **Install** and **Remove** buttons with the same plan-then-run flow as the keys; **Apply safe fixes** on the Doctor tab; click a run on Logs; click the next step on Home to open its tab; every key in the bottom bar is a button; the wheel scrolls the lists; a click outside closes the help.
+- Language switch in the TUI: Portuguese by default, `L` or the `PT · EN` switch in the header changes it, saved in `tui.language`; `SETUPVIBE_LANG` pins it.
+- SetupVibe 1 compatibility: `system`, `doctor` and the Home tab detect SetupVibe 1 (zshrc, tmux.conf, Omarchy block, ssh_copy_id, Portainer, Windows state); `migrate` converts its files keeping the personal lines in the `.local` files, replaces the Omarchy block, keeps `ssh_copy_id` as a shortcut to `ssh copy-id` and removes the duplicates the person confirms (`--remove-legacy` without a terminal). `auto`, `install` and `shell apply` convert the old `.zshrc` and `.tmux.conf` before writing the new blocks.
+- `install-server.sh`: one-line installer with the server edition chosen, for the SetupVibe 1 server address at the launch.
+
+### Fixed
+
+- The release job creates the GitHub pre-release from the CHANGELOG entry when it does not exist; dev.14 needed a manual release.
+- Secrets in the lines that `migrate` moves are masked in the plan.
+- `doctor --fix` checks the runtime again after fixing, and `init`, `auto` and `migrate` set `~/.setupvibe` to mode 700 when it already exists (SetupVibe 1 created it with 755); before, `doctor --fix` exited with 3 on those machines.
+
+### Validation
+
+- `bun run validate` with 310 tests, mouse and language tests included (clicks on tabs, the PT · EN switch, categories, the marker, a status bar key and outside the help).
+- Debian 13 desktop container on a SetupVibe 1 footprint: `auto` converted the old `.zshrc` keeping the personal alias (it still works in zsh), `doctor` and `system` reported SetupVibe 1, `migrate --remove-legacy go` removed `~/.local/go` and kept `ssh_copy_id` as the shortcut; second run with 0 failures and every other phase green.
+- `migrate --dry-run` on a real SetupVibe 1 machine: 26 personal lines listed for `~/.zshrc.local`, secrets masked, an older 0.41.x `.tmux.conf` recognized.
+
+---
+
 ## [v2.0.0-dev.14] - 2026-11-12
 
 ### Added

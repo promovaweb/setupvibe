@@ -19,6 +19,8 @@
  */
 import { BoxRenderable, ScrollBoxRenderable, TextAttributes, TextRenderable, fg, t, type CliRenderer, type StyledText } from "@opentui/core";
 import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { detectV1Here } from "../legacy/v1.ts";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";
 import { panel } from "../core/tui/components.ts";
@@ -103,6 +105,16 @@ function hangingRow(renderer: CliRenderer, lead: StyledText | string, leadWidth:
   return row;
 }
 
+/** A clickable label drawn as a button. */
+function button(renderer: CliRenderer, theme: Theme, label: string, color: string, onClick: () => void): TextRenderable {
+  const b = new TextRenderable(renderer, { content: ` ${label} `, fg: theme.keyText, bg: color, flexShrink: 0, height: 1, selectable: false });
+  b.onMouseDown = (e) => {
+    e.stopPropagation();
+    onClick();
+  };
+  return b;
+}
+
 function gap(renderer: CliRenderer, height = 1): BoxRenderable {
   return new BoxRenderable(renderer, { height, flexShrink: 0 });
 }
@@ -126,13 +138,14 @@ async function runCli(args: string[]): Promise<{ code: number; out: string }> {
 
 export const homeScreen: Screen = (() => {
   let refresh = () => {};
+  let nextTab = "inventory";
   return {
     id: "overview",
     get title() {
       return tr("tab.overview");
     },
     description: "Machine, state, items, last run and next step",
-    mount: ({ renderer, theme }) => {
+    mount: ({ renderer, theme, goTo }) => {
       const root = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, gap: 1, paddingTop: 1 });
       const top = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, height: 10, flexShrink: 0 });
       const machinePanel = panel(renderer, theme, { title: tr("overview.machine"), flexGrow: 3, flexBasis: 0, active: true });
@@ -156,6 +169,8 @@ export const homeScreen: Screen = (() => {
       runPanel.add(runText);
       nextPanel.add(gap(renderer));
       nextPanel.add(nextText);
+      // A click on the next step opens the tab where it is done.
+      nextPanel.onMouseDown = () => goTo(nextTab);
       const keysPanel = panel(renderer, theme, { title: tr("overview.keys"), flexGrow: 2, flexBasis: 0 });
       const keysText = line(renderer, theme);
       keysPanel.add(gap(renderer));
@@ -199,7 +214,9 @@ export const homeScreen: Screen = (() => {
           runText.content = files[0] ? t`${strong(runLabel(files[0]))}` : t`${dim(tr("overview.never"))}`;
         }
 
-        const next: TextKey = !initOk ? "overview.nextInit" : c.failed ? "overview.nextFix" : c.outdated ? "overview.nextUpdate" : done === 0 ? "overview.nextInstall" : "overview.nextNone";
+        const v1 = detectV1Here(homedir());
+        const next: TextKey = v1.found && !config.migratedFromV1 ? "overview.nextMigrate" : !initOk ? "overview.nextInit" : c.failed ? "overview.nextFix" : c.outdated ? "overview.nextUpdate" : done === 0 ? "overview.nextInstall" : "overview.nextNone";
+        nextTab = next === "overview.nextFix" || next === "overview.nextInit" || next === "overview.nextMigrate" ? "doctor" : "inventory";
         nextText.content = t`${fg(theme.accent)("→ ")}${strong(tr(next))}`;
         keysText.content = t`${fg(theme.accent)(fit("2", 7))}${dim(tr("overview.keyInventory"))}\n${fg(theme.accent)(fit("space", 7))}${dim(tr("key.mark"))}\n${fg(theme.accent)(fit("i / r", 7))}${dim(`${tr("key.install")} / ${tr("key.remove")}`)}\n${fg(theme.accent)(fit("4  f", 7))}${dim(tr("overview.keyFix"))}\n${fg(theme.accent)(fit("?", 7))}${dim(tr("overview.keyHelp"))}`;
       };
@@ -294,14 +311,24 @@ export const inventoryScreen: Screen = (() => {
       return tr("tab.inventory");
     },
     description: "Pinned tools by category: mark with space, install with i, remove with r",
-    keys: [
-      { key: "h/l", action: tr("key.category") },
-      { key: "j/k", action: tr("key.item") },
-      { key: "space", action: tr("key.mark") },
-      { key: "i", action: tr("key.install") },
-      { key: "r", action: tr("key.remove") },
-    ],
+    get keys() {
+      return [
+        { key: "h/l", action: tr("key.category"), press: "l" },
+        { key: "j/k", action: tr("key.item"), press: "j" },
+        { key: "space", action: tr("key.mark"), press: "space" },
+        { key: "i", action: tr("key.install"), press: "i" },
+        { key: "r", action: tr("key.remove"), press: "r" },
+      ];
+    },
     mount: ({ renderer, theme }) => {
+      // Each mount is a new session: no marks, plan or message from a previous one.
+      marked.clear();
+      pending = undefined;
+      planLines = [];
+      message = undefined;
+      busy = false;
+      cat = 0;
+      row = 0;
       load();
       fitColumns(renderer.width);
       const short = renderer.height < 32;
@@ -312,8 +339,17 @@ export const inventoryScreen: Screen = (() => {
       if (!short) left.add(gap(renderer));
       const catList = scrollBox(renderer, theme);
       left.add(catList);
-      const catLines = Array.from({ length: Math.max(categories.length, 1) }, () => {
+      const catLines = Array.from({ length: Math.max(categories.length, 1) }, (_, i) => {
         const l = line(renderer, theme, { height: 1 });
+        l.onMouseDown = () => {
+          if (!categories[i]) return;
+          cat = i;
+          row = 0;
+          pending = undefined;
+          planLines = [];
+          message = undefined;
+          refresh();
+        };
         catList.add(l);
         return l;
       });
@@ -325,8 +361,20 @@ export const inventoryScreen: Screen = (() => {
       const list = scrollBox(renderer, theme);
       right.add(list);
       const poolSize = Math.max(...categories.map((c) => c.rows.length), 1);
-      const itemLines = Array.from({ length: poolSize }, () => {
+      const itemLines = Array.from({ length: poolSize }, (_, i) => {
         const l = line(renderer, theme, { height: 1 });
+        l.onMouseDown = (e) => {
+          const r = categories[cat]?.rows[i];
+          if (!r) return;
+          row = i;
+          // The first four cells hold the pointer and the marker: a click there marks.
+          if (e.x - l.x <= 3 && markable(r)) {
+            if (marked.has(r.item.id)) marked.delete(r.item.id);
+            else marked.add(r.item.id);
+          }
+          if (!busy && !pending) message = undefined;
+          refresh();
+        };
         list.add(l);
         return l;
       });
@@ -346,6 +394,10 @@ export const inventoryScreen: Screen = (() => {
       const factsBox = new BoxRenderable(renderer, { width: Math.min(54, Math.floor(renderer.width * 0.45)), flexShrink: 0, flexDirection: "column" });
       const detailFacts = line(renderer, theme, { wrap: true });
       factsBox.add(detailFacts);
+      const actions = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, height: 1, flexShrink: 0, marginTop: 1 });
+      actions.add(button(renderer, theme, `i  ${tr("btn.install")}`, theme.keyBackground, () => run("install")));
+      actions.add(button(renderer, theme, `r  ${tr("btn.remove")}`, theme.border, () => run("remove")));
+      factsBox.add(actions);
       detailBody.add(detailLeft);
       detailBody.add(factsBox);
       detail.add(detailBody);
@@ -557,23 +609,41 @@ export const doctorScreen: Screen = (() => {
   let refresh = () => {};
   let busy = false;
   let note: { text: string; ok: boolean } | undefined;
+  const fix = () => {
+    if (busy) return;
+    busy = true;
+    note = { text: tr("doctor.fixing"), ok: true };
+    refresh();
+    void runCli(["doctor", "--fix", "--json"]).then(({ code }) => {
+      busy = false;
+      note = code === 0 || code === 10 ? { text: `✓ ${tr("doctor.fixed")}`, ok: true } : { text: `✗ ${tr("doctor.fixFailed", { code })}`, ok: false };
+      refresh();
+    });
+  };
   return {
     id: "doctor",
     get title() {
       return tr("tab.doctor");
     },
     description: "The same findings as doctor, with the fix of each one",
-    keys: [
-      { key: "f", action: tr("key.fix") },
-      { key: "u", action: tr("key.refresh") },
-    ],
+    get keys() {
+      return [
+        { key: "f", action: tr("key.fix"), press: "f" },
+        { key: "u", action: tr("key.refresh"), press: "u" },
+      ];
+    },
     mount: ({ renderer, theme }) => {
       const root = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, gap: 1, paddingTop: 1 });
       const box = panel(renderer, theme, { title: tr("doctor.title"), flexGrow: 1, active: true });
       const summary = line(renderer, theme, { height: 1 });
       const body = scrollBox(renderer, theme);
       box.add(gap(renderer));
-      box.add(summary);
+      const top = new BoxRenderable(renderer, { flexDirection: "row", gap: 3, height: 1, flexShrink: 0 });
+      summary.flexGrow = 1;
+      summary.flexShrink = 1;
+      top.add(summary);
+      top.add(button(renderer, theme, `f  ${tr("btn.fix")}`, theme.keyBackground, fix));
+      box.add(top);
       box.add(gap(renderer));
       box.add(body);
       const status = line(renderer, theme, { height: 1 });
@@ -617,15 +687,8 @@ export const doctorScreen: Screen = (() => {
         refresh();
         return true;
       }
-      if (name === "f" && !busy) {
-        busy = true;
-        note = { text: tr("doctor.fixing"), ok: true };
-        refresh();
-        void runCli(["doctor", "--fix", "--json"]).then(({ code }) => {
-          busy = false;
-          note = code === 0 || code === 10 ? { text: `✓ ${tr("doctor.fixed")}`, ok: true } : { text: `✗ ${tr("doctor.fixFailed", { code })}`, ok: false };
-          refresh();
-        });
+      if (name === "f") {
+        fix();
         return true;
       }
       return false;
@@ -645,7 +708,9 @@ export const logsScreen: Screen = (() => {
       return tr("tab.logs");
     },
     description: "Run logs in ~/.setupvibe/logs, newest first",
-    keys: [{ key: "j/k", action: tr("key.log") }],
+    get keys() {
+      return [{ key: "j/k", action: tr("key.log"), press: "j" }];
+    },
     mount: ({ renderer, theme }) => {
       const root = new BoxRenderable(renderer, { flexDirection: "row", flexGrow: 1, gap: 2, paddingTop: 1 });
       const left = panel(renderer, theme, { title: tr("logs.runs"), width: 36, active: true });
@@ -678,6 +743,10 @@ export const logsScreen: Screen = (() => {
           const active = i === index;
           l.content = t`${fg(theme.accent)(active ? "▶ " : "  ")}${fg(active ? theme.textStrong : theme.text)(runLabel(file))}`;
           l.bg = active ? theme.surfaceHigh : theme.surface;
+          l.onMouseDown = () => {
+            index = i;
+            refresh();
+          };
           runList.add(l);
           if (active) activeLine = l;
         });

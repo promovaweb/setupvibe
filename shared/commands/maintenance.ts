@@ -36,6 +36,7 @@ import { shellRemoveSteps, shellSteps } from "../shell/config.ts";
 import { logTail } from "../tui/model.ts";
 import { findAgent } from "./mcp-install.ts";
 import { rebootRequired, selfArgv } from "./auto.ts";
+import { detectV1Here } from "../legacy/v1.ts";
 import { DRY_RUN_OPTION, executePlan } from "./execute.ts";
 import { installItemsFor } from "./inventory.ts";
 import { removePlan, type ExternalApp, type SelectedItem } from "../ops/inventory-ops.ts";
@@ -82,6 +83,7 @@ export function machineFindings(): Finding[] {
     // Only matters where the machine is reachable from outside; Docker publishes past UFW.
     exposedContainers: c.detected.variant === "local" ? [] : exposedContainers(),
     rebootPending: rebootRequired(),
+    v1Traces: detectV1Here(homedir()).traces,
     wslOnWindows: c.detected.system === "windows" && c.selection.some((s) => s.id === "wsl"),
     elsewhere: c.selection
       .map((s) => c.inventory.items.find((i) => i.id === s.id))
@@ -121,7 +123,7 @@ export const doctorCommand: Command = {
   exitCodes: [ExitCode.CONFIG, ExitCode.PARTIAL],
   examples: [`${manifest.bin} doctor`, `${manifest.bin} doctor --fix`, `${manifest.bin} doctor --json`],
   run: async (ctx) => {
-    const runtime = collectDoctorChecks();
+    let runtime = collectDoctorChecks();
     let findings = machineFindings();
     const applied: string[] = [];
     if (ctx.options.fix) {
@@ -136,6 +138,8 @@ export const doctorCommand: Command = {
       }
       const results = await runSteps(steps, realRunner());
       applied.push(...results.filter((r) => r.status !== "fail").map((r) => r.id));
+      // Check again after the fixes, so the result describes the machine as it is now.
+      runtime = collectDoctorChecks();
       findings = machineFindings();
     }
     const failing = findings.some((f) => f.level === "fail") || !runtime.ok;

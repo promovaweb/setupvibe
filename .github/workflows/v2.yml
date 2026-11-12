@@ -126,4 +126,10 @@ jobs:
       - name: Upload binaries, SHA256SUMS, signature and SBOM
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${GITHUB_REF_NAME}" dist/setupvibe-* dist/SHA256SUMS dist/SHA256SUMS.sigstore.json dist/sbom.cdx.json --clobber
+        run: |
+          # Creates the pre-release from the CHANGELOG entry when it does not exist yet.
+          if ! gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            awk -v tag="## [${GITHUB_REF_NAME}]" 'index($0, tag) == 1 { on = 1; next } on && /^---/ { exit } on' CHANGELOG.md > notes.md
+            gh release create "${GITHUB_REF_NAME}" --prerelease --title "${GITHUB_REF_NAME}" --notes-file notes.md --verify-tag
+          fi
+          gh release upload "${GITHUB_REF_NAME}" dist/setupvibe-* dist/SHA256SUMS dist/SHA256SUMS.sigstore.json dist/sbom.cdx.json --clobber

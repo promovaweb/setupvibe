@@ -28,6 +28,7 @@ import { executePlan, DRY_RUN_OPTION } from "./execute.ts";
 import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
 import { totalMemoryGb } from "../init/requirements.ts";
 import { otherManagerPath } from "../ops/other-manager.ts";
+import { detectV1Here } from "../legacy/v1.ts";
 import {
   dependentsOf,
   dropFromSelection,
@@ -167,6 +168,7 @@ async function installItems(ctx: Context, m: Machine, ids: string[], force: bool
     createdNopasswd: false,
     shell: selection.items.some((i) => ["zsh", "tmux", "tpm", "starship", "oh-my-zsh"].includes(i.id)),
     agentAliases: (m.config.shell as { agentAliases?: boolean } | undefined)?.agentAliases ?? true,
+    legacy: detectV1Here(user.homedir),
   });
   const steps = selection.items.length ? plan.steps.filter((s) => s.id !== "git-identity") : [];
   for (const s of selection.skipped) if (!ctx.json) ctx.stderr(`- ${s.id}: ${s.reason}`);

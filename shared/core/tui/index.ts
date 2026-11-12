@@ -3,14 +3,18 @@
  *
  * Screen layout:
  *
- *   ┌ header: title, version and description ────────────────────────────┐
- *   │ tabs (TabSelect)                                                   │
+ *   ┌ header: brand and version, PT · EN switch, system and variant ─────┐
+ *   │ numbered tabs (TabSelect)                                          │
  *   │ active tab content (flexGrow)                                      │
  *   └ status bar: available keys ────────────────────────────────────────┘
  *
- * Global keys: Left/Right or [ ] switch tabs, 1..9 jump to the tab with
- * that number, Tab moves forward, q or Esc quit, ? toggles the help box.
- * The renderer is destroyed on every exit path to hand the terminal back.
+ * Global keys: Left/Right or [ ] switch tabs, 1..6 jump to the tab with that
+ * number, Tab moves forward, L switches the language, q or Esc quit, ? toggles
+ * the help box. With the mouse (`tui.mouse`, on by default) tabs, the PT · EN
+ * switch and every key in the status bar are clickable, and a click outside
+ * the help box closes it. Switching the language rebuilds the interface, so
+ * every title, label and key hint is drawn again in the new language. The
+ * renderer is destroyed on every exit path to hand the terminal back.
  */
 import {
   BoxRenderable,
@@ -19,33 +23,43 @@ import {
   TextRenderable,
   TextAttributes,
   createCliRenderer,
+  fg,
+  t,
   type CliRenderer,
   type KeyEvent,
   type Renderable,
 } from "@opentui/core";
 import { manifest } from "../app/manifest.ts";
 import { systemSummary } from "../cli/commands/about.ts";
-import { tr } from "../../tui/i18n.ts";
+import { otherLanguage, resetTuiLanguage, setTuiLanguage, tr, tuiLanguage } from "../../tui/i18n.ts";
 import { readSettings, getPath } from "../config/settings.ts";
 import { glyphs, currentTheme, type Theme } from "./theme.ts";
 import { screens } from "./screens/index.ts";
-import type { ScreenContext, Screen } from "./screen.ts";
+import type { ScreenContext, Screen, ScreenKey } from "./screen.ts";
 
 export interface TuiOptions {
   initialTab?: string;
 }
 
-function defaultInitialTab(): string {
+function setting(key: string): unknown {
   try {
-    const value = getPath(readSettings(), "tui.initialTab");
-    if (typeof value === "string") return value;
+    return getPath(readSettings(), key);
   } catch {
-    // Without settings, use the first tab.
+    return undefined;
   }
-  return screens[0]?.id ?? "overview";
 }
 
-function keyBar(renderer: CliRenderer, theme: Theme, pairs: ReadonlyArray<{ key: string; action: string }>): BoxRenderable {
+function defaultInitialTab(): string {
+  const value = setting("tui.initialTab");
+  return typeof value === "string" ? value : (screens[0]?.id ?? "overview");
+}
+
+/** True unless `tui.mouse` is false. */
+export function mouseEnabled(): boolean {
+  return setting("tui.mouse") !== false;
+}
+
+function keyBar(renderer: CliRenderer, theme: Theme, pairs: ReadonlyArray<ScreenKey>, press: (name: string) => void): BoxRenderable {
   const bar = new BoxRenderable(renderer, {
     height: 1,
     flexDirection: "row",
@@ -53,11 +67,18 @@ function keyBar(renderer: CliRenderer, theme: Theme, pairs: ReadonlyArray<{ key:
     paddingLeft: 1,
     gap: 2,
   });
-  for (const { key, action } of pairs) {
+  for (const pair of pairs) {
     // Items keep their width; on a narrow terminal the bar is cut at the right instead of losing the labels.
     const item = new BoxRenderable(renderer, { flexDirection: "row", flexShrink: 0 });
-    item.add(new TextRenderable(renderer, { content: ` ${key} `, fg: theme.keyText, bg: theme.keyBackground, selectable: false, flexShrink: 0 }));
-    item.add(new TextRenderable(renderer, { content: ` ${action}`, fg: theme.barText, selectable: false, flexShrink: 0 }));
+    item.add(new TextRenderable(renderer, { content: ` ${pair.key} `, fg: theme.keyText, bg: theme.keyBackground, selectable: false, flexShrink: 0 }));
+    item.add(new TextRenderable(renderer, { content: ` ${pair.action}`, fg: theme.barText, selectable: false, flexShrink: 0 }));
+    const name = pair.press;
+    if (name)
+      item.onMouseDown = (e) => {
+        // Stop here: the app closes the help on clicks that reach it.
+        e.stopPropagation();
+        press(name);
+      };
     bar.add(item);
   }
   return bar;
@@ -66,7 +87,7 @@ function keyBar(renderer: CliRenderer, theme: Theme, pairs: ReadonlyArray<{ key:
 /** Opens the TUI on a real terminal and returns only when the user quits. */
 export async function startTui(options: TuiOptions = {}): Promise<void> {
   const theme = currentTheme();
-  const renderer = await createCliRenderer({ exitOnCtrlC: true, backgroundColor: theme.background, targetFps: 30 });
+  const renderer = await createCliRenderer({ exitOnCtrlC: true, backgroundColor: theme.background, targetFps: 30, useMouse: mouseEnabled() });
   await mountTui(renderer, options, theme);
 }
 
@@ -78,161 +99,185 @@ export async function startTui(options: TuiOptions = {}): Promise<void> {
 export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, theme: Theme = currentTheme()): Promise<void> {
   const closed = new Promise<void>((resolve) => renderer.once("destroy", () => resolve()));
   const quit = () => renderer.destroy();
+  resetTuiLanguage();
 
-  const app = new BoxRenderable(renderer, {
-    width: "100%",
-    height: "100%",
-    flexDirection: "column",
-    backgroundColor: theme.background,
-  });
-
-  const header = new BoxRenderable(renderer, {
-    height: 1,
-    marginTop: 1,
-    flexDirection: "row",
-    paddingLeft: 1,
-    paddingRight: 1,
-    gap: 2,
-  });
-  const brand = new BoxRenderable(renderer, { flexDirection: "row", flexShrink: 0 });
-  brand.add(new TextRenderable(renderer, { content: `${glyphs.block} `, fg: theme.accent, selectable: false }));
-  brand.add(new TextRenderable(renderer, { content: manifest.title, fg: theme.textStrong, attributes: TextAttributes.BOLD }));
-  brand.add(new TextRenderable(renderer, { content: ` v${manifest.version}`, fg: theme.textDim }));
-  header.add(brand);
-  // The description lives on the About tab; the header shows where SetupVibe runs.
-  header.add(new BoxRenderable(renderer, { flexGrow: 1, flexShrink: 1, minWidth: 0 }));
-  header.add(
-    new TextRenderable(renderer, {
-      content: systemSummary(),
-      fg: theme.textDim,
-      flexShrink: 1,
-      minWidth: 0,
-      wrapMode: "none",
-      height: 1,
-    }),
-  );
-  app.add(header);
-
-  const rule = new BoxRenderable(renderer, { height: 1, paddingLeft: 1, paddingRight: 1 });
-  rule.add(new TextRenderable(renderer, { content: "─".repeat(400), fg: theme.border, wrapMode: "none", height: 1, selectable: false }));
-  app.add(rule);
-
-  const tabs = new TabSelectRenderable(renderer, {
-    width: "100%",
-    height: 2,
-    // Numbered titles show the 1-9 shortcuts.
-    tabWidth: Math.max(...screens.map((s) => s.title.length)) + 6,
-    options: screens.map((s, i) => ({ name: `${i + 1} ${s.title}`, description: s.description })),
-    backgroundColor: theme.background,
-    textColor: theme.textDim,
-    focusedBackgroundColor: theme.background,
-    focusedTextColor: theme.textDim,
-    selectedBackgroundColor: theme.surfaceHigh,
-    selectedTextColor: theme.accent,
-    selectedDescriptionColor: theme.textDim,
-    showDescription: false,
-    showScrollArrows: false,
-    wrapSelection: true,
-  });
-  app.add(tabs);
-
-  const content = new BoxRenderable(renderer, { flexGrow: 1, flexDirection: "column", paddingLeft: 1, paddingRight: 1 });
-  app.add(content);
-
-  const globalKeys = [
-    { key: "←/→", action: tr("global.tab") },
-    { key: "1-6", action: tr("global.go") },
-    { key: "?", action: tr("global.help") },
-    { key: "q", action: tr("global.quit") },
-  ];
-  let footer = keyBar(renderer, theme, globalKeys);
-  app.add(footer);
-  renderer.root.add(app);
-
-  const mounted = new Map<string, Renderable>();
+  let app: BoxRenderable | undefined;
+  let tabs: TabSelectRenderable | undefined;
+  let mounted = new Map<string, Renderable>();
   let active: Screen | undefined;
-  let helpVisible = false;
   let helpBox: BoxRenderable | undefined;
+  let onKeyActive: ((name: string) => void) | undefined;
 
   const context: ScreenContext = {
     renderer,
     theme,
     goTo: (id) => {
       const index = screens.findIndex((s) => s.id === id);
-      if (index >= 0) tabs.setSelectedIndex(index);
+      if (index >= 0) tabs?.setSelectedIndex(index);
     },
     quit,
   };
 
-  const refreshFooter = (screen: Screen) => {
-    app.remove(footer);
-    footer = keyBar(renderer, theme, [...(screen.keys ?? []), ...globalKeys]);
-    app.add(footer);
-  };
-
-  const show = (index: number) => {
-    const screen = screens[index];
-    if (!screen || screen === active) return;
-    if (active) {
-      active.onLeave?.(context);
-      const previous = mounted.get(active.id);
-      if (previous) content.remove(previous);
-    }
-    let node = mounted.get(screen.id);
-    if (!node) {
-      node = screen.mount(context);
-      mounted.set(screen.id, node);
-    }
-    content.add(node);
-    active = screen;
-    screen.onEnter?.(context);
-    refreshFooter(screen);
+  const closeHelp = () => {
+    if (!helpBox) return;
+    renderer.root.remove(helpBox);
+    helpBox = undefined;
   };
 
   const toggleHelp = () => {
-    helpVisible = !helpVisible;
-    if (helpVisible) {
-      helpBox = new BoxRenderable(renderer, {
-        position: "absolute",
-        right: 2,
-        top: 4,
-        width: 46,
-        flexDirection: "column",
-        borderStyle: "rounded",
-        borderColor: theme.borderActive,
-        backgroundColor: theme.surfaceHigh,
-        title: ` ${tr("help.title")} `,
-        titleColor: theme.accent,
-        paddingLeft: 1,
-        paddingRight: 1,
-        zIndex: 10,
-      });
-      const rows: Array<[string, string]> = [
-        ["←  →  [  ]", tr("help.tabs")],
-        ["Tab", tr("help.next")],
-        ["1 … 6", tr("help.go")],
-        ["?", tr("help.toggle")],
-        ["q  Esc  Ctrl+C", tr("help.quit")],
-      ];
-      for (const [k, v] of rows) {
-        const row = new BoxRenderable(renderer, { flexDirection: "row" });
-        row.add(new TextRenderable(renderer, { content: k.padEnd(16), fg: theme.accent }));
-        row.add(new TextRenderable(renderer, { content: v, fg: theme.text }));
-        helpBox.add(row);
-      }
-      renderer.root.add(helpBox);
-    } else if (helpBox) {
-      renderer.root.remove(helpBox);
-      helpBox = undefined;
+    if (helpBox) return closeHelp();
+    helpBox = new BoxRenderable(renderer, {
+      position: "absolute",
+      right: 2,
+      top: 5,
+      width: 60,
+      flexDirection: "column",
+      borderStyle: "rounded",
+      borderColor: theme.borderActive,
+      backgroundColor: theme.surfaceHigh,
+      title: ` ${tr("help.title")} `,
+      titleColor: theme.accent,
+      paddingLeft: 1,
+      paddingRight: 1,
+      zIndex: 10,
+    });
+    const rows: Array<[string, string]> = [
+      ["←  →  [  ]", tr("help.tabs")],
+      ["Tab", tr("help.next")],
+      ["1 … 6", tr("help.go")],
+      ["L", tr("help.language")],
+      ["?", tr("help.toggle")],
+      ["q  Esc  Ctrl+C", tr("help.quit")],
+    ];
+    for (const [k, v] of rows) {
+      const row = new BoxRenderable(renderer, { flexDirection: "row" });
+      row.add(new TextRenderable(renderer, { content: k.padEnd(16), fg: theme.accent, flexShrink: 0 }));
+      row.add(new TextRenderable(renderer, { content: v, fg: theme.text }));
+      helpBox.add(row);
     }
+    helpBox.add(new TextRenderable(renderer, { content: tr("help.mouse"), fg: theme.textDim, wrapMode: "word" }));
+    // Clicks inside the box stay in it; a click anywhere else closes it (see the app handler).
+    helpBox.onMouseDown = (e) => e.stopPropagation();
+    renderer.root.add(helpBox);
   };
 
-  tabs.on(TabSelectRenderableEvents.SELECTION_CHANGED, (index: number) => show(index));
-  tabs.on(TabSelectRenderableEvents.ITEM_SELECTED, (index: number) => show(index));
+  /** Builds the whole interface in the current language, keeping the tab. */
+  const build = (initialIndex: number) => {
+    closeHelp();
+    if (app) renderer.root.remove(app);
+    mounted = new Map();
+    active = undefined;
 
-  const onKey = (key: KeyEvent) => {
-    if (active?.onKey?.(key.name, context)) return;
-    switch (key.name) {
+    const root = new BoxRenderable(renderer, { width: "100%", height: "100%", flexDirection: "column", backgroundColor: theme.background });
+    root.onMouseDown = () => closeHelp();
+    app = root;
+
+    const header = new BoxRenderable(renderer, { height: 1, marginTop: 1, flexDirection: "row", paddingLeft: 1, paddingRight: 1, gap: 2 });
+    const brand = new BoxRenderable(renderer, { flexDirection: "row", flexShrink: 0 });
+    brand.add(new TextRenderable(renderer, { content: `${glyphs.block} `, fg: theme.accent, selectable: false }));
+    brand.add(new TextRenderable(renderer, { content: manifest.title, fg: theme.textStrong, attributes: TextAttributes.BOLD }));
+    brand.add(new TextRenderable(renderer, { content: ` v${manifest.version}`, fg: theme.textDim }));
+    header.add(brand);
+    // Language switch: the active language is highlighted; a click or L switches it.
+    const pt = tuiLanguage() === "pt-BR";
+    const languageSwitch = new TextRenderable(renderer, {
+      content: t`${fg(pt ? theme.accent : theme.textDim)(pt ? "[PT]" : " PT ")}${fg(theme.textDim)("·")}${fg(!pt ? theme.accent : theme.textDim)(!pt ? "[EN]" : " EN ")}`,
+      flexShrink: 0,
+      selectable: false,
+    });
+    languageSwitch.onMouseDown = (e) => {
+      e.stopPropagation();
+      switchLanguage();
+    };
+    header.add(languageSwitch);
+    // The description lives on the About tab; the header shows where SetupVibe runs.
+    header.add(new BoxRenderable(renderer, { flexGrow: 1, flexShrink: 1, minWidth: 0 }));
+    header.add(new TextRenderable(renderer, { content: systemSummary(), fg: theme.textDim, flexShrink: 1, minWidth: 0, wrapMode: "none", height: 1 }));
+    root.add(header);
+
+    const rule = new BoxRenderable(renderer, { height: 1, paddingLeft: 1, paddingRight: 1 });
+    rule.add(new TextRenderable(renderer, { content: "─".repeat(400), fg: theme.border, wrapMode: "none", height: 1, selectable: false }));
+    root.add(rule);
+
+    const tabWidth = Math.max(...screens.map((s) => s.title.length)) + 6;
+    const tabBar = new TabSelectRenderable(renderer, {
+      width: "100%",
+      height: 2,
+      // Numbered titles show the number shortcuts.
+      tabWidth,
+      options: screens.map((s, i) => ({ name: `${i + 1} ${s.title}`, description: s.description })),
+      backgroundColor: theme.background,
+      textColor: theme.textDim,
+      focusedBackgroundColor: theme.background,
+      focusedTextColor: theme.textDim,
+      selectedBackgroundColor: theme.surfaceHigh,
+      selectedTextColor: theme.accent,
+      selectedDescriptionColor: theme.textDim,
+      showDescription: false,
+      showScrollArrows: false,
+      wrapSelection: true,
+    });
+    tabBar.onMouseDown = (e) => {
+      e.stopPropagation();
+      closeHelp();
+      const index = Math.floor((e.x - tabBar.x) / tabWidth);
+      if (index >= 0 && index < screens.length) tabBar.setSelectedIndex(index);
+    };
+    tabs = tabBar;
+    root.add(tabBar);
+
+    const content = new BoxRenderable(renderer, { flexGrow: 1, flexDirection: "column", paddingLeft: 1, paddingRight: 1 });
+    root.add(content);
+
+    const globalKeys: ScreenKey[] = [
+      { key: "←/→", action: tr("global.tab"), press: "tab" },
+      { key: "1-6", action: tr("global.go") },
+      { key: "L", action: tr("global.language"), press: "L" },
+      { key: "?", action: tr("global.help"), press: "?" },
+      { key: "q", action: tr("global.quit"), press: "q" },
+    ];
+    const press = (name: string) => onKeyActive?.(name);
+    let footer = keyBar(renderer, theme, globalKeys, press);
+    root.add(footer);
+    renderer.root.add(root);
+
+    const show = (index: number) => {
+      const screen = screens[index];
+      if (!screen || screen === active) return;
+      if (active) {
+        active.onLeave?.(context);
+        const previous = mounted.get(active.id);
+        if (previous) content.remove(previous);
+      }
+      let node = mounted.get(screen.id);
+      if (!node) {
+        node = screen.mount(context);
+        mounted.set(screen.id, node);
+      }
+      content.add(node);
+      active = screen;
+      screen.onEnter?.(context);
+      root.remove(footer);
+      footer = keyBar(renderer, theme, [...(screen.keys ?? []), ...globalKeys], press);
+      root.add(footer);
+    };
+
+    tabBar.on(TabSelectRenderableEvents.SELECTION_CHANGED, (index: number) => show(index));
+    tabBar.on(TabSelectRenderableEvents.ITEM_SELECTED, (index: number) => show(index));
+    tabBar.focus();
+    tabBar.setSelectedIndex(initialIndex);
+    show(initialIndex);
+  };
+
+  const switchLanguage = () => {
+    setTuiLanguage(otherLanguage());
+    build(tabs?.getSelectedIndex() ?? 0);
+  };
+
+  /** Handles a key by name: the active screen first, then the global keys. */
+  const handle = (name: string) => {
+    if (active?.onKey?.(name, context)) return;
+    switch (name) {
       case "q":
       case "escape":
         quit();
@@ -240,25 +285,31 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
       case "?":
         toggleHelp();
         return;
+      case "L":
+        switchLanguage();
+        return;
       case "tab":
-        tabs.setSelectedIndex((tabs.getSelectedIndex() + 1) % screens.length);
+        tabs?.setSelectedIndex(((tabs?.getSelectedIndex() ?? 0) + 1) % screens.length);
         return;
       default:
         break;
     }
-    if (/^[1-9]$/.test(key.name)) {
-      const index = Number(key.name) - 1;
-      if (index < screens.length) tabs.setSelectedIndex(index);
+    if (/^[1-9]$/.test(name)) {
+      const index = Number(name) - 1;
+      if (index < screens.length) tabs?.setSelectedIndex(index);
     }
+  };
+  onKeyActive = handle;
+
+  const onKey = (key: KeyEvent) => {
+    // Shift+l is L (language); plain l stays with the screens.
+    handle(key.name === "l" && key.shift ? "L" : key.name);
   };
   renderer.keyInput.on("keypress", onKey);
   renderer.once("destroy", () => renderer.keyInput.off("keypress", onKey));
 
   const initial = options.initialTab ?? defaultInitialTab();
-  const initialIndex = Math.max(0, screens.findIndex((s) => s.id === initial));
-  tabs.focus();
-  tabs.setSelectedIndex(initialIndex);
-  show(initialIndex);
+  build(Math.max(0, screens.findIndex((s) => s.id === initial)));
 
   await closed;
 }

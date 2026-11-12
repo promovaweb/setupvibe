@@ -17,7 +17,7 @@
  *
  * Spec section 4.
  */
-import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync, chmodSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { baseDir } from "../core/config/paths.ts";
 
@@ -48,6 +48,12 @@ export function statePath(...parts: string[]): string {
 /** Creates the data directory and its subfolders with mode 0700. */
 export function ensureStateDirs(): void {
   for (const dir of ["", "state", "logs", "backups"]) mkdirSync(statePath(dir), { recursive: true, mode: 0o700 });
+  // mkdir keeps the mode of a folder that already exists, such as the 755 one SetupVibe 1 created.
+  try {
+    chmodSync(statePath(), 0o700);
+  } catch {
+    // Not the owner: doctor reports the mode.
+  }
 }
 
 /** Writes JSON atomically (temporary file + rename). */

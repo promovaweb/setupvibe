@@ -20,6 +20,8 @@ Keys in dot notation. The skeleton schema:
 | `output.format` | `text` or `json` | `text` | default CLI output format |
 | `output.colors` | boolean | `true` | ANSI colors in text output |
 | `tui.initialTab` | `overview`, `inventory`, `user`, `doctor`, `logs` or `about` | `overview` (Home) | tab opened when the TUI starts |
+| `tui.language` | `pt-BR` or `en` | `pt-BR` | TUI language; the `L` key and the `PT · EN` switch write it |
+| `tui.mouse` | `true` or `false` | `true` | mouse in the TUI (clicks and wheel) |
 | `tui.theme` | `night` or `day` | `night` | TUI palette |
 | `telemetry.enabled` | boolean | `false` | reserved for derived projects |
 

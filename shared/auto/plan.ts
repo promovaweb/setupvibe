@@ -19,6 +19,7 @@ import { initPlan } from "../init/plan.ts";
 import { securityPlan } from "../security/plan.ts";
 import { removeNopasswdStep } from "../users/create.ts";
 import { applyBlock, shellSteps } from "../shell/config.ts";
+import { migrateSteps, type V1Detection } from "../legacy/v1.ts";
 import type { AutoAnswers } from "./answers.ts";
 import type { Selection } from "./selection.ts";
 
@@ -43,6 +44,8 @@ export interface AutoContext {
   shell?: boolean;
   /** Load the agent aliases (cc, cx, oc). Default true. */
   agentAliases?: boolean;
+  /** SetupVibe 1 files on the machine: converted before the shell blocks are written. */
+  legacy?: V1Detection;
 }
 
 export interface AutoPlan {
@@ -215,6 +218,9 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
   }
 
   if (ctx.shell !== false && ctx.system !== "windows") {
+    // A SetupVibe 1 .zshrc or .tmux.conf is converted first (backup, personal lines to .local),
+    // so the new block never lands on top of the old file.
+    if (ctx.legacy?.found) steps.push(...migrateSteps({ home, detection: { ...ctx.legacy, sshCopyId: false } }));
     const has = (id: string) => ctx.selection.items.some((i) => i.id === id) || resolveInstall(ctx.inventory.items.find((i) => i.id === id) ?? ({ install: {} } as Item), ctx.system)?.method === "preinstalled";
     steps.push(...shellSteps({ system: ctx.system, edition: ctx.edition, bin: ctx.edition === "server" ? "setupvibe-server" : "setupvibe", user: ctx.user, home, agentAliases: ctx.agentAliases ?? true, zsh: has("zsh"), tmux: has("tmux") && has("tpm"), starship: has("starship") }));
   }

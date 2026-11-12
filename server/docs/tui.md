@@ -6,9 +6,22 @@ encerra com exit code 8.
 
 ## Abas
 
-As abas são numeradas, e a tecla com o número vai direto para a aba. O
-texto da interface segue `SETUPVIBE_LANG` e, sem ela, `LANG`: português ou
-inglês, como a documentação embutida.
+As abas são numeradas, e a tecla com o número vai direto para a aba.
+
+**Idioma.** A interface fala português por padrão. O seletor `PT · EN` no
+cabeçalho (clique) ou a tecla `L` troca para inglês e volta; a escolha fica
+em `tui.language` no settings.json e a aba atual continua aberta. Quando
+`SETUPVIBE_LANG` está definida, ela fixa o idioma.
+
+**Mouse.** Com `tui.mouse` ligado (padrão), clique numa aba para abri-la,
+numa categoria para selecioná-la, num item para ver os detalhes e no
+marcador `◻` para marcar. Os botões **Instalar** e **Remover** seguem o mesmo
+fluxo das teclas: o primeiro clique mostra o plano, o segundo executa. No
+Doctor, o botão **Aplicar correções seguras** faz o mesmo que `f`; nos Logs, o
+clique escolhe a execução; no Início, o clique no próximo passo abre a aba
+onde ele se resolve. Cada tecla da barra inferior também é um botão, a roda
+rola as listas e um clique fora fecha a ajuda. Para selecionar texto, segure
+`Shift` ao arrastar. O teclado continua completo.
 
 | Aba | Conteúdo |
 | --- | --- |
@@ -32,6 +45,7 @@ rolam quando não cabem.
 | `←` `→` `[` `]` | aba anterior ou seguinte |
 | `Tab` | próxima aba |
 | `1` … `6` | ir para a aba de mesmo número |
+| `L` | trocar o idioma (PT · EN) |
 | `?` | mostrar ou esconder o help de teclas |
 | `q` `Esc` `Ctrl+C` | sair |
 

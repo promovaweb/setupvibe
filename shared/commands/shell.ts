@@ -11,6 +11,8 @@ import type { Inventory } from "../inventory.ts";
 import { detectSystem } from "../system/detect.ts";
 import { readState } from "../state/store.ts";
 import { shellRemoveSteps, shellSteps } from "../shell/config.ts";
+import { homedir } from "node:os";
+import { detectV1Here, migrateSteps } from "../legacy/v1.ts";
 import { DRY_RUN_OPTION, executePlan } from "./execute.ts";
 
 const applyCommand: Command = {
@@ -24,7 +26,8 @@ const applyCommand: Command = {
     const detected = detectSystem(inventory.systems);
     if (!detected.system || detected.unsupportedReason) return { code: ExitCode.UNSUPPORTED_SYSTEM, data: {}, text: `✗ ${detected.unsupportedReason}` };
     const config = readState<Record<string, unknown>>("config.json", {});
-    const steps = shellSteps({
+    const legacy = detectV1Here(homedir());
+    const steps = [...(legacy.found ? migrateSteps({ home: homedir(), detection: { ...legacy, sshCopyId: false } }) : []), ...shellSteps({
       system: detected.system,
       edition: manifest.edition,
       bin: manifest.bin,
@@ -33,7 +36,7 @@ const applyCommand: Command = {
       zsh: Boolean(Bun.which("zsh")),
       tmux: Boolean(Bun.which("tmux")),
       starship: true,
-    });
+    })];
     return executePlan(ctx, "shell-apply", steps);
   },
 };

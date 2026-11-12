@@ -47,6 +47,19 @@ export const SETTINGS_SCHEMA: readonly SettingDefinition[] = Object.freeze([
     description: "Tab opened when the TUI starts; overview is the Home tab.",
   },
   {
+    key: "tui.language",
+    type: "enum",
+    default: "pt-BR",
+    values: ["pt-BR", "en"],
+    description: "TUI language; the L key or the PT · EN switch in the header changes it.",
+  },
+  {
+    key: "tui.mouse",
+    type: "boolean",
+    default: true,
+    description: "Mouse in the TUI: click tabs, items, buttons and keys, scroll lists. Shift+drag still selects text.",
+  },
+  {
     key: "tui.theme",
     type: "enum",
     default: "night",

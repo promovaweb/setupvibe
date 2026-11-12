@@ -73,6 +73,20 @@ try {
   const user = asRoot ? [] : ["--user", "tester"];
   const first = asRoot ? [bin, ...autoArgs, "--user", "deploy", "--git-name", "Test", "--git-email", "test@example.com"] : [bin, ...autoArgs];
 
+  if (edition === "desktop" && !asRoot) {
+    // A machine set up by SetupVibe 1: its .zshrc and .tmux.conf with a personal line,
+    // the old ssh_copy_id and a Go in ~/.local/go. auto must convert the files first.
+    phase("SetupVibe 1 footprint");
+    await sh(["docker", "cp", "shared/legacy/v1/zshrc-linux.zsh", `${name}:/home/tester/.zshrc`], { quiet: true });
+    await sh(["docker", "cp", "shared/legacy/v1/tmux-desktop.conf", `${name}:/home/tester/.tmux.conf`], { quiet: true });
+    await sh(["docker", "exec", name, "sh", "-c", [
+      "echo 'alias mine=\"echo from-v1\"' >> /home/tester/.zshrc",
+      "mkdir -p /home/tester/.setupvibe/bin /home/tester/.local/go/bin",
+      "printf '#!/usr/bin/env bash\\n# Versao: 0.41.8\\n' > /home/tester/.setupvibe/bin/ssh_copy_id",
+      "chown -R tester:tester /home/tester",
+    ].join(" && ")], { quiet: true });
+  }
+
   phase(`first run: ${first.join(" ")}`);
   const r1 = await sh(["docker", "exec", ...user, name, ...first], { allowFail: true });
   console.error(`exit code ${r1.code}`);
@@ -96,6 +110,12 @@ try {
   if (edition === "desktop" && !asRoot) {
     phase("inventory commands");
     const steps: [string, string[]][] = [
+      ["SetupVibe 1 .zshrc converted, personal line kept", ["sh", "-c", "grep -q '>>> setupvibe >>>' ~/.zshrc && ! grep -q 'PATH CONFIGURATION (Must come first' ~/.zshrc && grep -q 'alias mine=' ~/.zshrc.local && ls ~/.setupvibe/backups/.zshrc.first"]],
+      ["the personal alias still works in zsh", ["zsh", "-ic", "mine | grep -q from-v1"]],
+      ["doctor and system report SetupVibe 1 leftovers", ["sh", "-c", `${bin} doctor --json | grep -q legacy-go && ${bin} system --no-update-check | grep -q 'SetupVibe 1'`]],
+      ["migrate --dry-run lists the shortcut", ["sh", "-c", `${bin} migrate --dry-run | grep -q 'ssh_copy_id'`]],
+      ["migrate --remove-legacy go", [bin, "migrate", "--remove-legacy", "go"]],
+      ["Go from SetupVibe 1 removed, ssh_copy_id is the shortcut", ["sh", "-c", "[ ! -e ~/.local/go ] && grep -q 'kept by SetupVibe 2' ~/.setupvibe/bin/ssh_copy_id"]],
       ["install go", [bin, "install", "go"]],
       ["check go", [bin, "check", "go"]],
       ["update (nothing to do)", [bin, "update"]],

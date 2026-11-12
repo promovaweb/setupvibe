@@ -23,12 +23,13 @@ import { checkCommand } from "../../commands/check.ts";
 import { inventoryCommands } from "../../commands/inventory.ts";
 import { shellCommand } from "../../commands/shell.ts";
 import { swarmCommand } from "../../commands/swarm.ts";
+import { migrateCommand } from "../../commands/migrate.ts";
 import type { Command } from "./registry.ts";
 
 export const root: Command = {
   name: manifest.bin,
   description: manifest.description,
-  subcommands: [tuiCommand, systemCommand, initCommand, autoCommand, ...inventoryCommands, checkCommand, shellCommand, upgradeCommand, skillCommand, reportCommand, selfCommand, sshCommand, userCommand, securityCommand, ...(manifest.edition === "server" ? [swarmCommand] : []), aboutCommand, configCommand, credentialsCommand, mcpCommand, createSkillCommand(() => root), doctorCommand, createCompletionCommand(() => root)],
+  subcommands: [tuiCommand, systemCommand, initCommand, autoCommand, ...inventoryCommands, checkCommand, shellCommand, migrateCommand, upgradeCommand, skillCommand, reportCommand, selfCommand, sshCommand, userCommand, securityCommand, ...(manifest.edition === "server" ? [swarmCommand] : []), aboutCommand, configCommand, credentialsCommand, mcpCommand, createSkillCommand(() => root), doctorCommand, createCompletionCommand(() => root)],
   examples: [
     `${manifest.bin}`,
     `${manifest.bin} system`,

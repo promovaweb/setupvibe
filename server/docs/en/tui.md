@@ -6,9 +6,22 @@ exits with exit code 8.
 
 ## Tabs
 
-Tabs are numbered, and the number key goes straight to the tab. The
-interface text follows `SETUPVIBE_LANG` and, without it, `LANG`: Portuguese
-or English, like the embedded documentation.
+Tabs are numbered, and the number key goes straight to the tab.
+
+**Language.** The interface speaks Portuguese by default. The `PT · EN`
+switch in the header (click) or the `L` key switches to English and back;
+the choice is saved in `tui.language` in settings.json and the current tab
+stays open. When `SETUPVIBE_LANG` is set, it pins the language.
+
+**Mouse.** With `tui.mouse` on (the default), click a tab to open it, a
+category to select it, an item to see its details and the `◻` marker to
+mark it. The **Install** and **Remove** buttons follow the same flow as the
+keys: the first click shows the plan, the second runs it. On the Doctor tab
+the **Apply safe fixes** button does what `f` does; on Logs a click picks the
+run; on Home a click on the next step opens the tab where it is done. Every
+key in the bottom bar is also a button, the wheel scrolls the lists and a
+click outside closes the help. Hold `Shift` while dragging to select text.
+The keyboard stays complete.
 
 | Tab | Content |
 | --- | --- |
@@ -32,6 +45,7 @@ they do not fit.
 | `←` `→` `[` `]` | previous or next tab |
 | `Tab` | next tab |
 | `1` … `6` | go to the tab with that number |
+| `L` | switch the language (PT · EN) |
 | `?` | show or hide the key help |
 | `q` `Esc` `Ctrl+C` | quit |
 

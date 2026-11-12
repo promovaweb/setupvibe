@@ -62,6 +62,8 @@ export function setupvibeFindings(input: {
   rebootPending?: boolean;
   /** Windows with the WSL base selected: explain the Hyper-V firewall. */
   wslOnWindows?: boolean;
+  /** SetupVibe 1 traces not migrated yet. */
+  v1Traces?: string[];
 }): Finding[] {
   const home = input.home ?? homedir();
   const exists = input.exists ?? existsSync;
@@ -69,6 +71,7 @@ export function setupvibeFindings(input: {
   out.push(input.supported ? { id: "system", level: "fail", text: input.supported } : { id: "system", level: "ok", text: `system supported${input.variant ? ` (variant ${input.variant})` : ""}` });
   if (input.otherEdition) out.push({ id: "edition", level: "warn", text: `both editions are installed; the other one is at ${input.otherEdition}`, fix: "keep one edition per machine: run self uninstall on the one you do not use" });
   if (input.exposedContainers?.length) out.push({ id: "docker-exposed", level: "warn", text: `containers publish ports on every interface: ${input.exposedContainers.join("; ")}`, fix: "publish on 127.0.0.1 (-p 127.0.0.1:PORT:PORT) and reach them through SSH or Tailscale" });
+  if (input.v1Traces?.length) out.push({ id: "v1", level: "warn", text: `SetupVibe 1 found: ${input.v1Traces.join("; ")}`, fix: "setupvibe migrate --dry-run, then setupvibe migrate" });
   if (input.rebootPending) out.push({ id: "reboot", level: "warn", text: "a restart is pending", fix: "restart, then run auto again; auto --reboot does both" });
   if (input.wslOnWindows) out.push({ id: "wsl-firewall", level: "warn", text: "the Hyper-V firewall blocks inbound connections to WSL; SetupVibe keeps that default", fix: "open only the port you need: New-NetFirewallHyperVRule -Name <name> -DisplayName <name> -Direction Inbound -VMCreatorId '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -Protocol TCP -LocalPorts <port>" });
   for (const e of input.elsewhere ?? []) out.push({ id: `other-${e.id}`, level: "warn", text: `${e.id}: the command in PATH comes from ${e.path}, not from mise`, fix: "remove the other copy or put the mise shims first in PATH" });

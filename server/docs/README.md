@@ -95,3 +95,15 @@ O código, os nomes de commands, options, keys de configuração, campos do
 `--json` e as mensagens do binário são em inglês. Esta documentação e as
 skills do framework são em português do Brasil, com os termos técnicos
 preservados em inglês.
+
+## Vindo do SetupVibe 1
+
+Numa máquina preparada pelo SetupVibe 1, `{{bin}} system` e `{{bin}} doctor`
+mostram o que ele deixou. `{{bin}} migrate --dry-run` mostra o plano: o
+`.zshrc` e o `.tmux.conf` antigos vão para `~/.setupvibe/backups/`, as linhas
+que você acrescentou passam para `~/.zshrc.local` e `~/.tmux.conf.local`, o
+`ssh_copy_id` continua funcionando como atalho de `{{bin}} ssh copy-id` e as
+duplicidades (Go em `~/.local/go`, rbenv, `~/.npm-global`, NodeSource) só saem
+quando você confirma cada uma. O `auto` também converte o `.zshrc` e o
+`.tmux.conf` antes de escrever os blocos novos, então nada é carregado em
+dobro.

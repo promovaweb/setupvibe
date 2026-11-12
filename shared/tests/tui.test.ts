@@ -153,3 +153,4 @@ describe("screens", () => {
     expect(frame).toContain("install");
   });
 });
+

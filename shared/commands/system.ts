@@ -13,6 +13,8 @@ import { blocks, section, table } from "../core/cli/format.ts";
 import type { Command } from "../core/cli/registry.ts";
 import type { Inventory } from "../inventory.ts";
 import { detectSystem } from "../system/detect.ts";
+import { homedir } from "node:os";
+import { detectV1Here } from "../legacy/v1.ts";
 import { checkForUpdate } from "../state/update.ts";
 
 export const systemCommand: Command = {
@@ -25,7 +27,8 @@ export const systemCommand: Command = {
     const inventory = edition().inventory as Inventory;
     const detected = detectSystem(inventory.systems);
     const update = ctx.options["no-update-check"] ? undefined : await checkForUpdate(manifest.version, "stable");
-    const data = { edition: manifest.edition, ...detected, update };
+    const v1 = detectV1Here(homedir());
+    const data = { edition: manifest.edition, ...detected, update, setupvibe1: v1 };
     const yes = (b: boolean) => (b ? "yes" : "no");
     return {
       data,
@@ -43,6 +46,7 @@ export const systemCommand: Command = {
             ["Public IP", yes(detected.publicIp)],
             ["Variant", detected.variant],
             ["Supported", detected.unsupportedReason ?? "yes"],
+            ["SetupVibe 1", v1.found ? `found (${v1.edition}): run ${manifest.bin} migrate --dry-run` : "not found"],
           ]),
           update
             ? blocks(
