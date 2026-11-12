@@ -4,6 +4,19 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.9] - 2026-11-12
+
+### Fixed
+
+- Codex installs through mise on Windows too (`npm:@openai/codex`, pinned). The official Windows installer always took the latest release, so the check found 0.167.2 where the inventory pins 0.167.1.
+
+### Validation
+
+- CI of `v2.0.0-dev.8`: macOS arm64 ran the real `auto` and `check` and passed; on Windows every step passed and the only failed check was the Codex version fixed here.
+- `bun run validate` with 252 tests.
+
+---
+
 ## [v2.0.0-dev.8] - 2026-11-12
 
 ### Fixed

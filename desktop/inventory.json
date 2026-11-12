@@ -2260,12 +2260,8 @@
       "install": {
         "all": {
           "method": "mise",
-          "tool": "npm:@openai/codex"
-        },
-        "windows": {
-          "method": "installer",
-          "url": "https://chatgpt.com/codex/install.ps1",
-          "checksum": "none-official"
+          "tool": "npm:@openai/codex",
+          "note": "The official Windows installer always takes the latest release; mise keeps the pinned version on every system."
         },
         "omarchy": {
           "method": "preinstalled"
