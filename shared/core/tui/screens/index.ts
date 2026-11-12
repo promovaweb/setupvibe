@@ -4,6 +4,7 @@
  */
 import { aboutScreen } from "./about.ts";
 import { overviewScreen } from "./overview.ts";
+import { doctorScreen, inventoryScreen, logsScreen, userScreen } from "../../../tui/screens.ts";
 import type { Screen } from "../screen.ts";
 
-export const screens: readonly Screen[] = [overviewScreen, aboutScreen];
+export const screens: readonly Screen[] = [inventoryScreen, userScreen, doctorScreen, logsScreen, overviewScreen, aboutScreen];

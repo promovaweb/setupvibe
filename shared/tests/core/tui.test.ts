@@ -28,8 +28,13 @@ afterAll(async () => {
 });
 
 describe("tui", () => {
-  test("opens on the Overview tab with header, panels and key bar", async () => {
-    const frame = setup.captureCharFrame();
+  test("opens on the Inventory tab with header, panels and key bar", async () => {
+    let frame = setup.captureCharFrame();
+    expect(frame).toContain("Inventory");
+    expect(frame).toContain("Categories");
+    setup.mockInput.pressKey("5");
+    await setup.renderOnce();
+    frame = setup.captureCharFrame();
     expect(frame).toContain(manifest.title);
     expect(frame).toContain(`v${manifest.version}`);
     expect(frame).toContain("Overview");
@@ -39,8 +44,8 @@ describe("tui", () => {
     expect(frame).toContain("quit");
   });
 
-  test("key 2 goes to About and ? opens the help", async () => {
-    setup.mockInput.pressKey("2");
+  test("key 6 goes to About and ? opens the help", async () => {
+    setup.mockInput.pressKey("6");
     await setup.renderOnce();
     let frame = setup.captureCharFrame();
     expect(frame).toContain("Credits");

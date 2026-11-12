@@ -8,10 +8,16 @@ encerra com exit code 8.
 
 | Aba | Conteúdo |
 | --- | --- |
-| Overview | Environment (binary, runtime, platform, terminal, data directory), estado de settings.json e do cofre, settings em vigor e next steps. |
+| Inventory | Categorias à esquerda, itens à direita com status e versão fixada, detalhes embaixo. `h`/`l` trocam a categoria, `j`/`k` movem, `espaço` marca, `i` instala e `r` remove os itens marcados (ou o atual). As ações rodam o CLI em outro processo. |
+| User | Usuário de trabalho e a checklist: grupo sudo, sudo sem senha, permissões de `~/.setupvibe`, `~/.local/bin` no PATH, `~/.ssh`, `authorized_keys` e init. |
+| Doctor | Pré-requisitos pendentes, itens que falham no check e itens desatualizados, com o comando que resolve cada um. |
+| Logs | Execuções em `~/.setupvibe/logs`, da mais recente para a mais antiga, com os eventos de cada uma. |
+| Overview | Environment, estado de settings.json e do cofre, settings em vigor e next steps. |
 | About | Binary, project, license, credits e standards seguidos. |
 
-A aba inicial vem de `tui.initialTab` em settings.json ou de `--tab`.
+A aba inicial é Inventory, ou a que estiver em `tui.initialTab` no
+settings.json ou em `--tab`. Na aba Inventory, `[` e `]` trocam a categoria;
+as setas continuam trocando de aba.
 
 ## Teclas
 
