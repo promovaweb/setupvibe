@@ -4,6 +4,20 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.7] - 2026-11-12
+
+### Fixed
+
+- Windows installers (Claude Code, Codex, Antigravity) run from a downloaded `.ps1` with `-File`, through `pwsh` when it exists. Inline `irm | iex` lost its quoting, and Windows PowerShell started from pwsh inherited pwsh's `PSModulePath` and could not find `Get-FileHash`; that variable is now removed for the installer.
+- Single-package WinGet items are skipped when their own check passes. Git installed outside WinGet, as on GitHub runners, is not in `winget list`, and `winget install` then failed with code 43.
+
+### Validation
+
+- First real `auto` on Windows (CI of `v2.0.0-dev.6`): mise, Node, Python, uv, pnpm, the terminal tools, gh, Codex, OpenCode and the skills CLI installed; the two failures above are fixed here.
+- `bun run validate` with 252 tests.
+
+---
+
 ## [v2.0.0-dev.6] - 2026-11-12
 
 ### Added

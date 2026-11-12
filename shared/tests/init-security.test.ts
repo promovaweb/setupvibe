@@ -320,3 +320,25 @@ describe("windows paths", () => {
     expect(plan.steps.find((s) => s.id === "wsl")!.commands.map((c) => describeCmd(c))[0]).toBe("wsl.exe --install --no-distribution --web-download");
   });
 });
+
+describe("windows fixes from the first real run", () => {
+  test("unsetEnv removes a variable regardless of case", async () => {
+    const { commandEnv } = await import("../exec/runner");
+    const env = commandEnv({ argv: ["x"], unsetEnv: ["PSModulePath"] }, { PSMODULEPATH: "C:/pwsh", Path: "C:/bin" });
+    expect(env.PSMODULEPATH).toBeUndefined();
+    expect(env.Path).toBe("C:/bin");
+  });
+
+  test("Windows installers run a downloaded .ps1 with -File", () => {
+    const steps = itemSteps(item(desktop, "claude-code"), "windows", { arch: "x64", inventory: desktop, home: "C:/Users/u" });
+    expect(steps[0]!.commands).toEqual([]);
+    expect(steps[0]!.actionDescription).toContain("-File");
+    expect(steps[0]!.actionDescription).toContain("https://claude.ai/install.ps1");
+  });
+
+  test("single-package WinGet items skip when their check passes", () => {
+    const steps = itemSteps(item(desktop, "build-deps"), "windows", { arch: "x64", inventory: desktop, home: "C:/Users/u" });
+    expect(steps[0]!.skipIf!.argv.slice(0, 4)).toEqual(["cmd", "/d", "/s", "/c"]);
+    expect(steps[0]!.skipIf!.argv.at(-1)).toBe("git --version");
+  });
+});

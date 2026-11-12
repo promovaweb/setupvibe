@@ -251,10 +251,13 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
       return [{ id, description: `Install ${entry.cask ?? formulas.join(", ")} with Homebrew`, commands: [{ argv, env: { HOMEBREW_NO_AUTO_UPDATE: "1", NONINTERACTIVE: "1" }, retries: 3 }] }];
     }
     case "winget":
-      return list(entry.id).map((pkg, i) => ({
+      return list(entry.id).map((pkg, i, all) => ({
         id: i === 0 ? id : `${id}:${pkg}`,
         description: `Install ${pkg} with WinGet`,
-        skipIf: { argv: ["winget", "list", "--exact", "--id", pkg] },
+        // A tool installed outside WinGet (Git on CI runners) is not in
+        // `winget list`; a single-package item is skipped when its own check
+        // already passes.
+        skipIf: all.length === 1 ? verifyCmd(item, home, true) : { argv: ["winget", "list", "--exact", "--id", pkg] },
         commands: [{ argv: ["winget", "install", "--exact", "--id", pkg, "--silent", "--accept-package-agreements", "--accept-source-agreements", "--disable-interactivity"] }],
       }));
     case "mise": {
@@ -316,7 +319,24 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
       const url = withVersion(entry.url ?? "", item);
       const args = (entry.args ?? []).map((a) => expandArg(withVersion(a, item), home));
       if (system === "windows") {
-        return [{ id, description: `Run the official installer ${url}`, commands: [{ argv: ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", `& ([scriptblock]::Create((irm '${url}'))) ${args.join(" ")}`] }] }];
+        // Inline `irm | iex` broke under process quoting, and Windows
+        // PowerShell started from pwsh inherits pwsh's PSModulePath and loses
+        // Get-FileHash. Download the script and run it with -File instead.
+        const script = join(home, ".setupvibe", "tmp", `${id}-installer.ps1`);
+        const shell = Bun.which("pwsh") ? "pwsh" : "powershell";
+        return [
+          {
+            id,
+            description: `Run the official installer ${url}`,
+            commands: [],
+            actionDescription: `download ${url} to ${script} and run it with ${shell} -File ${args.join(" ")}`.trimEnd(),
+            action: async (runner) => {
+              await downloadVerified(url, script, {});
+              const r = await runner.exec({ argv: [shell, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script, ...args], unsetEnv: ["PSModulePath"] });
+              if (r.code !== 0) throw new Error(`Installer for ${id} exited with ${r.code}: ${(r.stderr || r.stdout).trim().split("\n").slice(-3).join(" ")}`);
+            },
+          },
+        ];
       }
       const tmp = join(home, ".setupvibe", "tmp", `${id}-installer`);
       const interpreter = entry.interpreter ?? "bash";

@@ -23,6 +23,17 @@ export interface Cmd {
   optional?: boolean;
   /** Extra attempts after a failure, with a growing wait; for network commands. */
   retries?: number;
+  /** Environment variables removed for this command, such as PSModulePath. */
+  unsetEnv?: string[];
+}
+
+/** Environment of a command: the process environment, the defaults, the command's own, minus `unsetEnv`. */
+export function commandEnv(cmd: Cmd, base: Record<string, string | undefined> = process.env): Record<string, string | undefined> {
+  const env: Record<string, string | undefined> = { ...base, ...NON_INTERACTIVE_ENV, ...cmd.env };
+  for (const key of cmd.unsetEnv ?? []) {
+    for (const k of Object.keys(env)) if (k.toLowerCase() === key.toLowerCase()) delete env[k];
+  }
+  return env;
 }
 
 /** A unit of work with a description and its commands. */
@@ -91,7 +102,7 @@ export function realRunner(): Runner {
     dryRun: false,
     async exec(cmd) {
       const proc = Bun.spawn(finalArgv(cmd, root), {
-        env: { ...process.env, ...NON_INTERACTIVE_ENV, ...cmd.env },
+        env: commandEnv(cmd),
         stdin: cmd.input === undefined ? "ignore" : new Response(cmd.input),
         stdout: "pipe",
         stderr: "pipe",
