@@ -27,7 +27,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.18"
+VERSION="0.41.19"
 PHP_VERSION="8.5"
 RUBY_VERSION="3.4.12"
 PYTHON_VERSION="3.14"
@@ -1499,6 +1499,30 @@ step_6() {
 }
 
 
+# Start the SetupVibe Portainer stack, unless a container named "portainer"
+# that does not belong to this stack already exists. Recreating it would fail
+# with a name conflict, and removing it would discard the user's own setup.
+# $1: sys_do or user_do, whichever can reach the Docker daemon.
+portainer_start() {
+    local run=$1
+    local compose_file="$REAL_HOME/.setupvibe/portainer-compose.yml"
+    local owner_dir
+
+    if $run docker container inspect portainer &>/dev/null; then
+        owner_dir=$($run docker container inspect portainer \
+            --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}' 2>/dev/null || true)
+        if [[ "$owner_dir" != "$REAL_HOME/.setupvibe" ]]; then
+            echo -e "${YELLOW}⚠ A container named 'portainer' already exists and was not created by SetupVibe; keeping it.${NC}"
+            echo -e "${CYAN}  To use the SetupVibe stack instead, remove it and run: docker compose -f ~/.setupvibe/portainer-compose.yml up -d${NC}"
+            return 0
+        fi
+    fi
+
+    echo "Starting Portainer..."
+    $run docker compose -f "$compose_file" up -d
+    echo -e "${GREEN}✔ Portainer is running at https://localhost:9443${NC}"
+}
+
 step_7() {
     if $IS_MACOS; then
         echo "Checking Docker Desktop..."
@@ -1551,7 +1575,13 @@ step_7() {
         echo "Configuring Ansible..."
         if $IS_UBUNTU; then
             echo "Using Ubuntu Ansible PPA Strategy..."
-            sys_do add-apt-repository --yes --update ppa:ansible/ansible
+            # Linux Mint ships its own add-apt-repository, which has no --update
+            # option; add the PPA first and refresh the index explicitly. When
+            # Launchpad does not answer, Ubuntu's own ansible package still works.
+            if ! sys_do add-apt-repository -y ppa:ansible/ansible; then
+                echo -e "${YELLOW}⚠ Could not add the Ansible PPA; installing Ansible from the Ubuntu archive.${NC}"
+            fi
+            apt_update
             sys_do apt-get install -y ansible
         elif $IS_DEBIAN; then
             echo "Using Debian Ansible Strategy..."
@@ -1582,13 +1612,9 @@ step_7() {
 
     # Try to start Portainer if docker is running
     if $IS_MACOS && command -v docker &>/dev/null && user_do docker info &>/dev/null; then
-        echo "Starting Portainer..."
-        user_do docker compose -f "$REAL_HOME/.setupvibe/portainer-compose.yml" up -d
-        echo -e "${GREEN}✔ Portainer is running at https://localhost:9443${NC}"
+        portainer_start user_do
     elif $IS_LINUX && command -v docker &>/dev/null && sys_do docker info &>/dev/null; then
-        echo "Starting Portainer..."
-        sys_do docker compose -f "$REAL_HOME/.setupvibe/portainer-compose.yml" up -d
-        echo -e "${GREEN}✔ Portainer is running at https://localhost:9443${NC}"
+        portainer_start sys_do
     else
         echo -e "${YELLOW}⚠ Docker is not running. Portainer will be ready to start later with:${NC}"
         echo -e "${CYAN}  docker compose -f ~/.setupvibe/portainer-compose.yml up -d${NC}"
@@ -1677,7 +1703,11 @@ step_9() {
                 "$CTOP_SHA256"
             user_do chmod +x "$REAL_HOME/.local/bin/ctop"
         fi
-        user_do "$REAL_HOME/.local/bin/ctop" -v >/dev/null
+        # ctop may already exist outside ~/.local/bin (APT, Homebrew, /usr/local/bin);
+        # validate the binary that is really installed instead of a fixed path.
+        local ctop_bin="$REAL_HOME/.local/bin/ctop"
+        [[ -x "$ctop_bin" ]] || ctop_bin=$(command -v ctop)
+        user_do "$ctop_bin" -v >/dev/null
 
         echo "Installing Tailscale..."
         if ! command -v tailscale &>/dev/null; then
@@ -1830,7 +1860,10 @@ step_11() {
             user_do cp -p -- "$REAL_HOME/.config/starship.toml" "$REAL_HOME/.config/starship.toml.bak"
         fi
         user_do rm -f "$REAL_HOME/.config/starship.toml"
-        user_do "$REAL_HOME/.local/bin/starship" preset gruvbox-rainbow \
+        # Starship may already exist outside ~/.local/bin; use the installed binary.
+        local starship_bin="$REAL_HOME/.local/bin/starship"
+        [[ -x "$starship_bin" ]] || starship_bin=$(command -v starship)
+        user_do "$starship_bin" preset gruvbox-rainbow \
             -o "$REAL_HOME/.config/starship.toml"
         perl -i -pe 's/╭/┌/g; s/╰/└/g; s/\x{e0b6}/\x{e0b2}/g; s/\x{e0b4}/\x{e0b0}/g' "$REAL_HOME/.config/starship.toml"
 

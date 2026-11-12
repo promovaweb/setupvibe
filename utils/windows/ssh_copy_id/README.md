@@ -130,7 +130,7 @@ Baixe o núcleo e o lançador da tag da versão atual do SetupVibe:
 ```powershell
 $destino = "$env:USERPROFILE\Downloads\ssh_copy_id"
 New-Item -ItemType Directory -Force -Path $destino | Out-Null
-$versao = '0.41.18'
+$versao = '0.41.19'
 $base = "https://raw.githubusercontent.com/promovaweb/setupvibe/v$versao/utils/windows/ssh_copy_id"
 Invoke-WebRequest -Uri "$base/ssh_copy_id.ps1" -OutFile "$destino\ssh_copy_id.ps1"
 Invoke-WebRequest -Uri "$base/ssh_copy_id.cmd" -OutFile "$destino\ssh_copy_id.cmd"

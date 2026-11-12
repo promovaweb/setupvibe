@@ -33,7 +33,7 @@ readonly APT_KEY_FPR_NODESOURCE="6F71F525282841EEDAF851B42F59B5F99B1BE0B4"
 readonly APT_KEY_FPR_DOCKER="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
 readonly APT_KEY_FPR_GHCLI_1="2C6106201985B60E6C7AC87323F3D4EA75716059"
 readonly APT_KEY_FPR_GHCLI_2="7F38BBB59D064DBCB3D84D725612B36462313325"
-readonly VERSION="0.41.18"
+readonly VERSION="0.41.19"
 readonly CTOP_VERSION="0.7.7"
 readonly CTOP_SHA256_AMD64="b78374734ebe3d14b6edee3d5512c911c250d7fa7f3f964cb00acd3bc5a02a09"
 readonly CTOP_SHA256_ARM64="d8d91e0fea53a8c78fa81192f078272e5a92f0ea6c4f0e38ec7c944d76e6f02f"
@@ -769,7 +769,13 @@ step_2() {
     if $IS_UBUNTU; then
         echo "Using the official Ansible Ubuntu PPA..."
         apt_do install -y software-properties-common
-        sys_do add-apt-repository --yes --update ppa:ansible/ansible
+        # Linux Mint ships its own add-apt-repository, which has no --update
+        # option; add the PPA first and refresh the index explicitly. When
+        # Launchpad does not answer, Ubuntu's own ansible package still works.
+        if ! sys_do add-apt-repository -y ppa:ansible/ansible; then
+            warn "Could not add the Ansible PPA; installing Ansible from the Ubuntu archive."
+        fi
+        apt_do update
         apt_do install -y ansible
     elif $IS_DEBIAN; then
         echo "Using the Debian ansible-core package..."

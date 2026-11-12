@@ -379,6 +379,18 @@ Scripts de pacote podem respeitar `/usr/sbin/policy-rc.d` e instalar o
 Tailscale sem iniciar o serviço. A etapa Linux deve executar e validar
 explicitamente `systemctl enable --now tailscaled`.
 
+### Relatos de derivadas do Ubuntu (novembro de 2026)
+
+- O Linux Mint traz um `add-apt-repository` próprio, sem a opção `--update`.
+  Adicione o PPA com `-y` e atualize o índice do APT em seguida.
+- Uma ferramenta já instalada fora de `~/.local/bin` (APT, Homebrew ou
+  `/usr/local/bin`) pula o download. A validação deve usar o binário que
+  existe de fato, e não um caminho fixo em `~/.local/bin`.
+- Um contêiner `portainer` criado pelo usuário impede o `docker compose up`
+  da pilha do SetupVibe por conflito de nome. O Desktop compara o rótulo
+  `com.docker.compose.project.working_dir` com `~/.setupvibe` e preserva o
+  contêiner que não pertence à pilha.
+
 ### Resultado da execução
 
 O `server.sh --yes` concluiu as 9 etapas no Debian 13, com Docker, Portainer,

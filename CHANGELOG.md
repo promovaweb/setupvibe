@@ -4,6 +4,16 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.19] - 2026-11-12
+
+### Fixed
+
+- The Ansible PPA is added with `add-apt-repository -y` followed by an explicit package index refresh, in the Desktop and Server editions. Linux Mint ships its own `add-apt-repository`, which has no `--update` option, so the DevOps step failed there (#31, #37). When Launchpad does not answer, Ansible is installed from the Ubuntu archive instead of failing the step.
+- The Desktop edition validates the `ctop` and Starship binaries that are really installed. When either one already existed outside `~/.local/bin`, the download was skipped and the step then ran the missing `~/.local/bin` path, failing the Network and Shell steps (#32, #45).
+- The Desktop edition keeps an existing container named `portainer` that was not created by SetupVibe, prints how to switch to the SetupVibe stack, and no longer fails the DevOps step with a Docker name conflict (#33).
+
+---
+
 ## [v0.41.18] - 2026-11-11
 
 ### Added
