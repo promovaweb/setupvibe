@@ -9,7 +9,7 @@ set -Eeuo pipefail
 # shell Bash, Starship, mise, Tmux, Docker, ferramentas Unix, fontes, aliases,
 # funções, Neovim, Herdr e CLIs de IA.
 
-VERSION="0.42.0"
+VERSION="0.42.1"
 OMARCHY_MAJOR="4"
 SETUPVIBE_RAW="https://raw.githubusercontent.com/promovaweb/setupvibe/v${VERSION}"
 

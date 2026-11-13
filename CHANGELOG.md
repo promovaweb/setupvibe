@@ -4,6 +4,14 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.42.1] - 2026-11-13
+
+### Changed
+
+- README header uses the SetupVibe logo.
+
+---
+
 ## [v0.42.0] - 2026-11-13
 
 ### Changed
