@@ -13,7 +13,7 @@
   "MD025": true,
   "MD031": true,
   "MD032": true,
-  "MD033": true,
+  "MD033": { "allowed_elements": ["p", "a", "img", "picture", "source", "h1", "br"] },
   "MD034": true,
   "MD040": true,
   "MD041": false,

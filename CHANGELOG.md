@@ -4,6 +4,16 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.22] - 2026-11-13
+
+### Changed
+
+- `README.md` reorganized for people who use SetupVibe: centered header with the Promovaweb logo, release and license badges, the Discord banner, links to the published documentation, the Promovaweb plans and the changelog, plus the `Built with`, `Community and support`, `Contributing` and `Promovaweb` sections, with the official repository of each tool SetupVibe installs.
+- `CONTRIBUTING.md` now carries the full guide for contributors: Discord and issues before a pull request, environment, code layout, workflow, code rules, validation commands, documentation, commits, releases and license. The links to the guides in other languages remain.
+- `.markdownlint.json` allows only the HTML elements used by the README header (`MD033`).
+
+---
+
 ## [v0.41.21] - 2026-11-12
 
 ### Added

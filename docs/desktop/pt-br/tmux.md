@@ -1,6 +1,6 @@
 # Guia do Tmux
 >
-> Configuração do multiplexador de terminal — v0.41.21
+> Configuração do multiplexador de terminal — v0.41.22
 
 O SetupVibe instala e configura o tmux com o [TPM](https://github.com/tmux-plugins/tpm) e um conjunto selecionado de plugins. A Edição Desktop usa [`conf/tmux-desktop.conf`](../../../conf/tmux-desktop.conf), baixada automaticamente durante a instalação.
 
