@@ -32,6 +32,7 @@ import type { SelectedItem } from "../ops/inventory-ops.ts";
 import { selfArgv } from "../commands/auto.ts";
 import { machineFindings } from "../commands/maintenance.ts";
 import { tr, tuiLanguage, type TextKey } from "./i18n.ts";
+import { icon } from "./icons.ts";
 import {
   currentGroups,
   fit,
@@ -147,11 +148,13 @@ function blockColors(theme: Theme, selected: boolean, focused: boolean) {
 }
 
 /** Status as a pill: dark text on the status color, padded. */
-function pill(theme: Theme, status: string, label: string, width: number) {
+function pill(theme: Theme, status: string, label: string, width: number, onBar = false) {
   const color = statusColor(theme, status);
   const quiet = ["unavailable", "system", "init", "gui"].includes(status);
   const text = ` ${label} `.padStart(width);
-  return quiet ? fg(color)(text) : bg(color)(fg(theme.background)(text));
+  // Quiet states are plain text; on the selected bar they take the bar text color to stay readable.
+  if (quiet) return fg(onBar ? theme.barText : color)(text);
+  return bg(color)(fg(theme.background)(text));
 }
 
 /**
@@ -169,7 +172,7 @@ function itemBlock(theme: Theme, r: InventoryRow, marked: boolean, selected: boo
   const nameWidth = Math.max(12, width - pillWidth - 8);
   const version = r.installed && r.installed !== r.item.version ? `${r.installed} → ${r.item.version}` : r.item.version;
   const descWidth = Math.max(10, width - version.length - 9);
-  return t`${fg(c.bar)("▌")} ${fg(marked ? (strongSel ? c.strong : theme.accent) : c.dim)(mark)} ${fg(strongSel ? c.strong : status)(STATUS_GLYPH[r.status] ?? " ")}  ${bold(fg(r.status === "unavailable" && !selected ? theme.textDim : c.strong)(fit(r.item.name, nameWidth)))}${pill(theme, r.status, label, pillWidth)}
+  return t`${fg(c.bar)("▌")} ${fg(marked ? (strongSel ? c.strong : theme.accent) : c.dim)(mark)} ${fg(strongSel ? c.strong : status)(STATUS_GLYPH[r.status] ?? " ")}  ${bold(fg(r.status === "unavailable" && !selected ? theme.textDim : c.strong)(fit(r.item.name, nameWidth)))}${pill(theme, r.status, label, pillWidth, strongSel)}
 ${fg(c.bar)("▌")}       ${fg(c.dim)(fit(r.item.description[tuiLanguage()], descWidth))}  ${fg(strongSel ? c.text : theme.accentSecondary)(version)}`;
 }
 
@@ -341,13 +344,23 @@ export const inventoryScreen: Screen = (() => {
       detailLeft.add(detailTitle);
       if (!short) detailLeft.add(gap(renderer));
       detailLeft.add(detailText);
+      // Short terminals: the description gives way to the buttons below it.
+      if (short) {
+        detailText.flexShrink = 1;
+        detailText.minHeight = 0;
+        detailText.overflow = "hidden";
+      }
       const factsBox = new BoxRenderable(renderer, { width: Math.min(54, Math.floor(renderer.width * 0.45)), flexShrink: 0, flexDirection: "column" });
       const detailFacts = line(renderer, theme, { wrap: true });
       factsBox.add(detailFacts);
-      const actions = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, height: 1, flexShrink: 0, marginTop: 1 });
+      const actions = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, height: 1, flexShrink: 0, marginTop: short ? 0 : 1 });
       actions.add(button(renderer, theme, `i  ${tr("btn.install")}`, theme.keyBackground, () => run("install")));
       actions.add(button(renderer, theme, `r  ${tr("btn.remove")}`, theme.border, () => run("remove")));
-      factsBox.add(actions);
+      // The five facts fill a short panel, so there the buttons go under the description.
+      if (short) {
+        detailLeft.add(new BoxRenderable(renderer, { flexGrow: 1, minHeight: 0 }));
+        detailLeft.add(actions);
+      } else factsBox.add(actions);
       detailBody.add(detailLeft);
       detailBody.add(factsBox);
       detail.add(detailBody);
@@ -366,7 +379,7 @@ export const inventoryScreen: Screen = (() => {
         left.titleColor = focus === "categories" ? theme.accent : theme.textDim;
         right.borderColor = focus === "items" ? theme.borderActive : theme.border;
         right.titleColor = focus === "items" ? theme.accent : theme.textDim;
-        left.title = ` c · ${tr("inv.categories")} `;
+        left.title = ` c · ${icon("categories")}  ${tr("inv.categories")} `;
         catLines.forEach((l, i) => {
           const category = categories[i];
           if (!category) {
@@ -376,10 +389,10 @@ export const inventoryScreen: Screen = (() => {
           const counts = statusCounts(category.rows);
           const done = counts.installed + counts.outdated + counts.failed;
           const selected = i === cat;
-          l.content = categoryBlock(theme, category.title, done, counts.markable, selected, focus === "categories", leftWidth - 6);
+          l.content = categoryBlock(theme, `${icon(category.id)}  ${category.title}`, done, counts.markable, selected, focus === "categories", leftWidth - 6);
           l.bg = blockColors(theme, selected, focus === "categories").bg;
         });
-        right.title = ` f · ${c?.title ?? tr("inv.items")} · ${c?.rows.length ?? 0}${marked.size ? ` · ${marked.size} ${tr("inv.marked")}` : ""} `;
+        right.title = ` f · ${c ? icon(c.id) : icon("inventory")} ${c?.title ?? tr("inv.items")} · ${c?.rows.length ?? 0}${marked.size ? ` · ${marked.size} ${tr("inv.marked")}` : ""} `;
         itemBoxes.forEach((box, i) => {
           const r = c?.rows[i];
           box.visible = Boolean(r);
@@ -393,13 +406,13 @@ export const inventoryScreen: Screen = (() => {
 
         const r = c?.rows[row];
         if (planLines.length && pending) {
-          detail.title = ` ${tr("inv.plan")} · ${tr(`verb.${pending.verb}`)} ${pending.ids.join(", ")} `;
+          detail.title = ` ${icon("plan")}  ${tr("inv.plan")} · ${tr(`verb.${pending.verb}`)} ${pending.ids.join(", ")} `;
           detail.borderColor = theme.warn;
           detailTitle.content = t`${fg(theme.warn)(tr("inv.steps", { n: planLines.length }))}`;
           detailText.content = planLines.slice(0, 5).join("\n") + (planLines.length > 5 ? `\n… +${planLines.length - 5}` : "");
           detailFacts.content = t`${fg(theme.textStrong)(tr("inv.planHint", { key: pending.verb === "install" ? "i" : "r", verb: tr(`verb.${pending.verb}`) }))}`;
         } else if (r) {
-          detail.title = ` ${tr("inv.details")} `;
+          detail.title = ` ${icon("details")}  ${tr("inv.details")} `;
           detail.borderColor = theme.border;
           detailTitle.content = t`${fg(theme.textStrong)(r.item.name)}   ${dim(r.item.id)}`;
           const note = r.status === "gui" ? `\n\n${r.item.id === "nerd-fonts" ? tr("inv.fontsNote") : tr("inv.guiNote")}` : "";
@@ -407,7 +420,7 @@ export const inventoryScreen: Screen = (() => {
           const k = (key: TextKey) => dim(fit(tr(key), 12));
           detailFacts.content = t`${k("inv.pinned")}${fg(theme.text)(`${r.item.version} (${r.item.versionPolicy})`)}\n${k("inv.installedVersion")}${fg(r.installed ? theme.ok : theme.textDim)(r.installed ?? "-")}\n${k("inv.method")}${fg(theme.text)(r.method)}\n${k("inv.status")}${fg(statusColor(theme, r.status))(`${STATUS_GLYPH[r.status] ?? ""} ${statusText(r.status)}`)}\n${r.elsewhere ? k("inv.elsewhere") : k("inv.site")}${fg(r.elsewhere ? theme.warn : theme.accentSecondary)(r.elsewhere ?? r.item.homepage)}`;
         } else {
-          detail.title = ` ${tr("inv.details")} `;
+          detail.title = ` ${icon("details")}  ${tr("inv.details")} `;
           detailTitle.content = "";
           detailText.content = tr("inv.unsupported");
           detailFacts.content = "";
@@ -522,7 +535,7 @@ export const userScreen: Screen = (() => {
     description: "Working user, permissions and folders",
     mount: ({ renderer, theme }) => {
       const root = new BoxRenderable(renderer, { flexDirection: "row", flexGrow: 1, gap: 2, paddingTop: 1 });
-      const who = panel(renderer, theme, { title: tr("user.who"), width: 48, active: true });
+      const who = panel(renderer, theme, { title: `${icon("user")}  ${tr("user.who")}`, width: 48, active: true });
       const whoText = line(renderer, theme);
       const createText = line(renderer, theme, { wrap: true });
       who.add(gap(renderer));
@@ -549,12 +562,12 @@ export const userScreen: Screen = (() => {
         const agentAliases = agentAliasesEnabled(config);
         const entries = userChecklist({ groups: currentGroups(), sudoNoPassword: sudoWithoutPassword(), initDone: Boolean(init?.done), agentAliases });
         const pendingCount = entries.filter((e) => !e.ok).length;
-        checks.title = ` Checklist · ${pendingCount ? tr("user.pending", { n: pendingCount }) : `✓ ${tr("user.allGood")}`} `;
+        checks.title = ` ${icon("checklist")} Checklist · ${pendingCount ? tr("user.pending", { n: pendingCount }) : `✓ ${tr("user.allGood")}`} `;
         checksBody.add(gap(renderer));
-        const groups: Array<["permissions" | "folders" | "setupvibe", TextKey]> = [["permissions", "user.permissions"], ["folders", "user.folders"], ["setupvibe", "user.setupvibe"]];
-        groups.forEach(([group, title], gi) => {
+        const groups: Array<["permissions" | "folders" | "setupvibe", TextKey, string]> = [["permissions", "user.permissions", "security"], ["folders", "user.folders", "project"], ["setupvibe", "user.setupvibe", "inventory"]];
+        groups.forEach(([group, title, glyph], gi) => {
           if (gi) checksBody.add(gap(renderer));
-          checksBody.add(sectionTitle(renderer, theme, tr(title)));
+          checksBody.add(sectionTitle(renderer, theme, `${icon(glyph)}  ${tr(title)}`));
           for (const e of entries.filter((x) => x.group === group)) {
             const label = checklistText(e.label);
             checksBody.add(hangingRow(renderer, t`  ${fg(e.ok ? theme.ok : theme.warn)(e.ok ? "✓" : "!")} ${fg(e.ok ? theme.text : theme.textStrong)(fit(label, 36))}`, 41, t`${fg(e.ok ? theme.textDim : theme.warn)(checklistText(e.detail))}`));
@@ -599,7 +612,7 @@ export const doctorScreen: Screen = (() => {
     },
     mount: ({ renderer, theme }) => {
       const root = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, gap: 1, paddingTop: 1 });
-      const box = panel(renderer, theme, { title: tr("doctor.title"), flexGrow: 1, active: true });
+      const box = panel(renderer, theme, { title: `${icon("doctor")}  ${tr("doctor.title")}`, flexGrow: 1, active: true });
       const summary = line(renderer, theme, { height: 1 });
       const body = scrollBox(renderer, theme);
       box.add(gap(renderer));
@@ -627,7 +640,8 @@ export const doctorScreen: Screen = (() => {
         const fail = findings.filter((f) => f.level === "fail");
         const warn = findings.filter((f) => f.level === "warn");
         const ok = findings.filter((f) => f.level === "ok");
-        summary.content = t`${fg(theme.textStrong)(`${detected.name} · ${detected.arch} · ${variantText(detected.variant)}`)}     ${fg(fail.length ? theme.error : warn.length ? theme.warn : theme.ok)(tr("doctor.summary", { fail: fail.length, warn: warn.length, ok: ok.length }))}`;
+        // The system is already in the header band; here only the counts.
+        summary.content = t`${bold(fg(fail.length ? theme.error : warn.length ? theme.warn : theme.ok)(tr("doctor.summary", { fail: fail.length, warn: warn.length, ok: ok.length })))}`;
         const group = (title: string, color: string, glyph: string, list: typeof findings, withFix: boolean) => {
           if (!list.length) return;
           body.add(sectionTitle(renderer, theme, `${title} (${list.length})`, color));
@@ -637,9 +651,9 @@ export const doctorScreen: Screen = (() => {
           }
           body.add(gap(renderer));
         };
-        group(tr("doctor.problems"), theme.error, "✗", fail, true);
-        group(tr("doctor.warnings"), theme.warn, "!", warn, true);
-        group(tr("doctor.ok"), theme.ok, "✓", ok, false);
+        group(`${icon("error")}  ${tr("doctor.problems")}`, theme.error, "✗", fail, true);
+        group(`${icon("warn")}  ${tr("doctor.warnings")}`, theme.warn, "!", warn, true);
+        group(`${icon("ok")}  ${tr("doctor.ok")}`, theme.ok, "✓", ok, false);
         status.content = note ? t` ${fg(note.ok ? theme.ok : theme.error)(note.text)}` : "";
       };
       refresh();
@@ -678,7 +692,7 @@ export const logsScreen: Screen = (() => {
     },
     mount: ({ renderer, theme }) => {
       const root = new BoxRenderable(renderer, { flexDirection: "row", flexGrow: 1, gap: 2, paddingTop: 1 });
-      const left = panel(renderer, theme, { title: tr("logs.runs"), width: 36, active: true });
+      const left = panel(renderer, theme, { title: `${icon("logs")}  ${tr("logs.runs")}`, width: 36, active: true });
       const runList = scrollBox(renderer, theme);
       left.add(gap(renderer));
       left.add(runList);
@@ -699,7 +713,7 @@ export const logsScreen: Screen = (() => {
           const empty = line(renderer, theme, { wrap: true });
           empty.content = t`${fg(theme.textStrong)(tr("logs.empty"))}\n\n${dim(tr("logs.emptyHint"))}`;
           runList.add(empty);
-          right.title = ` ${tr("logs.events")} `;
+          right.title = ` ${icon("events")}  ${tr("logs.events")} `;
           return;
         }
         let activeLine: TextRenderable | undefined;
@@ -718,7 +732,7 @@ export const logsScreen: Screen = (() => {
         if (activeLine) runList.scrollChildIntoView(activeLine);
         const list = logEvents(files[index]!);
         const failed = list.filter((e) => e.status === "fail").length;
-        right.title = ` ${runLabel(files[index]!)} · ${list.length}${failed ? ` · ✗ ${failed}` : ""} `;
+        right.title = ` ${icon("events")} ${runLabel(files[index]!)} · ${list.length}${failed ? ` · ✗ ${failed}` : ""} `;
         for (const e of list) {
           const color = e.status === "ok" ? theme.ok : e.status === "fail" ? theme.error : e.status === "skip" ? theme.textDim : theme.text;
           const glyph = e.status === "ok" ? "✓" : e.status === "fail" ? "✗" : e.status === "skip" ? "-" : "•";

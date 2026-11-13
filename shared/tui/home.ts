@@ -34,6 +34,7 @@ import { meter, usageColor } from "./style.ts";
 import { tailscaleSummary } from "./tailscale.ts";
 import { checklistText } from "./screens.ts";
 import { tr, tuiLanguage, type TextKey } from "./i18n.ts";
+import { icon } from "./icons.ts";
 import { currentGroups, doctorFindings, fit, inventoryModel, logEvents, logFiles, runLabel, statusCounts, sudoWithoutPassword, userChecklist, userName } from "./model.ts";
 
 /** Card layout in reading order: rows of module ids with their relative widths. */
@@ -112,7 +113,7 @@ export function createHomeScreen(modules: () => readonly Screen[]): Screen {
           // One text line per entry, rewritten on each refresh.
           const body = (content: Array<StyledText | string>) => {
             for (const child of bodyBox.getChildren()) bodyBox.remove(child);
-            for (const c of content) bodyBox.add(new TextRenderable(renderer, { content: c, height: 1, flexShrink: 0, wrapMode: "none" }));
+            for (const c of content) bodyBox.add(new TextRenderable(renderer, { content: c, flexShrink: 0, wrapMode: "word" }));
           };
           card.onMouseDown = (e) => {
             e.stopPropagation();
@@ -189,7 +190,7 @@ export function createHomeScreen(modules: () => readonly Screen[]): Screen {
               const cc = statusCounts(c.rows);
               const d = cc.installed + cc.outdated + cc.failed;
               const [on, off] = meter(theme, d, cc.markable, 14, theme.ok);
-              return t`${dim(fit(c.title, 24))}${on}${off} ${dim(`${d}/${cc.markable}`)}`;
+              return t`${fg(theme.accent)(icon(c.id))}  ${dim(fit(c.title, 22))}${on}${off} ${dim(`${d}/${cc.markable}`)}`;
             }),
           ],
           doctor: [
@@ -207,8 +208,10 @@ export function createHomeScreen(modules: () => readonly Screen[]): Screen {
             t`${lbl("CPU")}${cpuOn}${cpuOff} ${fg(usageColor(theme, l.cpu))(`${l.cpu}%`)}`,
             t`${lbl(tr("mc.ram"))}${memOn}${memOff} ${fg(usageColor(theme, memPct))(`${memPct}%`)}`,
             t`${lbl(tr("mc.disks"))}${dskOn}${dskOff} ${fg(usageColor(theme, rootDisk?.percent ?? 0))(`${rootDisk?.percent ?? 0}%`)}`,
-            t`${lbl(tr("mc.load"))}${fg(usageColor(theme, loadPct))(l.load[0].toFixed(2))}  ${fg(theme.ok)(`↓ ${rate(netNow.rx)}`)}  ${fg(theme.accent)(`↑ ${rate(netNow.tx)}`)}`,
-            t`${lbl("")}${fg(theme.accent)(sparkline(l.cpuHistory, 26))}`,
+            t`${lbl(tr("mc.load"))}${fg(usageColor(theme, loadPct))(l.load.map((x) => x.toFixed(2)).join("  "))}`,
+            t`${lbl(tr("mc.network"))}${fg(theme.ok)(`↓ ${fit(rate(netNow.rx), 11)}`)}${fg(theme.accent)(`↑ ${rate(netNow.tx)}`)}`,
+            "",
+            t`${lbl(tr("mc.history"))}${fg(theme.accent)(sparkline(l.cpuHistory, 22))}`,
           ],
           tailscale: tailscale
             ? tailscale.state
@@ -248,7 +251,9 @@ export function createHomeScreen(modules: () => readonly Screen[]): Screen {
           for (const cell of cells) {
             const card = cards.get(cell.id)!;
             const selected = BENTO[row]![col]!.id === cell.id;
-            card.title = ` ${numberOf(cell.id)} ${titleOf(cell.id)} `;
+            card.title = ` ${icon(cell.id)}  ${numberOf(cell.id)} ${titleOf(cell.id)} `;
+            // The selected card stands out with a lighter surface, not only the border.
+            card.backgroundColor = selected ? theme.surfaceHigh : theme.surface;
             card.borderColor = selected ? theme.borderActive : theme.border;
             card.titleColor = selected ? theme.accent : theme.textDim;
             bodies.get(cell.id)!(body[cell.id] ?? []);

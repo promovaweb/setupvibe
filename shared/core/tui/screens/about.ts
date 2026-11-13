@@ -7,6 +7,7 @@ import { BoxRenderable, TextRenderable, fg, t } from "@opentui/core";
 import { aboutData } from "../../cli/commands/about.ts";
 import { spacer, list, panel, dim, keyValueTable, heading } from "../components.ts";
 import type { Screen } from "../screen.ts";
+import { icon } from "../../../tui/icons.ts";
 import { tr } from "../../../tui/i18n.ts";
 
 export const aboutScreen: Screen = {
@@ -19,7 +20,7 @@ export const aboutScreen: Screen = {
 
     const top = new BoxRenderable(renderer, { flexDirection: "row", flexShrink: 0, gap: 2 });
 
-    const binary = panel(renderer, theme, { title: tr("about.binary"), flexGrow: 3, flexBasis: 0, active: true });
+    const binary = panel(renderer, theme, { title: `${icon("binary")}  ${tr("about.binary")}`, flexGrow: 3, flexBasis: 0, active: true });
     binary.add(spacer(renderer));
     binary.add(new TextRenderable(renderer, { content: `${d.title}  v${d.version}`, fg: theme.accent }));
     binary.add(dim(renderer, theme, d.description));
@@ -36,7 +37,7 @@ export const aboutScreen: Screen = {
     );
     top.add(binary);
 
-    const project = panel(renderer, theme, { title: tr("about.project"), flexGrow: 2, flexBasis: 0 });
+    const project = panel(renderer, theme, { title: `${icon("project")}  ${tr("about.project")}`, flexGrow: 2, flexBasis: 0 });
     project.add(spacer(renderer));
     project.add(
       keyValueTable(renderer, theme, [
@@ -51,7 +52,7 @@ export const aboutScreen: Screen = {
 
     const bottom = new BoxRenderable(renderer, { flexDirection: "row", flexGrow: 1, gap: 2 });
 
-    const creditsPanel = panel(renderer, theme, { title: tr("about.credits"), flexGrow: 3, flexBasis: 0 });
+    const creditsPanel = panel(renderer, theme, { title: `${icon("heart")}  ${tr("about.credits")}`, flexGrow: 3, flexBasis: 0 });
     creditsPanel.add(spacer(renderer));
     const nameWidth = Math.max(...d.credits.map((c) => c.name.length));
     // One line per credit, so the list fits short terminals: name, link, role (cut first when narrow).
@@ -67,7 +68,7 @@ export const aboutScreen: Screen = {
     }
     bottom.add(creditsPanel);
 
-    const standards = panel(renderer, theme, { title: tr("about.standards"), flexGrow: 2, flexBasis: 0 });
+    const standards = panel(renderer, theme, { title: `${icon("standards")}  ${tr("about.standards")}`, flexGrow: 2, flexBasis: 0 });
     standards.add(spacer(renderer));
     standards.add(heading(renderer, theme, "Interface"));
     standards.add(list(renderer, theme, ["OpenCLI 0.1 for the CLI description", "MCP 2025-11-25 over stdio", "Fixed exit codes (0 success)"]));

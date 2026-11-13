@@ -22,6 +22,7 @@ Keys em notação de ponto. O schema do esqueleto:
 | `tui.initialTab` | `overview` (Início), `inventory`, `user`, `doctor`, `logs`, `tailscale`, `machine` ou `about` | `overview` | tela aberta ao iniciar a TUI |
 | `tui.language` | `pt-BR` ou `en` | `pt-BR` | idioma da TUI; a tecla `L` e o seletor `PT · EN` gravam aqui |
 | `tui.mouse` | `true` ou `false` | `true` | mouse na TUI (cliques e roda) |
+| `tui.icons` | `true` ou `false` | `true` | ícones da Nerd Font na TUI; com `false`, símbolos comuns |
 | `shell.agentAliases` | `true` ou `false` | `true` | cria `cco`, `cxo`, `oco`, `cx` e `oc`, que abrem os agentes sem confirmação; rode `{{bin}} shell apply` depois de mudar |
 | `tui.theme` | `night` ou `day` | `night` | paleta da TUI |
 | `telemetry.enabled` | boolean | `false` | reservado para projetos derivados |
@@ -99,6 +100,7 @@ resposta de tool MCP.
 | `SETUPVIBE_HOME` | troca `~/.setupvibe/` por outra pasta |
 | `{{BIN}}_MASTER_KEY` | master key em hex; dispensa `master.key` |
 | `NO_COLOR` | desliga cores na saída de texto |
+| `SETUPVIBE_ICONS` | `0` troca os ícones da Nerd Font da TUI por símbolos comuns |
 
 ## Rotação da master key
 

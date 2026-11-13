@@ -11,20 +11,33 @@ module. Each card sums up its module and shows the number that opens it:
 
 | Card | Summary on the Home | The module |
 | --- | --- | --- |
-| 1 Inventory | progress bar, items by status and one bar per category | categories with name, `installed/total` count and a progress bar; tools as two-line blocks (marker, status and the name in bold; below, the description and the pinned and installed versions) with a legend; details or the plan; **Install** and **Remove** buttons. `c` selects the categories panel, `f` the tools panel and `Tab` switches; the active panel has the accent border and its selection becomes a full bar. `j`/`k` move in the active panel, `h`/`l` switch the category, `g`/`End` go to the first and last item, `space` marks, `i` installs and `r` removes. The first press (or click) shows the plan and the second runs it; any other key cancels. The actions run the CLI in another process. |
+| 1 Inventory | progress bar, items by status and one bar per category | categories with name, `installed/total` count and a progress bar; tools as two-line blocks (marker, status and the name in bold; below, the description and the pinned and installed versions); details or the plan; **Install** and **Remove** buttons. `c` selects the categories panel, `f` the tools panel and `Tab` switches; the active panel has the accent border and its selection becomes a full bar. `j`/`k` move in the active panel, `h`/`l` switch the category, `g`/`End` go to the first and last item, `space` marks, `i` installs and `r` removes. The first press (or click) shows the plan and the second runs it; any other key cancels. The actions run the CLI in another process. |
 | 2 User | user, pending items and sudo | checklist grouped in Permissions, Folders and SetupVibe, with the warning about the `cco`, `cxo` and `oco` aliases |
 | 3 Doctor | problems, warnings, init and the main findings | the `doctor` findings grouped, each with the command that fixes it; **Apply safe fixes** or `f`; `u` refreshes |
 | 4 Logs | last run and the previous ones | runs in `~/.setupvibe/logs` and their events, with the error under each failure |
 | 5 Tailscale | state, IP, tailnet and the online machines, refreshed every 15 seconds | this machine (state, name, DNS, IPs, tailnet, MagicDNS, version, key expiry, exit node, tags, routes, capabilities); services published with serve and Funnel; health warnings; a network check with `n` (UDP, IPv4, IPv6, UPnP, NAT-PMP, PCP, hard NAT, captive portal and latency per relay); tailnet machines with system, IP, direct or relayed connection and last contact; details of the chosen machine (IPs, user, direct address, traffic, key expiry). Everything comes from the local client, without the Tailscale API. |
-| 6 Machine | CPU, RAM and disk bars, load, network per second and CPU history, refreshed every 2 seconds | live, every second: system (host, distribution, kernel, virtualization, variant, uptime, user, shell, time zone, processes); total CPU, the last 60 seconds of history, load, temperature when there is a sensor and one bar per core; RAM and swap with history; network per interface (received and sent per second and totals) with the addresses; disks with usage and reads and writes per second; the processes using the most CPU (PID, name, CPU, memory, RSS) |
+| 6 Machine | CPU, RAM and disk bars, load, network per second and CPU history, refreshed every 2 seconds; long text wraps by word inside the card | live, every second: system (host, distribution, kernel, virtualization, variant, uptime, user, shell, time zone, processes); total CPU, the last 60 seconds of history, load, temperature when there is a sensor and one bar per core; RAM and swap with history; network per interface (received and sent per second and totals) with the addresses; disks with usage and reads and writes per second; the processes using the most CPU (PID, name, CPU, memory, RSS) |
 | 7 About | version, edition, system and variant | binary, project, license, credits and standards |
 
 Above the cards, the recommended **next step**; a click on it opens the module
 where it is done.
 
-Inside a module, the top shows the **← Back** button, the module name and what
-it shows; the header reads `SetupVibe › module`. The button, the `SetupVibe`
-name, `Esc` or `Backspace` go back to the Home.
+**Header.** The first line is a band with the `▲ SetupVibe` badge, the
+version, where you are (`Home` or `› module`, with its icon), the detected
+system, the `PT · EN` switch and a clock refreshed every 15 seconds.
+
+Inside a module, the top shows the **← Back** button, the module icon and
+name and what it shows. The button, the `SetupVibe` badge, `Esc` or
+`Backspace` go back to the Home.
+
+**Bottom bar.** It shows the module keys first and, after a `│`, the global
+ones. When the width does not fit them all, the last ones drop out, but `?`
+(help, which lists every key) and `q` always stay.
+
+**Icons.** Modules, categories, panels and states have Nerd Font icons, which
+SetupVibe installs. On a terminal without that font, turn them off with
+`config set tui.icons false` or `SETUPVIBE_ICONS=0`: the TUI then uses
+symbols every font has.
 
 **Language.** The interface speaks Portuguese by default. The `PT · EN`
 switch in the header (click) or the `L` key switches to English and back; the

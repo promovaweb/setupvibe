@@ -14,9 +14,10 @@
  * the help closes it. Switching the language rebuilds the interface in place.
  * The renderer is destroyed on every exit path to hand the terminal back.
  */
-import { BoxRenderable, TextRenderable, TextAttributes, createCliRenderer, fg, t, type CliRenderer, type KeyEvent, type Renderable } from "@opentui/core";
+import { BoxRenderable, TextRenderable, TextAttributes, bold, createCliRenderer, fg, t, type CliRenderer, type KeyEvent, type Renderable } from "@opentui/core";
 import { manifest } from "../app/manifest.ts";
 import { systemSummary } from "../cli/commands/about.ts";
+import { icon } from "../../tui/icons.ts";
 import { hasText, otherLanguage, resetTuiLanguage, setTuiLanguage, tr, tuiLanguage } from "../../tui/i18n.ts";
 import { readSettings, getPath } from "../config/settings.ts";
 import { glyphs, currentTheme, type Theme } from "./theme.ts";
@@ -46,9 +47,44 @@ export function mouseEnabled(): boolean {
   return setting("tui.mouse") !== false;
 }
 
-function keyBar(renderer: CliRenderer, theme: Theme, pairs: ReadonlyArray<ScreenKey>, press: (name: string) => void): BoxRenderable {
-  const bar = new BoxRenderable(renderer, { height: 1, flexDirection: "row", backgroundColor: theme.barBackground, paddingLeft: 1, gap: 2 });
+/** Width a key hint takes in the bar. */
+const hintWidth = (p: ScreenKey) => p.key.length + p.action.length + 5;
+
+/**
+ * Keys that fit the width: the screen keys first, then the global ones; the
+ * last two global keys (help and quit) always stay. Exported for tests.
+ */
+export function fitKeys(screenKeys: ReadonlyArray<ScreenKey>, globalKeys: ReadonlyArray<ScreenKey>, width: number): { screen: ScreenKey[]; global: ScreenKey[] } {
+  // Help and quit always stay: help lists every key that did not fit.
+  const kept = globalKeys.slice(-2);
+  const rest = globalKeys.slice(0, -2);
+  const budget = width - 4 - kept.reduce((s, p) => s + hintWidth(p), 0) - 3;
+  const screen: ScreenKey[] = [];
+  const global: ScreenKey[] = [];
+  let used = 0;
+  for (const p of screenKeys) {
+    if (used + hintWidth(p) > budget) break;
+    screen.push(p);
+    used += hintWidth(p);
+  }
+  for (const p of rest) {
+    if (used + hintWidth(p) > budget) break;
+    global.push(p);
+    used += hintWidth(p);
+  }
+  global.push(...kept);
+  return { screen, global };
+}
+
+function keyBar(renderer: CliRenderer, theme: Theme, screenKeys: ReadonlyArray<ScreenKey>, globalKeys: ReadonlyArray<ScreenKey>, press: (name: string) => void): BoxRenderable {
+  const bar = new BoxRenderable(renderer, { height: 1, flexDirection: "row", backgroundColor: theme.barBackground, paddingLeft: 1, gap: 2, flexShrink: 0 });
+  const { screen, global } = fitKeys(screenKeys, globalKeys, renderer.width);
+  const pairs = [...screen, ...(screen.length ? [{ key: "│", action: "" } as ScreenKey] : []), ...global];
   for (const pair of pairs) {
+    if (pair.key === "│" && !pair.action) {
+      bar.add(new TextRenderable(renderer, { content: "│", fg: theme.border, selectable: false, flexShrink: 0 }));
+      continue;
+    }
     // Items keep their width; on a narrow terminal the bar is cut at the right instead of losing the labels.
     const item = new BoxRenderable(renderer, { flexDirection: "row", flexShrink: 0 });
     item.add(new TextRenderable(renderer, { content: ` ${pair.key} `, fg: theme.keyText, bg: theme.keyBackground, selectable: false, flexShrink: 0 }));
@@ -87,6 +123,15 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
   let footer: BoxRenderable | undefined;
   let crumb: TextRenderable | undefined;
   let moduleBar: BoxRenderable | undefined;
+  let clock: TextRenderable | undefined;
+  const tickClock = () => {
+    if (!clock) return;
+    const now = new Date();
+    clock.content = `${icon("clock")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  };
+  // The clock moves on its own; the timer stops with the TUI.
+  const clockTimer = setInterval(tickClock, 15_000);
+  clockTimer.unref?.();
   let moduleTitle: TextRenderable | undefined;
   let mounted = new Map<string, Renderable>();
   let active: Screen | undefined;
@@ -176,14 +221,14 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
     active = screen;
     screen.onEnter?.(context);
     const onHome = screen === home;
-    if (crumb) crumb.content = onHome ? "" : t`${fg(theme.textDim)(" › ")}${fg(theme.accent)(screen.title)}`;
+    if (crumb) crumb.content = onHome ? t`${fg(theme.textDim)("  ")}${fg(theme.barText)(`${icon("overview")} ${home.title}`)}` : t`${fg(theme.textDim)("  ›  ")}${fg(theme.accent)(`${icon(screen.id)} ${screen.title}`)}`;
     // Module header: back button, title and what the module shows; hidden on the Home.
     if (moduleBar && moduleTitle) {
       moduleBar.visible = !onHome;
-      moduleTitle.content = onHome ? "" : t`${fg(theme.textStrong)(screen.title)}   ${fg(theme.textDim)(hasText(`sub.${screen.id}`) ? tr(`sub.${screen.id}` as never) : screen.description)}`;
+      moduleTitle.content = onHome ? "" : t`${fg(theme.accent)(icon(screen.id))}  ${bold(fg(theme.textStrong)(screen.title))}   ${fg(theme.textDim)(hasText(`sub.${screen.id}`) ? tr(`sub.${screen.id}` as never) : screen.description)}`;
     }
     if (footer) app.remove(footer);
-    footer = keyBar(renderer, theme, [...(screen.keys ?? []), ...globalKeys(onHome)], handle);
+    footer = keyBar(renderer, theme, screen.keys ?? [], globalKeys(onHome), handle);
     app.add(footer);
   };
 
@@ -200,42 +245,43 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
     root.onMouseDown = () => closeHelp();
     app = root;
 
-    const header = new BoxRenderable(renderer, { height: 1, marginTop: 1, flexDirection: "row", paddingLeft: 1, paddingRight: 1, gap: 2 });
+    // Header band: brand pill, version and where you are on the left; clock, PT · EN and the system on the right.
+    const header = new BoxRenderable(renderer, { height: 1, flexDirection: "row", backgroundColor: theme.barBackground, paddingRight: 1, gap: 2, flexShrink: 0 });
     const brand = new BoxRenderable(renderer, { flexDirection: "row", flexShrink: 0 });
-    brand.add(new TextRenderable(renderer, { content: `${glyphs.block} `, fg: theme.accent, selectable: false }));
-    const name = new TextRenderable(renderer, { content: manifest.title, fg: theme.textStrong, attributes: TextAttributes.BOLD });
+    const name = new TextRenderable(renderer, { content: t`${bold(fg(theme.background)(" ▲ SetupVibe "))}`, bg: theme.accent, selectable: false });
     // A click on the name goes back to the Home, like a breadcrumb.
     name.onMouseDown = (e) => {
       e.stopPropagation();
       show(home.id);
     };
     brand.add(name);
-    brand.add(new TextRenderable(renderer, { content: ` v${manifest.version}`, fg: theme.textDim }));
-    crumb = new TextRenderable(renderer, { content: "", flexShrink: 0 });
+    brand.add(new TextRenderable(renderer, { content: ` v${manifest.version}`, fg: theme.textDim, bg: theme.barBackground }));
+    crumb = new TextRenderable(renderer, { content: "", flexShrink: 0, bg: theme.barBackground });
     brand.add(crumb);
     header.add(brand);
+    header.add(new BoxRenderable(renderer, { flexGrow: 1, flexShrink: 1, minWidth: 0 }));
+    const system = new TextRenderable(renderer, { content: systemSummary(), fg: theme.textDim, flexShrink: 1, minWidth: 0, wrapMode: "none", height: 1, bg: theme.barBackground });
+    header.add(system);
     // Language switch: the active language is highlighted; a click or L switches it.
     const pt = tuiLanguage() === "pt-BR";
     const languageSwitch = new TextRenderable(renderer, {
       content: t`${fg(pt ? theme.accent : theme.textDim)(pt ? "[PT]" : " PT ")}${fg(theme.textDim)("·")}${fg(!pt ? theme.accent : theme.textDim)(!pt ? "[EN]" : " EN ")}`,
       flexShrink: 0,
       selectable: false,
+      bg: theme.barBackground,
     });
     languageSwitch.onMouseDown = (e) => {
       e.stopPropagation();
       switchLanguage();
     };
     header.add(languageSwitch);
-    header.add(new BoxRenderable(renderer, { flexGrow: 1, flexShrink: 1, minWidth: 0 }));
-    header.add(new TextRenderable(renderer, { content: systemSummary(), fg: theme.textDim, flexShrink: 1, minWidth: 0, wrapMode: "none", height: 1 }));
+    clock = new TextRenderable(renderer, { content: "", fg: theme.barText, flexShrink: 0, bg: theme.barBackground });
+    header.add(clock);
+    tickClock();
     root.add(header);
 
-    const rule = new BoxRenderable(renderer, { height: 1, paddingLeft: 1, paddingRight: 1 });
-    rule.add(new TextRenderable(renderer, { content: "─".repeat(400), fg: theme.border, wrapMode: "none", height: 1, selectable: false }));
-    root.add(rule);
-
     moduleBar = new BoxRenderable(renderer, { height: 1, marginTop: 1, flexDirection: "row", gap: 2, paddingLeft: 1, paddingRight: 1, flexShrink: 0 });
-    const backButton = new TextRenderable(renderer, { content: ` ← ${tr("global.backButton")} `, fg: theme.keyText, bg: theme.keyBackground, selectable: false, flexShrink: 0 });
+    const backButton = new TextRenderable(renderer, { content: ` ${icon("back")}  ${tr("global.backButton")} `, fg: theme.keyText, bg: theme.keyBackground, selectable: false, flexShrink: 0 });
     backButton.onMouseDown = (e) => {
       e.stopPropagation();
       show(home.id);
@@ -295,6 +341,7 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
   renderer.keyInput.on("keypress", onKey);
   renderer.once("destroy", () => {
     renderer.keyInput.off("keypress", onKey);
+    clearInterval(clockTimer);
     // Timers of the open module (Machine refreshes every two seconds) stop with the TUI.
     active?.onLeave?.(context);
   });

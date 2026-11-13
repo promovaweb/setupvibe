@@ -64,7 +64,7 @@ describe("mouse and language", () => {
     const card = find("1 Inventário");
     await setup.mockMouse.click(card.x + 2, card.y + 2);
     await setup.renderOnce();
-    expect(setup.captureCharFrame()).toContain("› Inventário");
+    expect(setup.captureCharFrame()).toMatch(/›\s.*Inventário/);
     expect(setup.captureCharFrame()).toContain("Categorias");
   });
 
@@ -110,18 +110,18 @@ describe("inventory panel keys", () => {
   });
 
   test("c focuses the categories and j/k change the category; f and Tab go back to the tools", async () => {
-    expect(setup.captureCharFrame()).toContain("f · System");
+    expect(setup.captureCharFrame()).toMatch(/f · \S*\s*System/);
     setup.mockInput.pressKey("c");
     setup.mockInput.pressKey("j");
     await setup.renderOnce();
-    expect(setup.captureCharFrame()).toContain("f · Languages");
+    expect(setup.captureCharFrame()).toMatch(/f · \S*\s*Languages/);
     setup.mockInput.pressKey("f");
     setup.mockInput.pressKey("j");
     await setup.renderOnce();
-    expect(setup.captureCharFrame()).toContain("f · Languages");
+    expect(setup.captureCharFrame()).toMatch(/f · \S*\s*Languages/);
     setup.mockInput.pressTab();
     setup.mockInput.pressKey("j");
     await setup.renderOnce();
-    expect(setup.captureCharFrame()).toContain("f · Terminal tools");
+    expect(setup.captureCharFrame()).toMatch(/f · \S*\s*Terminal tools/);
   });
 });

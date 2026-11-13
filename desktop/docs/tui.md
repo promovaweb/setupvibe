@@ -11,20 +11,34 @@ módulo. Cada cartão resume o módulo e mostra o número que o abre:
 
 | Cartão | Resumo no Início | O módulo |
 | --- | --- | --- |
-| 1 Inventário | barra de progresso, itens por status e uma barra por categoria | categorias com nome, contagem `instalados/total` e barra de progresso; ferramentas em blocos de duas linhas (marcador, status e nome em negrito; embaixo, descrição e versões fixada e instalada) com legenda; detalhes ou o plano; botões **Instalar** e **Remover**. `c` seleciona o painel de categorias, `f` o de ferramentas e `Tab` alterna; o painel ativo tem a borda de destaque e a seleção dele vira uma faixa cheia. `j`/`k` movem no painel ativo, `h`/`l` trocam a categoria, `g`/`End` vão ao início e ao fim, `espaço` marca, `i` instala e `r` remove. O primeiro toque (ou clique) mostra o plano e o segundo executa; qualquer outra tecla cancela. As ações rodam o CLI em outro processo. |
+| 1 Inventário | barra de progresso, itens por status e uma barra por categoria | categorias com nome, contagem `instalados/total` e barra de progresso; ferramentas em blocos de duas linhas (marcador, status e nome em negrito; embaixo, descrição e versões fixada e instalada); detalhes ou o plano; botões **Instalar** e **Remover**. `c` seleciona o painel de categorias, `f` o de ferramentas e `Tab` alterna; o painel ativo tem a borda de destaque e a seleção dele vira uma faixa cheia. `j`/`k` movem no painel ativo, `h`/`l` trocam a categoria, `g`/`End` vão ao início e ao fim, `espaço` marca, `i` instala e `r` remove. O primeiro toque (ou clique) mostra o plano e o segundo executa; qualquer outra tecla cancela. As ações rodam o CLI em outro processo. |
 | 2 Usuário | usuário, pendências e sudo | checklist agrupada em Permissões, Pastas e SetupVibe, com o aviso dos aliases `cco`, `cxo` e `oco` |
 | 3 Doctor | problemas, avisos, init e os principais achados | os achados do `doctor` agrupados, cada um com o comando que resolve; **Aplicar correções seguras** ou `f`; `u` atualiza |
 | 4 Logs | última execução e as anteriores | execuções em `~/.setupvibe/logs` e os eventos de cada uma, com o erro abaixo de cada falha |
 | 5 Tailscale | estado, IP, tailnet e as máquinas online, atualizados a cada 15 segundos | esta máquina (estado, nome, DNS, IPs, tailnet, MagicDNS, versão, expiração da chave, exit node, tags, rotas, recursos); serviços publicados com serve e Funnel; avisos de saúde; teste de rede com `n` (UDP, IPv4, IPv6, UPnP, NAT-PMP, PCP, NAT difícil, portal cativo e latência por relay); máquinas da tailnet com sistema, IP, conexão direta ou por relay e último contato; detalhes da máquina escolhida (IPs, usuário, endereço direto, tráfego, expiração). Tudo vem do cliente local, sem a API da Tailscale. |
-| 6 Máquina | CPU, RAM e disco em barras, carga, rede por segundo e histórico de CPU, atualizados a cada 2 segundos | ao vivo, a cada segundo: sistema (host, distribuição, kernel, virtualização, variação, tempo ligado, usuário, shell, fuso, processos); CPU total, histórico dos últimos 60 segundos, carga, temperatura quando há sensor e uma barra por núcleo; RAM e swap com histórico; rede por interface (recebido e enviado por segundo e totais) com os endereços; discos com uso e leitura e escrita por segundo; os processos que mais usam CPU (PID, nome, CPU, memória, RSS) |
+| 6 Máquina | CPU, RAM e disco em barras, carga, rede por segundo e histórico de CPU, atualizados a cada 2 segundos; textos longos quebram em palavras dentro do cartão | ao vivo, a cada segundo: sistema (host, distribuição, kernel, virtualização, variação, tempo ligado, usuário, shell, fuso, processos); CPU total, histórico dos últimos 60 segundos, carga, temperatura quando há sensor e uma barra por núcleo; RAM e swap com histórico; rede por interface (recebido e enviado por segundo e totais) com os endereços; discos com uso e leitura e escrita por segundo; os processos que mais usam CPU (PID, nome, CPU, memória, RSS) |
 | 7 Sobre | versão, edição, sistema e variação | binário, projeto, licença, créditos e padrões |
 
 Acima dos cartões, o **próximo passo** recomendado; um clique nele abre o
 módulo onde ele se resolve.
 
-Dentro de um módulo, o topo mostra o botão **← Voltar**, o nome do módulo e o
-que ele mostra; o cabeçalho traz `SetupVibe › módulo`. O botão, o nome
-`SetupVibe`, `Esc` ou `Backspace` voltam ao Início.
+**Cabeçalho.** A primeira linha é uma faixa com o selo `▲ SetupVibe`, a
+versão, onde você está (`Início` ou `› módulo`, com o ícone dele), o
+sistema detectado, o seletor `PT · EN` e um relógio atualizado a cada 15
+segundos.
+
+Dentro de um módulo, o topo mostra o botão **← Voltar**, o ícone e o nome do
+módulo e o que ele mostra. O botão, o selo `SetupVibe`, `Esc` ou
+`Backspace` voltam ao Início.
+
+**Rodapé.** A barra inferior mostra primeiro as teclas do módulo e, depois de
+um `│`, as globais. Quando a largura não comporta todas, as do fim saem, mas
+`?` (ajuda, que lista todas) e `q` ficam sempre.
+
+**Ícones.** Módulos, categorias, painéis e estados têm ícones da Nerd Font,
+instalada pelo SetupVibe. Num terminal sem essa fonte, desligue com
+`config set tui.icons false` ou `SETUPVIBE_ICONS=0`: a TUI passa a usar
+símbolos que toda fonte tem.
 
 **Idioma.** A interface fala português por padrão. O seletor `PT · EN` no
 cabeçalho (clique) ou a tecla `L` troca para inglês e volta; a escolha fica

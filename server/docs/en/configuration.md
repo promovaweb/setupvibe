@@ -22,6 +22,7 @@ Keys in dot notation. The skeleton schema:
 | `tui.initialTab` | `overview` (Home), `inventory`, `user`, `doctor`, `logs`, `tailscale`, `machine` or `about` | `overview` | screen opened when the TUI starts |
 | `tui.language` | `pt-BR` or `en` | `pt-BR` | TUI language; the `L` key and the `PT · EN` switch write it |
 | `tui.mouse` | `true` or `false` | `true` | mouse in the TUI (clicks and wheel) |
+| `tui.icons` | `true` or `false` | `true` | Nerd Font icons in the TUI; with `false`, plain symbols |
 | `shell.agentAliases` | `true` or `false` | `true` | writes `cco`, `cxo`, `oco`, `cx` and `oc`, which start the agents without prompts; run `{{bin}} shell apply` after changing it |
 | `tui.theme` | `night` or `day` | `night` | TUI palette |
 | `telemetry.enabled` | boolean | `false` | reserved for derived projects |
@@ -98,6 +99,7 @@ MCP tool response.
 | --- | --- |
 | `SETUPVIBE_HOME` | replaces `~/.setupvibe/` with another folder |
 | `{{BIN}}_MASTER_KEY` | master key in hex; makes `master.key` unnecessary |
+| `SETUPVIBE_ICONS` | `0` replaces the TUI Nerd Font icons with plain symbols |
 | `NO_COLOR` | turns off colors in text output |
 
 ## Master key rotation

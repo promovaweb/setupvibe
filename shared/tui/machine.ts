@@ -22,6 +22,7 @@ import { LiveSampler, rate, sparkline, type LiveReading } from "../system/live.t
 import { formatBytes } from "../tailscale/status.ts";
 import { tr, type TextKey } from "./i18n.ts";
 import { fit } from "./model.ts";
+import { icon } from "./icons.ts";
 import { meter, usageColor } from "./style.ts";
 
 export { usageColor };
@@ -56,8 +57,8 @@ export const machineScreen: Screen = (() => {
       const cores = machineInfo().cores;
       const root = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, gap: 1, paddingTop: 1 });
       const row = (height?: number) => new BoxRenderable(renderer, { flexDirection: "row", gap: 2, ...(height ? { height, flexShrink: 0 } : { flexGrow: 1, minHeight: 6 }) });
-      const box = (title: TextKey, grow: number, parent: BoxRenderable, active = false) => {
-        const p = panel(renderer, theme, { title: tr(title), flexGrow: grow, flexBasis: 0, active });
+      const box = (title: TextKey, grow: number, parent: BoxRenderable, active = false, glyph = "") => {
+        const p = panel(renderer, theme, { title: `${icon(glyph)}  ${tr(title)}`, flexGrow: grow, flexBasis: 0, active });
         p.add(new BoxRenderable(renderer, { height: 1, flexShrink: 0 }));
         parent.add(p);
         return lines(renderer, p);
@@ -66,12 +67,12 @@ export const machineScreen: Screen = (() => {
       const r1 = row(r1Height);
       const r2 = row(9);
       const r3 = row();
-      const sys = box("mc.system", 2, r1, true);
-      const cpu = box("mc.cpuTitle", 3, r1);
-      const mem = box("mc.memory", 2, r2);
-      const net = box("mc.network", 3, r2);
-      const disk = box("mc.disks", 2, r3);
-      const proc = box("mc.processes", 3, r3);
+      const sys = box("mc.system", 2, r1, true, "machine");
+      const cpu = box("mc.cpuTitle", 3, r1, false, "cpu");
+      const mem = box("mc.memory", 2, r2, false, "memory");
+      const net = box("mc.network", 3, r2, false, "network");
+      const disk = box("mc.disks", 2, r3, false, "disk");
+      const proc = box("mc.processes", 3, r3, false, "process");
       root.add(r1);
       root.add(r2);
       root.add(r3);

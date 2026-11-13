@@ -4,6 +4,26 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.23] - 2026-11-12
+
+### Changed
+
+- Header band at the top of every screen: the `▲ SetupVibe` badge (a click goes to the Home), the version, where you are with the module icon, the detected system, the `PT · EN` switch and a clock refreshed every 15 seconds. The separator rule below it is gone.
+- Nerd Font icons across the TUI: modules, Home cards, Inventory categories, panel titles, Doctor groups, User checklist groups and states. `tui.icons` (default `true`) or `SETUPVIBE_ICONS=0` switch to plain symbols every font has.
+- The bottom bar shows the module keys, a `│` and the global keys; when the width is short the last ones drop out, but `?` and `q` always stay.
+- Home cards wrap long text by word instead of cutting it; the Machine card puts load and network on separate lines. The Doctor summary shows only the counts, since the system is in the header. Tailscale column headers are all uppercase and each served address shows its target on the line below.
+
+### Fixed
+
+- On short terminals the Inventory **Install** and **Remove** buttons no longer overlap the counts line: they move under the description.
+- Quiet status labels (from init, system, unavailable) stay readable on the selected item bar.
+
+### Validation
+
+- `bun run validate` with 373 tests, including the icon maps (every plain symbol has a Nerd Font glyph) and the bottom bar width rule; every screen checked as a PNG image.
+
+---
+
 ## [v2.0.0-dev.22] - 2026-11-12
 
 ### Changed

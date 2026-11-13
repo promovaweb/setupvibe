@@ -121,9 +121,9 @@ describe("screens", () => {
     setup.mockInput.pressKey("1");
     await setup.renderOnce();
     let frame = setup.captureCharFrame();
-    expect(frame).toContain("› Inventory");
+    expect(frame).toMatch(/›\s.*Inventory/);
     expect(frame).toContain("Categories");
-    expect(frame).toContain("c · Categories");
+    expect(frame).toMatch(/c · \S*\s*Categories/);
     setup.mockInput.pressKey("l");
     await setup.renderOnce();
     expect(setup.captureCharFrame()).toContain("Node.js");

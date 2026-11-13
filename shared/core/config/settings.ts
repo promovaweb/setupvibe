@@ -54,6 +54,12 @@ export const SETTINGS_SCHEMA: readonly SettingDefinition[] = Object.freeze([
     description: "TUI language; the L key or the PT · EN switch in the header changes it.",
   },
   {
+    key: "tui.icons",
+    type: "boolean",
+    default: true,
+    description: "Nerd Font icons in the TUI; false switches to plain symbols for terminals without a Nerd Font.",
+  },
+  {
     key: "tui.mouse",
     type: "boolean",
     default: true,

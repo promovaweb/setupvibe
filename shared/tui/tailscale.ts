@@ -16,6 +16,7 @@ import type { Theme } from "../core/tui/theme.ts";
 import type { Screen } from "../core/tui/screen.ts";
 import { collect, daysUntil, formatBytes, runNetcheck, since, type NetcheckResult, type TailscalePeer, type TailscaleSnapshot } from "../tailscale/status.ts";
 import { tr, type TextKey } from "./i18n.ts";
+import { icon } from "./icons.ts";
 import { fit } from "./model.ts";
 
 function line(renderer: CliRenderer, wrap = false, height?: number): TextRenderable {
@@ -63,11 +64,11 @@ export const tailscaleScreen: Screen = (() => {
     mount: ({ renderer, theme }) => {
       const root = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, gap: 1, paddingTop: 1 });
       const top = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, height: 15, flexShrink: 0 });
-      const selfPanel = panel(renderer, theme, { title: tr("ts.self"), flexGrow: 3, flexBasis: 0, active: true });
+      const selfPanel = panel(renderer, theme, { title: `${icon("machine")}  ${tr("ts.self")}`, flexGrow: 3, flexBasis: 0, active: true });
       const selfText = line(renderer);
       selfPanel.add(new BoxRenderable(renderer, { height: 1, flexShrink: 0 }));
       selfPanel.add(selfText);
-      const sidePanel = panel(renderer, theme, { title: tr("ts.services"), flexGrow: 2, flexBasis: 0 });
+      const sidePanel = panel(renderer, theme, { title: `${icon("services")}  ${tr("ts.services")}`, flexGrow: 2, flexBasis: 0 });
       const side = scroll(renderer, theme);
       sidePanel.add(new BoxRenderable(renderer, { height: 1, flexShrink: 0 }));
       sidePanel.add(side);
@@ -75,12 +76,12 @@ export const tailscaleScreen: Screen = (() => {
       top.add(sidePanel);
 
       const bottom = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, flexGrow: 1, minHeight: 6 });
-      const peersPanel = panel(renderer, theme, { title: tr("ts.peers"), flexGrow: 3, flexBasis: 0 });
+      const peersPanel = panel(renderer, theme, { title: `${icon("peers")}  ${tr("ts.peers")}`, flexGrow: 3, flexBasis: 0 });
       const header = line(renderer, false, 1);
       const peerList = scroll(renderer, theme);
       peersPanel.add(header);
       peersPanel.add(peerList);
-      const detailPanel = panel(renderer, theme, { title: tr("inv.details"), flexGrow: 2, flexBasis: 0 });
+      const detailPanel = panel(renderer, theme, { title: `${icon("details")}  ${tr("inv.details")}`, flexGrow: 2, flexBasis: 0 });
       const detailText = line(renderer, true);
       detailPanel.add(new BoxRenderable(renderer, { height: 1, flexShrink: 0 }));
       detailPanel.add(detailText);
@@ -139,7 +140,12 @@ ${k("ts.caps")}${dim((me?.capabilities ?? []).join(", ") || "-")}`;
         };
         add(t`${strong(tr("ts.serve"))} ${dim(`(${s.serve.length})`)}`, false);
         if (!s.serve.length) add(t`  ${dim(tr("ts.none"))}`);
-        for (const entry of s.serve) add(t`  ${fg(theme.accent)("•")} ${entry}`);
+        for (const entry of s.serve) {
+          // "url → target": the address on one line, where it goes on the next.
+          const [from, to] = entry.split(" → ");
+          add(t`  ${fg(theme.accent)("•")} ${from ?? entry}`);
+          if (to) add(t`    ${dim(`→ ${to}`)}`);
+        }
         add("", false);
         add(t`${strong(tr("ts.health"))} ${dim(`(${s.health.length})`)}`, false);
         if (!s.health.length) add(t`  ${fg(theme.ok)("✓")} ${dim(tr("ts.healthy"))}`);
@@ -156,8 +162,8 @@ ${k("ts.caps")}${dim((me?.capabilities ?? []).join(", ") || "-")}`;
         }
 
         const online = s.peers.filter((p) => p.online).length;
-        peersPanel.title = ` ${tr("ts.peers")} · ${online}/${s.peers.length} online `;
-        header.content = t`${dim(`    ${fit(tr("ts.col.name"), 20)}${fit(tr("ts.col.os"), 9)}${fit("IP", 16)}${fit(tr("ts.col.conn"), 12)}${tr("ts.col.seen")}`)}`;
+        peersPanel.title = ` ${icon("peers")}  ${tr("ts.peers")} · ${online}/${s.peers.length} online `;
+        header.content = t`${dim(`    ${fit(tr("ts.col.name").toLocaleUpperCase(), 20)}${fit(tr("ts.col.os").toLocaleUpperCase(), 9)}${fit("IP", 16)}${fit(tr("ts.col.conn").toLocaleUpperCase(), 12)}${tr("ts.col.seen").toLocaleUpperCase()}`)}`;
         row = Math.min(row, Math.max(0, s.peers.length - 1));
         s.peers.forEach((p, i) => {
           const l = line(renderer, false, 1);
