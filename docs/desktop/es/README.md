@@ -1,6 +1,6 @@
 # SetupVibe — Edición Escritorio
 
-> Configuración de entorno de desarrollo multiplataforma — v0.41.22
+> Configuración de entorno de desarrollo multiplataforma — v0.42.0
 
 Instala y configura un stack de desarrollo completo en un solo comando. Soporta macOS y las principales distribuciones de Linux.
 
@@ -233,7 +233,7 @@ Cada plataforma recibe un `.zshrc` dedicado:
 
 ## Licencia
 
-Bajo la licencia **GNU General Public License v3.0** — ver [LICENSE](../../../LICENSE) para detalles.
+Bajo la licencia **GNU Affero General Public License v3.0**. Ver [LICENSE](../../../LICENSE) para el texto completo.
 
 Mantenido por [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 

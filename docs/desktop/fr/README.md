@@ -1,6 +1,6 @@
 # SetupVibe — Édition Bureau
 
-> Configuration de l'environnement de développement multiplateforme — v0.41.22
+> Configuration de l'environnement de développement multiplateforme — v0.42.0
 
 Installe et configure un stack complet de développeur en une seule commande. Supporte macOS et les principales distributions Linux.
 
@@ -233,7 +233,7 @@ Toutes les contributions de toutes tailles sont les bienvenues ! Veuillez lire n
 
 ## Licence
 
-Sous licence **GNU General Public License v3.0** — voir [LICENSE](../../../LICENSE) pour plus de détails.
+Sous licence **GNU Affero General Public License v3.0**. Voir [LICENSE](../../../LICENSE) pour le texte complet.
 
 Maintenu par [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 

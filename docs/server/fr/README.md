@@ -1,6 +1,6 @@
 # SetupVibe — Édition Serveur
 
-> Configuration de serveur Linux — v0.41.22
+> Configuration de serveur Linux — v0.42.0
 
 Un script de configuration léger et ciblé pour les serveurs Linux. Pas de Homebrew, pas d'écosystèmes de langages, pas d'outils de bureau. Installe uniquement ce dont un serveur de production a besoin : Docker, Ansible, réseau, shell, tmux et outils AI CLI.
 
@@ -178,7 +178,7 @@ Toutes les contributions de toutes tailles sont les bienvenues ! Veuillez lire n
 
 ## Licence
 
-Sous licence **GNU General Public License v3.0** — voir [LICENSE](../../../LICENSE) pour plus de détails.
+Sous licence **GNU Affero General Public License v3.0**. Voir [LICENSE](../../../LICENSE) pour le texte complet.
 
 Maintenu par [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 

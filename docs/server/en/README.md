@@ -1,6 +1,6 @@
 # SetupVibe — Server Edition
 
-> Linux server setup — v0.41.22
+> Linux server setup — v0.42.0
 
 A lean, focused setup script for Linux servers. No Homebrew, no language ecosystems, no desktop tools. Installs only what a production server needs: Docker, Ansible, networking, shell, tmux, and AI CLI tools.
 
@@ -178,7 +178,7 @@ We welcome contributions of all sizes! Please read our [Contribution Guide](../.
 
 ## License
 
-Licensed under the **GNU General Public License v3.0** — see [LICENSE](../../../LICENSE) for details.
+Licensed under the **GNU Affero General Public License v3.0**. See [LICENSE](../../../LICENSE) for the full text.
 
 Maintained by [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 

@@ -1,6 +1,6 @@
 # SetupVibe — Desktop Edition
 
-> Cross-platform development environment setup — v0.41.22
+> Cross-platform development environment setup — v0.42.0
 
 Installs and configures a complete developer stack in one command. Supports macOS and major Linux distributions.
 
@@ -232,7 +232,7 @@ We welcome contributions of all sizes! Please read our [Contribution Guide](../.
 
 ## License
 
-Licensed under the **GNU General Public License v3.0** — see [LICENSE](../../../LICENSE) for details.
+Licensed under the **GNU Affero General Public License v3.0**. See [LICENSE](../../../LICENSE) for the full text.
 
 Maintained by [promovaweb.com](https://promovaweb.com) · <contato@promovaweb.com>
 

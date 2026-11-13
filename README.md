@@ -223,4 +223,6 @@ Want to use SetupVibe in real projects, with guidance? See the [Promovaweb plans
 
 ## License
 
-GPL-3.0. Read the full text in [LICENSE](LICENSE).
+Distributed under the [GNU AGPL 3.0](LICENSE). The license does not grant the
+use of the SetupVibe name and logo or the Promovaweb brand (AGPL 3.0,
+section 7, item e).

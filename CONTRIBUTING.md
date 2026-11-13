@@ -238,4 +238,4 @@ The installers download `conf/` and `bin/` from the tag of the running version. 
 
 ## License
 
-SetupVibe is distributed under the GPL-3.0. Read the text in [LICENSE](LICENSE). By submitting a contribution, you agree to license it under the same terms.
+SetupVibe is distributed under the [GNU AGPL 3.0](LICENSE). By submitting a contribution, you agree to license it under the same terms. Versions already published stay under the license they were released with.
