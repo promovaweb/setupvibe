@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>$title$</title>
+  <meta name="description" content="$description$">
+</head>
+<body>
+  <div class="cover">
+    <img class="cover-mark" src="assets/logo.png" alt="Logo do SetupVibe">
+    <div class="cover-title">
+      <div class="cover-kicker">SetupVibe</div>
+      <h1>Guia do usuário</h1>
+      <div class="cover-tagline">Ambiente de desenvolvimento com versões fixadas, em um comando</div>
+      <div class="cover-desc">Instalação, lista de itens, TUI, shell, servidor com segurança, agentes por MCP, migração do SetupVibe 1 e a referência de CLI, configuração, exit codes e MCP.</div>
+    </div>
+    <div class="cover-meta">
+      <div>Edição v$version$</div>
+      <div>Gerado em $date$</div>
+      <div>Fonte editorial: docs/user/</div>
+    </div>
+  </div>
+  $if(toc)$
+  <nav id="TOC" role="doc-toc">$toc$</nav>
+  $endif$
+  <main>$body$</main>
+</body>
+</html>

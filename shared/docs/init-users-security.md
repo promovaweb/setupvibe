@@ -36,11 +36,11 @@ the release `SHASUMS256.txt`.
 ## `init`
 
 Checks, in order: not root, the other edition is not set up, free disk space
-(10 GB desktop, 5 GB server), memory, UTF-8 locale, network and clock. Then
-installs the inventory items marked `initOnly` (build dependencies and mise)
-and writes the `init` record to `config.json`. Exit codes: `ROOT` (12),
-`UNSUPPORTED_SYSTEM` (11), `DISK_SPACE` (14), `NETWORK_OR_API` (5),
-`PARTIAL` (10).
+(10 GB desktop, 5 GB server), memory, UTF-8 locale, network and clock, and the
+Windows component store health. Then installs the inventory items marked
+`initOnly` (build dependencies and mise) and writes the `init` record to
+`config.json`. Exit codes: `ROOT` (12), `UNSUPPORTED_SYSTEM` (11),
+`DISK_SPACE` (14), `NETWORK_OR_API` (5), `PARTIAL` (10).
 
 In a terminal, init asks once for the Git name and e-mail when Git has none
 and saves them in `config.json`. On a machine set up by SetupVibe 1 or by

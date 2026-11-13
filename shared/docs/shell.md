@@ -12,7 +12,7 @@
 - Before the first change, the original file is copied to
   `~/.setupvibe/backups/` (`<file>.first` plus a timestamped copy).
 - Personal settings go in `~/.zshrc.local`, `~/.bashrc.local` and
-  `~/.tmux.conf.local`, created empty and never overwritten.
+  `~/.tmux.conf.local`, created with a comment and never overwritten.
 - The aliases live in `~/.setupvibe/shell/aliases.sh` (valid in ZSH and
   Bash). Each one goes through `_sv_alias`, which defines it only when no
   alias, shell function or installed command answers to that name, so your

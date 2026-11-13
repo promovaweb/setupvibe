@@ -22,9 +22,8 @@ máquina.
 `{{bin}} auto` instala tudo sem perguntar nada, para máquinas sem interface,
 provisionamento e agentes. As respostas vêm de opções, de variáveis
 `SETUPVIBE_*` ou de um arquivo `--config`. Como root, `--user` cria o usuário
-de trabalho e o `auto` continua como ele. Sem `--profile`, entra todo o
-inventário compatível com o sistema; itens gráficos ficam de fora em máquina
-sem interface.
+de trabalho e o `auto` continua como ele. Sem `--profile`, entram todos os itens
+do inventário compatíveis com o sistema.
 
 ```bash
 {{bin}} auto --dry-run          # mostra o plano sem alterar nada
@@ -32,7 +31,7 @@ sem interface.
 ```
 
 O resultado completo fica em `~/.setupvibe/last-run.json`. Os códigos de
-saída estão na seção de exit codes.
+saída estão em [exit-codes.md](exit-codes.md).
 
 ## Itens do inventário
 
@@ -43,14 +42,32 @@ usuário e `{{bin}} update` atualiza os itens cuja versão fixada mudou.
 `{{bin}} install --external <ferramenta>` instala pelo mise um app fora do
 inventário, com versão fixada.
 
+## Docker Swarm
+
+O `auto` pode inicializar o Swarm como manager (`--manager`) ou entrar em um
+Swarm existente (`--join` com `SETUPVIBE_SWARM_TOKEN`), com a rede overlay
+cifrada por `--encrypted-network`. `{{bin}} swarm token` imprime o token de
+entrada pronto para uso num script.
+
+```bash
+{{bin}} auto --manager --encrypted-network     # no manager
+{{bin}} swarm token                            # imprima o token do worker
+SETUPVIBE_SWARM_TOKEN=<token> {{bin}} auto --advertise-addr 10.0.0.12:2377   # no nó novo
+```
+
+Rode `swarm token` no manager e leve o token para o nó novo em
+`SETUPVIBE_SWARM_TOKEN`, para ele não aparecer em `argv`. A opção `--join`
+também aceita o token, mas a variável tem prioridade na documentação do
+command.
+
 ## Ambiente do terminal
 
 `{{bin}} auto` configura o shell, o prompt e o tmux. As alterações em
-`~/.zshrc` (ou `~/.bashrc` no Omarchy) e em `~/.tmux.conf` ficam entre os
-marcadores `# >>> setupvibe >>>` e `# <<< setupvibe <<<`, com cópia de
-segurança antes da primeira mudança. Personalizações vão em `~/.zshrc.local`,
-`~/.bashrc.local` e `~/.tmux.conf.local`. `{{bin}} shell apply` refaz a
-configuração e `{{bin}} shell remove` tira os blocos.
+`~/.zshrc` e em `~/.tmux.conf` ficam entre os marcadores
+`# >>> setupvibe >>>` e `# <<< setupvibe <<<`, com cópia de segurança antes da
+primeira mudança. Personalizações vão em `~/.zshrc.local` e
+`~/.tmux.conf.local`. `{{bin}} shell apply` refaz a configuração e
+`{{bin}} shell remove` tira os blocos.
 
 ## Manutenção
 
@@ -61,6 +78,7 @@ configuração e `{{bin}} shell remove` tira os blocos.
   repetem a seleção em outra máquina.
 - `{{bin}} report` gera o relatório para anexar em issue, sem segredos.
 - `{{bin}} ssh copy-id usuario@servidor` autoriza a sua chave SSH num servidor.
+- `{{bin}} mcp install` registra o servidor MCP no Claude Code, no Codex e no OpenCode; `{{bin}} mcp --list` mostra as tools.
 - `{{bin}} skill -- add dono/repo` usa o skills CLI da Vercel.
 - `{{bin}} self uninstall --yes` remove o SetupVibe e mantém backups e dados
   do Portainer.
@@ -69,14 +87,17 @@ configuração e `{{bin}} shell remove` tira os blocos.
 ## Mapa
 
 - [cli.md](cli.md): commands, opções globais, convenções de saída e a referência gerada do registry.
-- [tui.md](tui.md): abas, teclas, tema e como criar uma screen.
-- [mcp.md](mcp.md): tools, resources, prompts e configuração nos clientes.
-- [configuration.md](configuration.md): settings.json, credentials.json, master key e variáveis de ambiente.
-- [exit-codes.md](exit-codes.md): tabela de exit codes e como tratá-los.
+- [tui.md](tui.md): Início, módulos, teclas por módulo, tema e como criar um módulo.
+- [mcp.md](mcp.md): tools, resources e prompt, com entrada, saída, efeitos, recusas e exemplos, e a configuração nos clientes.
+- [configuration.md](configuration.md): settings.json, arquivos de estado, credentials.json, master key e variáveis de ambiente.
+- [exit-codes.md](exit-codes.md): tabela de exit codes, os codes de cada command e como tratá-los.
+- [troubleshooting.md](troubleshooting.md): sintoma, causa, comando e exit code das falhas que o binário trata.
+- [migration.md](migration.md): guia de quem vem do SetupVibe 1, com o que o `migrate` converte e o que ele pergunta.
 
 ## Documentação embutida
 
-Toda esta pasta entra no binário. Um agente pode ler tudo sem acesso ao
+O binário embute `README.md`, `cli.md`, `tui.md`, `mcp.md`, `configuration.md`,
+`exit-codes.md`, `troubleshooting.md` e `migration.md`, nas duas línguas. Um agente lê essa referência sem acesso ao
 repositório:
 
 ```bash
@@ -85,25 +106,27 @@ repositório:
 {{bin}} --skill mcp --json
 ```
 
-Os tópicos aceitos são `cli`, `tui`, `mcp`, `config`, `exit-codes` e
-`reference`. O topic `reference` contém somente a referência gerada do
-registry, com commands, options e exit codes.
+O `{{bin}} --skill` e o `{{bin}} docs` aceitam `cli`, `tui`, `mcp`, `config`,
+`exit-codes`, `troubleshooting`, `migration`, `inventory` e `reference`. O tópico
+`inventory` é gerado do inventário embutido, com os perfis e uma tabela por
+categoria. O tópico `reference` contém somente a referência gerada do registry,
+com commands, options e exit codes.
 
 ## Idioma
 
 O código, os nomes de commands, options, keys de configuração, campos do
-`--json` e as mensagens do binário são em inglês. Esta documentação e as
-skills do framework são em português do Brasil, com os termos técnicos
-preservados em inglês.
+`--json` e as mensagens do binário são em inglês. Esta documentação existe em
+português do Brasil e em inglês, com os termos técnicos preservados em inglês.
+`SETUPVIBE_LANG`, ou `--lang` no `{{bin}} docs`, escolhem a versão embutida.
 
 ## Vindo do SetupVibe 1
 
-Numa máquina preparada pelo SetupVibe 1, `{{bin}} system` e `{{bin}} doctor`
-mostram o que ele deixou. `{{bin}} migrate --dry-run` mostra o plano: o
-`.zshrc` e o `.tmux.conf` antigos vão para `~/.setupvibe/backups/`, as linhas
-que você acrescentou passam para `~/.zshrc.local` e `~/.tmux.conf.local`, o
+Numa máquina preparada pelo `server.sh` do SetupVibe 1, `{{bin}} system` e
+`{{bin}} doctor` mostram o que ele deixou. `{{bin}} migrate --dry-run` mostra o
+plano e o [migration.md](migration.md) explica cada passo: o `.zshrc` e o
+`.tmux.conf` antigos vão para `~/.setupvibe/backups/`, as linhas que você
+acrescentou passam para `~/.zshrc.local` e `~/.tmux.conf.local`, o
 `ssh_copy_id` continua funcionando como atalho de `{{bin}} ssh copy-id` e as
-duplicidades (Go em `~/.local/go`, rbenv, `~/.npm-global`, NodeSource) só saem
-quando você confirma cada uma. O `auto` também converte o `.zshrc` e o
-`.tmux.conf` antes de escrever os blocos novos, então nada é carregado em
-dobro.
+duplicidades (`~/.npm-global`, NodeSource e, quando existirem, Go e rbenv) só
+saem quando você confirma cada uma. O `auto` também converte o `.zshrc` e o
+`.tmux.conf` antes de escrever os blocos novos, então nada é carregado em dobro.

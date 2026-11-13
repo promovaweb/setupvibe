@@ -37,7 +37,7 @@ import { shellRemoveSteps, shellSteps, agentAliasesEnabled, skippedAliases } fro
 import { logTail } from "../tui/model.ts";
 import { findAgent } from "./mcp-install.ts";
 import { rebootRequired, selfArgv } from "./auto.ts";
-import { detectV1Here } from "../legacy/v1.ts";
+import { detectV1Here, migrateSteps } from "../legacy/v1.ts";
 import { windowsHealth, windowsHealthFinding, windowsRepairSteps } from "../ops/windows-health.ts";
 import { DRY_RUN_OPTION, executePlan } from "./execute.ts";
 import { installItemsFor } from "./inventory.ts";
@@ -146,6 +146,9 @@ export const doctorCommand: Command = {
       chmodSync(statePath(), 0o700);
       applied.push("~/.setupvibe mode 700");
       if (findings.some((f) => f.id === "shell" && f.level !== "ok") && c.detected.system) {
+        // SetupVibe 1 files are converted first, so the new block does not pile on the old file.
+        const legacy = detectV1Here(homedir());
+        if (legacy.found) steps.push(...migrateSteps({ home: homedir(), detection: { ...legacy, sshCopyId: false } }));
         steps.push(...shellSteps({ system: c.detected.system, edition: manifest.edition, bin: manifest.bin, user: currentUser().username, zsh: Boolean(Bun.which("zsh")), tmux: Boolean(Bun.which("tmux")), starship: Boolean(findAgent("starship")), agentAliases: agentAliasesEnabled(c.config) }));
       }
       const results = await runSteps(steps, realRunner());
@@ -259,7 +262,7 @@ export const upgradeCommand: Command = {
     { name: "--check", description: "Only report whether an upgrade exists." },
     { name: "--channel", argument: { name: "channel", values: ["stable", "beta"] }, description: "Release channel; stable by default." },
   ],
-  exitCodes: [ExitCode.NETWORK_OR_API, ExitCode.PERMISSION],
+  exitCodes: [ExitCode.NETWORK_OR_API, ExitCode.PERMISSION, ExitCode.UNSUPPORTED_SYSTEM],
   examples: [`${manifest.bin} upgrade --check`, `${manifest.bin} upgrade`],
   run: async (ctx) => {
     const configured = readState<Record<string, unknown>>("config.json", {}).channel as string | undefined;

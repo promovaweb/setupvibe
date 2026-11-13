@@ -28,7 +28,7 @@ bun test shared/tests
 | `default` | Selected by default in the TUI; the `essencial` profile lists exactly these items |
 | `initOnly` | Installed by `init` and hidden from the selection |
 | `securityModule` | Part of the shared security module |
-| `flags` | `gui` (skipped on headless machines), `service` (needs systemd or lingering), `port` (bound to `127.0.0.1` on exposed machines) |
+| `flags` | `gui` (skipped on headless machines), `service` (needs systemd or lingering), `port` (publishes a port; a compose entry binds it to `127.0.0.1` on the remote variants) |
 | `requires` | Items installed first |
 | `plugins` | tmux plugins pinned to commits |
 | `install` | Install entry per system (see below) |
@@ -69,21 +69,40 @@ Every item must resolve an entry for every system of its edition. Use
 | `native` | `packages`, optional `repository`, `optional`, `conflicts` |
 | `brew` | `formula` or `cask` (macOS only) |
 | `winget` | `id` |
-| `installer` | `url`, `args`, `checksum` |
-| `archive` | `files` with `url` and `sha256`, `path` |
+| `installer` | `url`, `args`, `checksum`, `checksumAlgorithm`, `interpreter` |
+| `archive` | `files` with `url` and `sha256`, `path`, `checksumAlgorithm` |
 | `git` | `repo`, `path`; the commit is the item version |
 | `composer`, `gem` | `package` or `gem` |
 | `compose` | `image`, `port` |
 | `config` | `action` |
 | `preinstalled`, `unsupported` | `note` or `reason` |
 
+Every entry also accepts `flags`, for a state that applies only there (a GUI
+cask on macOS, for example). `skipWhen` marks an entry that another tool makes
+unnecessary; today the only value is `docker-desktop-integration`, which skips
+the Docker CLI inside WSL when Docker Desktop for Windows already provides it.
+`checksumAlgorithm` takes `sha256` (the default), `sha384` or `sha512`;
+`interpreter` names the program that runs a downloaded installer, `bash` by
+default.
+
 `{version}` in `tool`, `url`, `args` and `image` is replaced by the item
 version.
 
 ## Updating versions
 
-The `updated` field records the date of the last review. Until the
-`inventory bump` command exists, check versions with `mise latest <tool>`,
-update the item and its `verify.expect`, and run the tests. Repository key
-fingerprints and archive checksums are copied from the vendor and checked by
-the tests for format only.
+The `updated` field records the date of the last review.
+`bun run inventory:bump` checks every item pinned by `exact` and reports the
+newer versions it finds: mise for a mise entry, the latest GitHub release for a
+release archive, whose files are downloaded again to record the new SHA-256.
+Items pinned to a series (`node@24`, `python@3.14`, `ruby@3.4`) stay on their
+line.
+
+```bash
+bun run inventory:bump                 # report only
+bun run inventory:bump --write         # update the inventory files
+bun run inventory:bump --write --pr    # commit on a branch and open a pull request against v2
+```
+
+Run `bun test shared/tests` after `--write`: the tests catch a version that no
+longer matches its check. Repository key fingerprints and archive checksums are
+copied from the vendor and checked by the tests for format only.

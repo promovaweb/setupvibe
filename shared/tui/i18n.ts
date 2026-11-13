@@ -85,6 +85,44 @@ const pt = {
   "doctor.warnings": "Avisos",
   "doctor.ok": "Em ordem",
   "doctor.summary": "{fail} problema(s) · {warn} aviso(s) · {ok} em ordem",
+  "finding.system.ok": "sistema suportado (variação {variant})",
+  "finding.edition.warn": "as duas edições estão instaladas; a outra fica em {path}",
+  "finding.edition.fix": "mantenha uma edição por máquina: rode self uninstall na que você não usa",
+  "finding.docker-exposed.warn": "contêineres publicam portas em todas as interfaces: {list}",
+  "finding.docker-exposed.fix": "publique em 127.0.0.1 (-p 127.0.0.1:PORTA:PORTA) e acesse por SSH ou Tailscale",
+  "finding.aliases-skipped.warn": "atalhos não criados porque um comando tem o mesmo nome: {list}",
+  "finding.aliases-skipped.fix": "crie o seu próprio atalho com outro nome no ~/.zshrc.local",
+  "finding.v1.warn": "SetupVibe 1 encontrado: {list}",
+  "finding.v1.fix": "setupvibe migrate --dry-run e depois setupvibe migrate",
+  "finding.reboot.warn": "há uma reinicialização pendente",
+  "finding.reboot.fix": "reinicie e rode o auto de novo; auto --reboot faz as duas coisas",
+  "finding.wsl-firewall.warn": "o firewall do Hyper-V bloqueia conexões de entrada no WSL; o SetupVibe mantém esse padrão",
+  "finding.other.warn": "{id}: o comando no PATH vem de {path}, não do mise",
+  "finding.other.fix": "remova a outra cópia ou coloque os shims do mise antes no PATH",
+  "finding.init.fail": "pré-requisitos pendentes: {list}",
+  "finding.init.ok": "init concluído",
+  "finding.items.warn": "itens que falham na verificação: {list}",
+  "finding.items.ok": "os itens selecionados passam na verificação",
+  "finding.outdated.warn": "itens desatualizados: {list}",
+  "finding.outdated.ok": "os itens selecionados batem com o inventário",
+  "finding.local-bin.ok": "~/.local/bin existe",
+  "finding.local-bin.warn": "~/.local/bin não existe",
+  "finding.shell.ok": "bloco de shell do SetupVibe presente",
+  "finding.shell.warn": "o bloco de shell do SetupVibe não está no arquivo do shell",
+  "finding.path.warn": "~/.local/bin ainda não está no PATH deste shell",
+  "finding.path.fix": "abra um terminal novo ou rode: exec $SHELL -l",
+  "finding.legacy-go.warn": "Go do SetupVibe 1 em ~/.local/go; o SetupVibe 2 instala o Go pelo mise. Remova depois de instalar: rm -rf ~/.local/go",
+  "finding.legacy-rbenv.warn": "rbenv do SetupVibe 1; o SetupVibe 2 instala o Ruby pelo mise. Remova depois de instalar: rm -rf ~/.rbenv",
+  "finding.legacy-linuxbrew.warn": "Linuxbrew do SetupVibe 1; no Linux, o SetupVibe 2 instala as ferramentas de terminal pelo mise.",
+  "finding.legacy-npm-global.warn": "pacotes npm globais do SetupVibe 1 em ~/.npm-global; o SetupVibe 2 instala os CLIs de IA pelo mise.",
+  "finding.legacy-nodesource.warn": "repositório NodeSource do SetupVibe 1; o SetupVibe 2 instala o Node pelo mise.",
+  "about.description": "Configura e mantém um ambiente de desenvolvimento fixado no macOS, no Linux e no Windows.",
+  "ts.state.Running": "conectado",
+  "ts.state.Stopped": "parado",
+  "ts.state.NeedsLogin": "precisa de login",
+  "ts.state.NeedsMachineAuth": "aguarda aprovação da máquina",
+  "ts.state.Starting": "iniciando",
+  "ts.state.NoState": "sem estado",
   "doctor.fixing": "Aplicando as correções seguras…",
   "doctor.fixed": "Correções seguras aplicadas.",
   "doctor.fixFailed": "doctor --fix saiu com {code}.",
@@ -211,15 +249,46 @@ const pt = {
   "mc.noTemp": "sem sensor",
   "mc.ram": "RAM",
   "mc.procName": "NOME",
-  "global.tab": "aba",
+  "global.tab": "módulo",
   "global.language": "idioma",
   "help.language": "troca o idioma (PT · EN)",
   "btn.install": "Instalar",
   "btn.remove": "Remover",
   "btn.fix": "Aplicar correções seguras",
-  "help.mouse": "mouse: clique em abas, itens, botões e teclas; a roda rola",
+  "help.mouse": "mouse: clique em cartões, itens, botões e teclas; a roda rola",
   "global.go": "ir",
   "global.help": "ajuda",
+  "global.theme": "tema",
+  "about.std.interface": "Interface",
+  "about.std.opencli": "OpenCLI 0.1 para descrever o CLI",
+  "about.std.mcp": "MCP 2025-11-25 por stdio",
+  "about.std.exit": "códigos de saída fixos (0 é sucesso)",
+  "about.std.data": "Dados",
+  "about.std.settings": "settings.json em texto puro",
+  "about.std.credentials": "credentials.json com AES-256-GCM",
+  "about.std.key": "master.key com modo 0600",
+  "logs.eventsEmpty": "Cada execução que muda a máquina (auto, init, install, remove, update, shell, migrate) grava um log com um evento por passo: item, ação, status, duração e o erro de cada falha. Escolha uma execução à esquerda para ver os eventos aqui.",
+  "home.runsHistory": "{n} execuções, {bad} com falha",
+  "home.updateChecking": "verificando atualização…",
+  "home.updateAvailable": "{version} disponível · upgrade",
+  "home.updateCurrent": "versão mais nova",
+  "home.updateOffline": "sem rede para verificar",
+  "home.itemsOutdated": "{n} item(ns) desatualizado(s)",
+  "inv.progressRunning": "executando",
+  "inv.progressDone": "concluído",
+  "inv.progressFailed": "terminou com o código {code}",
+  "inv.progressHint": "Cada passo aparece aqui conforme o CLI grava o log da execução.",
+  "inv.progressClose": "Qualquer tecla volta aos detalhes; o log completo fica no módulo Logs.",
+  "key.markAll": "marcar todos",
+  "key.filter": "filtro",
+  "filter.all": "todos",
+  "filter.actionable": "para instalar",
+  "filter.installed": "instalados",
+  "filter.problems": "com problema",
+  "filter.empty": "nenhum item neste filtro; s troca o filtro",
+  "help.theme": "troca o tema (escuro · claro)",
+  "help.moduleKeys": "Teclas deste módulo",
+  "help.globalKeys": "Teclas de qualquer lugar",
   "global.quit": "sair",
   "help.title": "Teclas",
   "help.tabs": "no Início: move entre os cartões",
@@ -310,6 +379,44 @@ const en: Record<TextKey, string> = {
   "doctor.warnings": "Warnings",
   "doctor.ok": "In order",
   "doctor.summary": "{fail} problem(s) · {warn} warning(s) · {ok} in order",
+  "finding.system.ok": "system supported (variant {variant})",
+  "finding.edition.warn": "both editions are installed; the other one is at {path}",
+  "finding.edition.fix": "keep one edition per machine: run self uninstall on the one you do not use",
+  "finding.docker-exposed.warn": "containers publish ports on every interface: {list}",
+  "finding.docker-exposed.fix": "publish on 127.0.0.1 (-p 127.0.0.1:PORT:PORT) and reach them through SSH or Tailscale",
+  "finding.aliases-skipped.warn": "aliases not defined because a command has the same name: {list}",
+  "finding.aliases-skipped.fix": "define your own alias with another name in ~/.zshrc.local",
+  "finding.v1.warn": "SetupVibe 1 found: {list}",
+  "finding.v1.fix": "setupvibe migrate --dry-run, then setupvibe migrate",
+  "finding.reboot.warn": "a restart is pending",
+  "finding.reboot.fix": "restart, then run auto again; auto --reboot does both",
+  "finding.wsl-firewall.warn": "the Hyper-V firewall blocks inbound connections to WSL; SetupVibe keeps that default",
+  "finding.other.warn": "{id}: the command in PATH comes from {path}, not from mise",
+  "finding.other.fix": "remove the other copy or put the mise shims first in PATH",
+  "finding.init.fail": "prerequisites pending: {list}",
+  "finding.init.ok": "init completed",
+  "finding.items.warn": "items failing their check: {list}",
+  "finding.items.ok": "selected items pass their checks",
+  "finding.outdated.warn": "outdated items: {list}",
+  "finding.outdated.ok": "selected items match the inventory",
+  "finding.local-bin.ok": "~/.local/bin exists",
+  "finding.local-bin.warn": "~/.local/bin is missing",
+  "finding.shell.ok": "shell block present",
+  "finding.shell.warn": "the SetupVibe shell block is missing",
+  "finding.path.warn": "~/.local/bin is not in this shell's PATH yet",
+  "finding.path.fix": "open a new terminal, or run: exec $SHELL -l",
+  "finding.legacy-go.warn": "Go from SetupVibe 1 in ~/.local/go; SetupVibe 2 installs Go with mise. Remove it after installing: rm -rf ~/.local/go",
+  "finding.legacy-rbenv.warn": "rbenv from SetupVibe 1; SetupVibe 2 installs Ruby with mise. Remove it after installing: rm -rf ~/.rbenv",
+  "finding.legacy-linuxbrew.warn": "Linuxbrew from SetupVibe 1; SetupVibe 2 installs terminal tools with mise on Linux.",
+  "finding.legacy-npm-global.warn": "Global npm packages from SetupVibe 1 in ~/.npm-global; SetupVibe 2 installs the AI CLIs with mise.",
+  "finding.legacy-nodesource.warn": "NodeSource repository from SetupVibe 1; SetupVibe 2 installs Node with mise.",
+  "about.description": "Sets up and maintains a pinned development environment on macOS, Linux and Windows.",
+  "ts.state.Running": "connected",
+  "ts.state.Stopped": "stopped",
+  "ts.state.NeedsLogin": "needs login",
+  "ts.state.NeedsMachineAuth": "waiting for machine approval",
+  "ts.state.Starting": "starting",
+  "ts.state.NoState": "no state",
   "doctor.fixing": "Applying the safe fixes…",
   "doctor.fixed": "Safe fixes applied.",
   "doctor.fixFailed": "doctor --fix exited with {code}.",
@@ -436,15 +543,46 @@ const en: Record<TextKey, string> = {
   "mc.noTemp": "no sensor",
   "mc.ram": "RAM",
   "mc.procName": "NAME",
-  "global.tab": "tab",
+  "global.tab": "module",
   "global.language": "language",
   "help.language": "switch the language (PT · EN)",
   "btn.install": "Install",
   "btn.remove": "Remove",
   "btn.fix": "Apply safe fixes",
-  "help.mouse": "mouse: click tabs, items, buttons and keys; the wheel scrolls",
+  "help.mouse": "mouse: click cards, items, buttons and keys; the wheel scrolls",
   "global.go": "go",
   "global.help": "help",
+  "global.theme": "theme",
+  "about.std.interface": "Interface",
+  "about.std.opencli": "OpenCLI 0.1 for the CLI description",
+  "about.std.mcp": "MCP 2025-11-25 over stdio",
+  "about.std.exit": "Fixed exit codes (0 success)",
+  "about.std.data": "Data",
+  "about.std.settings": "settings.json in plain text",
+  "about.std.credentials": "credentials.json with AES-256-GCM",
+  "about.std.key": "master.key with mode 0600",
+  "logs.eventsEmpty": "Every run that changes the machine (auto, init, install, remove, update, shell, migrate) writes a log with one event per step: item, action, status, duration and the error of each failure. Pick a run on the left to see its events here.",
+  "home.runsHistory": "{n} runs, {bad} with failures",
+  "home.updateChecking": "checking for updates…",
+  "home.updateAvailable": "{version} available · upgrade",
+  "home.updateCurrent": "latest version",
+  "home.updateOffline": "no network to check",
+  "home.itemsOutdated": "{n} item(s) outdated",
+  "inv.progressRunning": "running",
+  "inv.progressDone": "done",
+  "inv.progressFailed": "ended with code {code}",
+  "inv.progressHint": "Each step shows up here as the CLI writes the run log.",
+  "inv.progressClose": "Any key goes back to the details; the full log stays in the Logs module.",
+  "key.markAll": "mark all",
+  "key.filter": "filter",
+  "filter.all": "all",
+  "filter.actionable": "to install",
+  "filter.installed": "installed",
+  "filter.problems": "with problems",
+  "filter.empty": "no item in this filter; s switches it",
+  "help.theme": "switch the theme (dark · light)",
+  "help.moduleKeys": "Keys of this module",
+  "help.globalKeys": "Keys from anywhere",
   "global.quit": "quit",
   "help.title": "Keys",
   "help.tabs": "on Home: move between cards",
@@ -459,6 +597,9 @@ const en: Record<TextKey, string> = {
 };
 
 const tables: Record<DocsLanguage, Record<TextKey, string>> = { "pt-BR": pt, en };
+
+/** Every text key, for tests that look for a key shown instead of its text. */
+export const TEXT_KEYS = Object.keys(en) as TextKey[];
 
 let current: DocsLanguage | undefined;
 
@@ -520,4 +661,34 @@ export function tr(key: TextKey, values: Record<string, string | number> = {}, l
   // A key missing from the table (a module without a subtitle, for example) falls back to English, then to the key.
   const text = tables[language][key] ?? tables.en[key] ?? key;
   return text.replace(/\{(\w+)\}/g, (_, k: string) => String(values[k] ?? `{${k}}`));
+}
+
+/** A doctor finding as the TUI shows it: what the CLI reports, in the TUI language. */
+interface TranslatableFinding {
+  id: string;
+  level: string;
+  text: string;
+  fix?: string;
+  params?: Record<string, string>;
+}
+
+/** Key of a finding: `other-<item>` findings share one text. */
+const findingKey = (f: TranslatableFinding) => (f.id.startsWith("other-") ? "other" : f.id);
+
+/** Text of a finding in the TUI language; the CLI text when there is no translation. */
+export function findingText(f: TranslatableFinding): string {
+  const key = `finding.${findingKey(f)}.${f.level}`;
+  return hasText(key) ? tr(key, f.params ?? {}) : f.text;
+}
+
+/** Fix of a finding: prose fixes are translated, commands stay as they are. */
+export function findingFix(f: TranslatableFinding): string | undefined {
+  const key = `finding.${findingKey(f)}.fix`;
+  return f.fix && hasText(key) ? tr(key, f.params ?? {}) : f.fix;
+}
+
+/** Tailscale backend state (Running, Stopped, NeedsLogin…) in the TUI language. */
+export function tailscaleState(state: string): string {
+  const key = `ts.state.${state}`;
+  return hasText(key) ? tr(key) : state || "?";
 }

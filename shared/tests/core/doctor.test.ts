@@ -10,7 +10,6 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { collectDoctorChecks, doctorCommand } from "../../core/cli/commands/doctor.ts";
 import { HOME_VARIABLE, MASTER_KEY_VARIABLE, paths } from "../../core/config/paths.ts";
 import { setCredential } from "../../core/config/credentials.ts";
-import { registerDoctorTools } from "../../core/mcp/tools/doctor.ts";
 import { ExitCode } from "../../core/app/exit-codes.ts";
 import type { Context } from "../../core/cli/registry.ts";
 
@@ -49,23 +48,6 @@ test("corrupt settings and undecryptable vault fail without exposing content", a
   expect(result.code).toBe(ExitCode.CONFIG);
   expect(result.text).toContain("✗ settings");
 });
-test("MCP returns the shared checks and marks failures", async () => {
-  const server = new McpServer({ name: "test", version: "1" });
-  const catalog = { name: "test", version: "1", tools: [], resources: [], prompts: [] };
-  registerDoctorTools({ server, catalog });
-  const client = new Client({ name: "test", version: "1" });
-  const [left, right] = InMemoryTransport.createLinkedPair();
-  await server.connect(left); await client.connect(right);
-  try {
-    expect((await client.listTools()).tools.map((t) => t.name)).toContain("doctor");
-    const result = await client.callTool({ name: "doctor", arguments: {} });
-    expect(result.structuredContent).toEqual(collectDoctorChecks());
-    expect(result.isError).toBe(false);
-    writeFileSync(paths.settings(), "[]");
-    expect((await client.callTool({ name: "doctor", arguments: {} })).isError).toBe(true);
-  } finally { await client.close(); await server.close(); }
-});
-
 test("CLI doctor reports TTY warnings and fails while init or settings are broken", () => {
   const run = () => Bun.spawnSync([process.execPath, "run", "desktop/src/main.ts", "doctor", "--json"], {
     env: { ...process.env }, stdin: "ignore",

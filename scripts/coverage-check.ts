@@ -8,7 +8,7 @@
  *
  * Usage: bun run coverage
  */
-export const MINIMUM = { lines: 88, functions: 85 };
+export const MINIMUM = { lines: 90, functions: 87 };
 
 /** Reads the "All files | functions | lines |" row of the text report. */
 export function totals(report: string): { functions: number; lines: number } | undefined {

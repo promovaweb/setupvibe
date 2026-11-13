@@ -174,24 +174,6 @@ export function logTail(file: string, lines = 30): string[] {
   }
 }
 
-export interface DoctorFinding {
-  level: "ok" | "warn" | "fail";
-  text: string;
-  fix?: string;
-}
-
-/** Findings of the doctor screen. */
-export function doctorFindings(inventory: Inventory, init: InitRecord | undefined, selection: SelectedItem[]): DoctorFinding[] {
-  const out: DoctorFinding[] = [];
-  const missing = missingPrerequisites(inventory, init);
-  out.push(missing.length ? { level: "fail", text: `Prerequisites pending: ${missing.join(", ")}`, fix: "setupvibe init" } : { level: "ok", text: "init completed" });
-  const failed = selection.filter((s) => s.status === "fail").map((s) => s.id);
-  out.push(failed.length ? { level: "warn", text: `Items failing their check: ${failed.join(", ")}`, fix: `setupvibe install ${failed.join(" ")} --force` } : { level: "ok", text: "selected items pass their checks" });
-  const outdated = selection.filter((s) => inventory.items.find((i) => i.id === s.id)?.version !== s.version).map((s) => s.id);
-  out.push(outdated.length ? { level: "warn", text: `Outdated items: ${outdated.join(", ")}`, fix: "setupvibe update" } : { level: "ok", text: "selected items match the inventory" });
-  return out;
-}
-
 /** The working user name. */
 export function userName(config: Record<string, unknown>): string {
   return typeof config.user === "string" ? config.user : currentUser().username;

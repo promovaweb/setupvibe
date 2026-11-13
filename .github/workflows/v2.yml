@@ -1,6 +1,7 @@
 # SetupVibe 2 CI (spec section 17).
 #
-# - validate: typecheck, unit tests, build and the coverage thresholds on every push and pull request.
+# - validate: typecheck, unit tests, build, the coverage thresholds and the TUI
+#   smoke test in a real terminal, on every push and pull request.
 # - containers: `setupvibe auto` for real in systemd containers, run twice to
 #   prove idempotency, then `check`.
 # - macos and windows: the binary on real runners.
@@ -31,6 +32,10 @@ jobs:
       - run: bun run validate
       - name: Unit test coverage (fails below the minimum in scripts/coverage-check.ts)
         run: bun run coverage
+      - name: TUI smoke test in a real terminal (both binaries, built by validate)
+        run: |
+          bun run scripts/tui-smoke.ts --bin dist/setupvibe
+          bun run scripts/tui-smoke.ts --bin dist/setupvibe-server
 
   containers:
     needs: validate

@@ -197,7 +197,7 @@ const installCommand: Command = {
     DRY_RUN_OPTION,
     ...NETWORK_OPTIONS,
   ],
-  exitCodes: [ExitCode.PARTIAL, ExitCode.CONFIG, ExitCode.UNSUPPORTED_SYSTEM],
+  exitCodes: [ExitCode.PARTIAL, ExitCode.CONFIG, ExitCode.UNSUPPORTED_SYSTEM, ExitCode.NOT_FOUND],
   examples: [`${manifest.bin} install docker`, `${manifest.bin} install go rust --dry-run`, `${manifest.bin} install --external terraform@1.13.4`],
   run: async (ctx) => {
     const m = machine(true);
@@ -232,7 +232,7 @@ const removeCommand: Command = {
     { name: "--yes", aliases: ["-y"], description: "Do not ask for confirmation." },
     DRY_RUN_OPTION,
   ],
-  exitCodes: [ExitCode.PARTIAL, ExitCode.UNSUPPORTED_SYSTEM, ExitCode.INTERRUPTED],
+  exitCodes: [ExitCode.PARTIAL, ExitCode.UNSUPPORTED_SYSTEM, ExitCode.INTERRUPTED, ExitCode.NOT_FOUND],
   examples: [`${manifest.bin} remove go --yes`, `${manifest.bin} remove docker --include-native --dry-run`, `${manifest.bin} remove --external terraform --yes`],
   run: async (ctx) => {
     const m = machine(false);

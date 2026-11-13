@@ -27,9 +27,9 @@ migration until `config.json` records `migratedFromV1`.
 
 ## What happens without `migrate`
 
-`auto`, `install` (for shell items) and `shell apply` convert a SetupVibe 1
-`.zshrc` and `.tmux.conf` before writing the SetupVibe 2 blocks, so the new
-block never lands on top of the old file. The conversion is lossless: the file
+`auto`, `shell apply` and `doctor --fix` convert a SetupVibe 1 `.zshrc` and
+`.tmux.conf` before writing the SetupVibe 2 blocks, so the new block never lands
+on top of the old file. The conversion is lossless: the file
 goes to `~/.setupvibe/backups/`, the lines the person added (lines that are
 not in the originals) move to `~/.zshrc.local` or `~/.tmux.conf.local` under a
 dated comment, and the file is rewritten with the block. `init` builds the

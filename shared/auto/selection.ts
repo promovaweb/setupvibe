@@ -85,7 +85,8 @@ export function selectItems(input: SelectionInput): Selection {
   for (const id of [...(input.ids ?? []), ...(input.only ?? []), ...(input.exclude ?? [])]) {
     if (!byId.has(id)) throw new Error(`Unknown inventory item: ${id}.`);
   }
-  const base = input.ids ? input.ids : input.profile ? profileItems(inventory, input.profile) : inventory.items.map((i) => i.id);
+  // "none" (written by config export) means an empty base: only the items in `only`, plus requirements.
+  const base = input.ids ? input.ids : input.profile === "none" ? [] : input.profile ? profileItems(inventory, input.profile) : inventory.items.map((i) => i.id);
   const wanted = new Set([...base, ...(input.only ?? [])]);
   for (const id of input.exclude ?? []) wanted.delete(id);
 

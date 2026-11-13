@@ -62,6 +62,10 @@ Each answer comes from an option, then an environment variable, then the
 | Download cache | `--cache-dir` | `SETUPVIBE_CACHE_DIR` |
 | Corporate CA bundle | `--ca-file` | `SETUPVIBE_CA_FILE` |
 
+`config export` writes `profile: "none"` in the file. `auto --config` reads
+`none` as an empty base: only the file's `only` list and its requirements go in,
+which is how an exported selection is repeated on another machine.
+
 Secrets never appear in an argv: Tailscale and Swarm tokens reach their
 commands through environment variables, and the run log masks them.
 

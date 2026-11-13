@@ -1,6 +1,7 @@
 # Build output and local installs
 dist/
 node_modules/
+.ebook/build/
 
 # Logs and temporary files
 *.log

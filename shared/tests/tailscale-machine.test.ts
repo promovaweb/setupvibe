@@ -1,6 +1,7 @@
 /** Tailscale and Machine modules and the Home bento (task 18). */
 import "../../desktop/src/edition.ts";
 import { describe, expect, test } from "bun:test";
+import { tailscaleState } from "../tui/i18n.ts";
 import { daysUntil, formatBytes, parseDerpMap, parseNetcheck, parseServe, parseStatus, since } from "../tailscale/status";
 import { connection, tailscaleSummary } from "../tui/tailscale";
 import { cpuUsage, formatDuration, groupInterfaces, parseDf, parseMeminfo } from "../system/info";
@@ -46,7 +47,7 @@ describe("tailscale status", () => {
   });
 
   test("summary for the Home card and a bad output", () => {
-    expect(tailscaleSummary({ installed: true, serve: [], ...parseStatus(STATUS) })).toEqual({ state: "Running", ok: true, online: 2, total: 3 });
+    expect(tailscaleSummary({ installed: true, serve: [], ...parseStatus(STATUS) })).toEqual({ state: tailscaleState("Running"), ok: true, online: 2, total: 3 });
     expect(parseStatus("not json").error).toContain("no JSON");
   });
 

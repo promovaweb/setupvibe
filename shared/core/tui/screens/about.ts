@@ -23,7 +23,7 @@ export const aboutScreen: Screen = {
     const binary = panel(renderer, theme, { title: `${icon("binary")}  ${tr("about.binary")}`, flexGrow: 3, flexBasis: 0, active: true });
     binary.add(spacer(renderer));
     binary.add(new TextRenderable(renderer, { content: `${d.title}  v${d.version}`, fg: theme.accent }));
-    binary.add(dim(renderer, theme, d.description));
+    binary.add(dim(renderer, theme, tr("about.description")));
     binary.add(spacer(renderer));
     binary.add(
       keyValueTable(renderer, theme, [
@@ -55,13 +55,13 @@ export const aboutScreen: Screen = {
     const creditsPanel = panel(renderer, theme, { title: `${icon("heart")}  ${tr("about.credits")}`, flexGrow: 3, flexBasis: 0 });
     creditsPanel.add(spacer(renderer));
     const nameWidth = Math.max(...d.credits.map((c) => c.name.length));
-    // One line per credit, so the list fits short terminals: name, link, role (cut first when narrow).
+    // Name and link on one line, the role below it, so no text is cut.
     for (const c of d.credits) {
       creditsPanel.add(
         new TextRenderable(renderer, {
-          content: t`${fg(theme.textStrong)(c.name.padEnd(nameWidth + 2))}${fg(theme.accentSecondary)(c.url.replace(/^https:\/\//, "").padEnd(32))}  ${fg(theme.textDim)(c.role)}`,
+          content: t`${fg(theme.textStrong)(c.name.padEnd(nameWidth + 2))}${fg(theme.accentSecondary)(c.url.replace(/^https:\/\//, ""))}\n${fg(theme.textDim)(`${" ".repeat(nameWidth + 3)}${c.role}`)}`,
           wrapMode: "none",
-          height: 1,
+          height: 2,
           flexShrink: 0,
         }),
       );
@@ -70,11 +70,11 @@ export const aboutScreen: Screen = {
 
     const standards = panel(renderer, theme, { title: `${icon("standards")}  ${tr("about.standards")}`, flexGrow: 2, flexBasis: 0 });
     standards.add(spacer(renderer));
-    standards.add(heading(renderer, theme, "Interface"));
-    standards.add(list(renderer, theme, ["OpenCLI 0.1 for the CLI description", "MCP 2025-11-25 over stdio", "Fixed exit codes (0 success)"]));
+    standards.add(heading(renderer, theme, tr("about.std.interface")));
+    standards.add(list(renderer, theme, [tr("about.std.opencli"), tr("about.std.mcp"), tr("about.std.exit")]));
     standards.add(spacer(renderer));
-    standards.add(heading(renderer, theme, "Data"));
-    standards.add(list(renderer, theme, ["settings.json in plain text", "credentials.json with AES-256-GCM", "master.key with mode 0600"]));
+    standards.add(heading(renderer, theme, tr("about.std.data")));
+    standards.add(list(renderer, theme, [tr("about.std.settings"), tr("about.std.credentials"), tr("about.std.key")]));
     bottom.add(standards);
     rootBox.add(bottom);
 

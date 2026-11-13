@@ -7,7 +7,9 @@ import { join } from "node:path";
 import { createTestRenderer, type TestRendererSetup } from "@opentui/core/testing";
 import desktopJson from "../../desktop/inventory.json";
 import type { Inventory } from "../inventory";
-import { doctorFindings, inventoryModel, markable, planFromEnvelope, rowLabel, userChecklist } from "../tui/model";
+import { setupvibeFindings } from "../ops/maintenance";
+import { findingFix, findingText, tailscaleState, tr } from "../tui/i18n";
+import { inventoryModel, markable, planFromEnvelope, rowLabel, userChecklist } from "../tui/model";
 import { HOME_VARIABLE } from "../core/config/paths";
 import { mountTui } from "../core/tui/index";
 
@@ -80,11 +82,24 @@ describe("user checklist", () => {
 
 describe("doctor", () => {
   test("reports pending init, failing and outdated items with the fix", () => {
-    const findings = doctorFindings(desktop, undefined, [{ id: "go", version: "1.0.0" }, { id: "node", version: "24.22.3", status: "fail" }]);
-    expect(findings.map((f) => f.level)).toEqual(["fail", "warn", "warn"]);
-    expect(findings[0]!.fix).toBe("setupvibe init");
-    expect(findings[1]!.fix).toBe("setupvibe install node --force");
-    expect(findings[2]!.fix).toBe("setupvibe update");
+    const findings = setupvibeFindings({ inventory: desktop, supported: undefined, init: undefined, selection: [{ id: "go", version: "1.0.0" }, { id: "node", version: "24.22.3", status: "fail" }], rcHasBlock: false, exists: () => true });
+    const byId = (id: string) => findings.find((f) => f.id === id)!;
+    expect(byId("init").level).toBe("fail");
+    expect(byId("init").fix).toBe("setupvibe init");
+    expect(byId("items").fix).toBe("setupvibe install node --force");
+    expect(byId("outdated").fix).toBe("setupvibe update");
+    expect(byId("items").params).toEqual({ list: "node" });
+  });
+
+  test("the TUI shows findings in its language and keeps commands as they are", () => {
+    const f = { id: "items", level: "warn", text: "items failing their check: node", fix: "setupvibe install node --force", params: { list: "node" } };
+    expect(findingText(f)).toContain("node");
+    expect(tr("finding.items.warn", { list: "node" }, "pt-BR")).toBe("itens que falham na verificação: node");
+    expect(findingFix(f)).toBe("setupvibe install node --force");
+    expect(findingText({ id: "other-bat", level: "warn", text: "x", params: { id: "bat", path: "/usr/bin/bat" } })).toContain("/usr/bin/bat");
+    expect(findingText({ id: "unknown", level: "warn", text: "plain CLI text" })).toBe("plain CLI text");
+    expect(tailscaleState("Running")).not.toBe("");
+    expect(tailscaleState("Weird")).toBe("Weird");
   });
 });
 

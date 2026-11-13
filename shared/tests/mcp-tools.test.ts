@@ -110,16 +110,52 @@ describe("tool handlers (task 16)", () => {
   type Handler = (args: Record<string, unknown>) => Promise<{ structuredContent: Record<string, unknown>; isError?: boolean }>;
   const handlers: Record<string, Handler> = {};
   const calls: string[][] = [];
-  const server = { registerTool: (name: string, _def: unknown, handler: Handler) => void (handlers[name] = handler) };
-  const catalog = { tools: [] as Array<{ name: string; description: string }> };
+  const resources: Record<string, (uri: URL) => Promise<{ contents: Array<{ text: string }> }>> = {};
+  const server = {
+    registerTool: (name: string, _def: unknown, handler: Handler) => void (handlers[name] = handler),
+    registerResource: (name: string, _uri: string, _meta: unknown, read: (uri: URL) => Promise<{ contents: Array<{ text: string }> }>) => void (resources[name] = read),
+  };
+  const catalog = { tools: [] as Array<{ name: string; description: string }>, resources: [] as Array<{ uri: string; name: string; description: string }> };
   registerSetupVibeTools({ server, catalog } as never, async (args) => {
     calls.push(args);
     return { exitCode: 0, envelope: { ok: true, data: { args } } };
   });
 
   test("every tool is registered and listed in the catalog", () => {
-    expect(Object.keys(handlers).sort()).toEqual(["check", "health", "install", "list", "remove", "system", "update"]);
-    expect(catalog.tools.length).toBe(7);
+    expect(Object.keys(handlers).sort()).toEqual(["check", "doctor", "health", "init", "install", "list", "logs", "machine", "migrate", "remove", "report", "system", "tailscale", "update"]);
+    expect(catalog.tools.length).toBe(14);
+    expect(catalog.resources.map((r) => r.name)).toEqual(["inventory", "selection"]);
+  });
+
+  test("install with external passes the tool and its version", async () => {
+    await handlers.install!({ items: ["terraform@1.13.4"], dry_run: true, force: false, external: true });
+    expect(calls.at(-1)).toEqual(["install", "--external", "terraform@1.13.4", "--dry-run"]);
+  });
+
+  test("doctor, report and init run the CLI; init and migrate default to a dry run", async () => {
+    await handlers.doctor!({});
+    await handlers.report!({});
+    await handlers.init!({ dry_run: true });
+    await handlers.migrate!({ dry_run: true, confirm: false });
+    expect(calls.slice(-4)).toEqual([["doctor"], ["report"], ["init", "--dry-run"], ["migrate", "--dry-run"]]);
+  });
+
+  test("a real migrate needs confirm: true and passes the leftovers to remove", async () => {
+    const refused = await handlers.migrate!({ dry_run: false, confirm: false });
+    expect(refused.isError).toBe(true);
+    await handlers.migrate!({ dry_run: false, confirm: true, remove_legacy: ["go", "rbenv"] });
+    expect(calls.at(-1)).toEqual(["migrate", "--remove-legacy", "go,rbenv"]);
+  });
+
+  test("logs lists the runs and refuses an unknown one; the resources return JSON", async () => {
+    const r = await handlers.logs!({});
+    expect(Array.isArray(r.structuredContent.runs)).toBe(true);
+    const unknown = await handlers.logs!({ run: "no-such-run.log" });
+    expect(unknown.isError).toBe(true);
+    const inv = JSON.parse((await resources.inventory!(new URL("setupvibe://inventory"))).contents[0]!.text);
+    expect(inv.items.length).toBeGreaterThan(10);
+    const sel = JSON.parse((await resources.selection!(new URL("setupvibe://selection"))).contents[0]!.text);
+    expect(sel).toHaveProperty("items");
   });
 
   test("read-only tools pass their filters to the CLI", async () => {

@@ -26,6 +26,8 @@ export interface Finding {
   fix?: string;
   /** `doctor --fix` may apply this fix on its own. */
   safe?: boolean;
+  /** Variable parts of the text (lists, paths), for translated interfaces. */
+  params?: Record<string, string>;
 }
 
 /** Leftovers of SetupVibe 1 that duplicate what SetupVibe 2 manages through mise (spec section 16). */
@@ -72,21 +74,21 @@ export function setupvibeFindings(input: {
   const home = input.home ?? homedir();
   const exists = input.exists ?? existsSync;
   const out: Finding[] = [];
-  out.push(input.supported ? { id: "system", level: "fail", text: input.supported } : { id: "system", level: "ok", text: `system supported${input.variant ? ` (variant ${input.variant})` : ""}` });
-  if (input.otherEdition) out.push({ id: "edition", level: "warn", text: `both editions are installed; the other one is at ${input.otherEdition}`, fix: "keep one edition per machine: run self uninstall on the one you do not use" });
-  if (input.exposedContainers?.length) out.push({ id: "docker-exposed", level: "warn", text: `containers publish ports on every interface: ${input.exposedContainers.join("; ")}`, fix: "publish on 127.0.0.1 (-p 127.0.0.1:PORT:PORT) and reach them through SSH or Tailscale" });
+  out.push(input.supported ? { id: "system", level: "fail", text: input.supported } : { id: "system", level: "ok", text: `system supported${input.variant ? ` (variant ${input.variant})` : ""}`, params: { variant: input.variant ?? "-" } });
+  if (input.otherEdition) out.push({ id: "edition", level: "warn", text: `both editions are installed; the other one is at ${input.otherEdition}`, params: { path: input.otherEdition }, fix: "keep one edition per machine: run self uninstall on the one you do not use" });
+  if (input.exposedContainers?.length) out.push({ id: "docker-exposed", level: "warn", text: `containers publish ports on every interface: ${input.exposedContainers.join("; ")}`, params: { list: input.exposedContainers.join("; ") }, fix: "publish on 127.0.0.1 (-p 127.0.0.1:PORT:PORT) and reach them through SSH or Tailscale" });
   if (input.windowsHealth) out.push(input.windowsHealth);
-  if (input.skippedAliases?.length) out.push({ id: "aliases-skipped", level: "warn", text: `aliases not defined because a command has the same name: ${input.skippedAliases.map((a) => `${a.name} (${a.path})`).join(", ")}`, fix: "define your own alias with another name in ~/.zshrc.local" });
-  if (input.v1Traces?.length) out.push({ id: "v1", level: "warn", text: `SetupVibe 1 found: ${input.v1Traces.join("; ")}`, fix: "setupvibe migrate --dry-run, then setupvibe migrate" });
+  if (input.skippedAliases?.length) out.push({ id: "aliases-skipped", level: "warn", text: `aliases not defined because a command has the same name: ${input.skippedAliases.map((a) => `${a.name} (${a.path})`).join(", ")}`, params: { list: input.skippedAliases.map((a) => `${a.name} (${a.path})`).join(", ") }, fix: "define your own alias with another name in ~/.zshrc.local" });
+  if (input.v1Traces?.length) out.push({ id: "v1", level: "warn", text: `SetupVibe 1 found: ${input.v1Traces.join("; ")}`, params: { list: input.v1Traces.map((x) => x.replace(/ from SetupVibe 1$/, "")).join("; ") }, fix: "setupvibe migrate --dry-run, then setupvibe migrate" });
   if (input.rebootPending) out.push({ id: "reboot", level: "warn", text: "a restart is pending", fix: "restart, then run auto again; auto --reboot does both" });
   if (input.wslOnWindows) out.push({ id: "wsl-firewall", level: "warn", text: "the Hyper-V firewall blocks inbound connections to WSL; SetupVibe keeps that default", fix: "open only the port you need: New-NetFirewallHyperVRule -Name <name> -DisplayName <name> -Direction Inbound -VMCreatorId '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -Protocol TCP -LocalPorts <port>" });
-  for (const e of input.elsewhere ?? []) out.push({ id: `other-${e.id}`, level: "warn", text: `${e.id}: the command in PATH comes from ${e.path}, not from mise`, fix: "remove the other copy or put the mise shims first in PATH" });
+  for (const e of input.elsewhere ?? []) out.push({ id: `other-${e.id}`, level: "warn", text: `${e.id}: the command in PATH comes from ${e.path}, not from mise`, params: { id: e.id, path: e.path }, fix: "remove the other copy or put the mise shims first in PATH" });
   const missing = missingPrerequisites(input.inventory, input.init);
-  out.push(missing.length ? { id: "init", level: "fail", text: `prerequisites pending: ${missing.join(", ")}`, fix: "setupvibe init" } : { id: "init", level: "ok", text: "init completed" });
+  out.push(missing.length ? { id: "init", level: "fail", text: `prerequisites pending: ${missing.join(", ")}`, params: { list: missing.join(", ") }, fix: "setupvibe init" } : { id: "init", level: "ok", text: "init completed" });
   const failed = input.selection.filter((s) => s.status === "fail").map((s) => s.id);
-  out.push(failed.length ? { id: "items", level: "warn", text: `items failing their check: ${failed.join(", ")}`, fix: `setupvibe install ${failed.join(" ")} --force` } : { id: "items", level: "ok", text: "selected items pass their checks" });
+  out.push(failed.length ? { id: "items", level: "warn", text: `items failing their check: ${failed.join(", ")}`, params: { list: failed.join(", ") }, fix: `setupvibe install ${failed.join(" ")} --force` } : { id: "items", level: "ok", text: "selected items pass their checks" });
   const outdated = input.selection.filter((s) => input.inventory.items.find((i) => i.id === s.id)?.version !== s.version).map((s) => s.id);
-  out.push(outdated.length ? { id: "outdated", level: "warn", text: `outdated items: ${outdated.join(", ")}`, fix: "setupvibe update" } : { id: "outdated", level: "ok", text: "selected items match the inventory" });
+  out.push(outdated.length ? { id: "outdated", level: "warn", text: `outdated items: ${outdated.join(", ")}`, params: { list: outdated.join(", ") }, fix: "setupvibe update" } : { id: "outdated", level: "ok", text: "selected items match the inventory" });
   const localBin = join(home, ".local", "bin");
   out.push(exists(localBin) ? { id: "local-bin", level: "ok", text: "~/.local/bin exists" } : { id: "local-bin", level: "warn", text: "~/.local/bin is missing", fix: "mkdir -p ~/.local/bin", safe: true });
   const inPath = (input.path ?? process.env.PATH ?? "").split(":").includes(localBin);

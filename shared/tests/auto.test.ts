@@ -58,6 +58,13 @@ describe("selection", () => {
     expect(s.skipped.find((x) => x.id === "windows-essentials")?.reason).toBe("Windows only.");
   });
 
+  test("profile none (config export) keeps only the items in only, plus their requirements", () => {
+    const s = selectItems({ inventory: desktop, system: "debian", headless: false, profile: "none", only: ["node"] });
+    expect(ids(s.items)).toContain("node");
+    expect(ids(s.items)).not.toContain("docker");
+    expect(ids(s.items).length).toBeLessThan(5);
+  });
+
   test("headless machines drop GUI items", () => {
     const s = selectItems({ inventory: desktop, system: "debian", headless: true });
     expect(ids(s.items)).not.toContain("nerd-fonts");

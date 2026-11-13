@@ -31,9 +31,9 @@ import type { InitRecord } from "../init/plan.ts";
 import type { SelectedItem } from "../ops/inventory-ops.ts";
 import { selfArgv } from "../commands/auto.ts";
 import { machineFindings } from "../commands/maintenance.ts";
-import { tr, tuiLanguage, type TextKey } from "./i18n.ts";
+import { tr, tuiLanguage, type TextKey, findingFix, findingText } from "./i18n.ts";
 import { icon } from "./icons.ts";
-import { tint } from "./style.ts";
+import { meter, tint } from "./style.ts";
 import {
   currentGroups,
   fit,
@@ -51,6 +51,7 @@ import {
   userName,
   type InventoryCategory,
   type InventoryRow,
+  type LogEvent,
 } from "./model.ts";
 
 function state() {
@@ -134,6 +135,18 @@ async function runCli(args: string[]): Promise<{ code: number; out: string }> {
 }
 
 /* ------------------------------------------------------------- Inventory */
+
+/** Status filters of the tool list, in the order s cycles them. */
+export const FILTERS = ["all", "actionable", "installed", "problems"] as const;
+export type InventoryFilter = (typeof FILTERS)[number];
+
+/** True when a row passes the filter: actionable = can be installed or fixed here; problems = failed or outdated. */
+export function passesFilter(r: InventoryRow, filter: InventoryFilter): boolean {
+  if (filter === "actionable") return markable(r) && r.status !== "installed";
+  if (filter === "installed") return r.status === "installed" || r.status === "outdated" || r.status === "failed";
+  if (filter === "problems") return r.status === "failed" || r.status === "outdated";
+  return true;
+}
 
 /** Which list of the Inventory takes j/k: categories or tools (c, f or Tab switch). */
 type InventoryFocus = "categories" | "items";
@@ -229,6 +242,13 @@ export const inventoryScreen: Screen = (() => {
   /** Plan shown by the first key press; the second press of the same key runs it. */
   let pending: { verb: "install" | "remove"; ids: string[] } | undefined;
   let planLines: string[] = [];
+  /** Live progress of a running install or remove, read from its run log. */
+  let progress: { verb: "install" | "remove"; ids: string[]; total: number; events: LogEvent[]; startedAt: number; done?: number } | undefined;
+  let progressTimer: ReturnType<typeof setInterval> | undefined;
+  /** Status filter of the tool list (s cycles it). */
+  let filter: InventoryFilter = "all";
+  /** Rows of a category that pass the filter. */
+  const shown = (c: InventoryCategory | undefined): InventoryRow[] => (c ? c.rows.filter((r) => passesFilter(r, filter)) : []);
 
   const load = () => {
     const { inventory, detected } = machine();
@@ -244,7 +264,7 @@ export const inventoryScreen: Screen = (() => {
 
   const run = (verb: "install" | "remove") => {
     if (busy) return;
-    const current = categories[cat]?.rows[row];
+    const current = shown(categories[cat])[row];
     const ids = marked.size ? [...marked] : current && markable(current) ? [current.item.id] : [];
     if (!ids.length) return say(tr("inv.nothing"));
     const confirmed = pending && pending.verb === verb && pending.ids.join(" ") === ids.join(" ");
@@ -262,11 +282,31 @@ export const inventoryScreen: Screen = (() => {
       });
       return;
     }
+    const total = planLines.length;
     pending = undefined;
     planLines = [];
+    // The CLI writes each step to a new run log; the TUI follows that file while it runs.
+    const before = logFiles()[0];
+    progress = { verb, ids, total, events: [], startedAt: Date.now() };
+    if (progressTimer) clearInterval(progressTimer);
+    progressTimer = setInterval(() => {
+      const newest = logFiles()[0];
+      if (progress && newest && newest !== before) {
+        progress.events = logEvents(newest);
+        refresh();
+      }
+    }, 500);
+    progressTimer.unref?.();
     say(tr("inv.running", { verb: verbText, ids: ids.join(", ") }));
     void runCli([...base, "--json"]).then(({ code }) => {
       busy = false;
+      if (progressTimer) clearInterval(progressTimer);
+      progressTimer = undefined;
+      const newest = logFiles()[0];
+      if (progress) {
+        if (newest && newest !== before) progress.events = logEvents(newest);
+        progress.done = code;
+      }
       marked.clear();
       load();
       if (code === 0) say(`✓ ${tr("inv.done", { verb: verbText, ids: ids.join(", ") })}`, "ok");
@@ -287,6 +327,8 @@ export const inventoryScreen: Screen = (() => {
         { key: "f", action: tr("inv.tools").toLowerCase(), press: "f" },
         { key: "j/k", action: tr("key.item"), press: "j" },
         { key: "space", action: tr("key.mark"), press: "space" },
+        { key: "a", action: tr("key.markAll"), press: "a" },
+        { key: "s", action: tr("key.filter"), press: "s" },
         { key: "i", action: tr("key.install"), press: "i" },
         { key: "r", action: tr("key.remove"), press: "r" },
       ];
@@ -301,6 +343,8 @@ export const inventoryScreen: Screen = (() => {
       cat = 0;
       row = 0;
       focus = "items";
+      filter = "all";
+      progress = undefined;
       load();
       const short = renderer.height < 32;
       const root = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, gap: short ? 0 : 1, paddingTop: short ? 0 : 1 });
@@ -342,7 +386,7 @@ export const inventoryScreen: Screen = (() => {
         const l = new TextRenderable(renderer, { content: "", height: 2, flexShrink: 0, wrapMode: "none" });
         box.add(l);
         box.onMouseDown = (e) => {
-          const r = categories[cat]?.rows[i];
+          const r = shown(categories[cat])[i];
           if (!r) return;
           row = i;
           focus = "items";
@@ -418,10 +462,12 @@ export const inventoryScreen: Screen = (() => {
           l.content = categoryBlock(theme, `${icon(category.id)}  ${category.title}`, done, counts.markable, selected, focus === "categories", leftWidth - 6);
           l.bg = blockColors(theme, selected, focus === "categories").bg;
         });
-        right.title = ` f · ${c ? icon(c.id) : icon("inventory")} ${c?.title ?? tr("inv.items")} · ${c?.rows.length ?? 0}${marked.size ? ` · ${marked.size} ${tr("inv.marked")}` : ""} `;
-        summary.content = c ? listSummary(theme, c.rows, marked.size) : "";
+        const visible = shown(c);
+        const count = filter === "all" ? String(c?.rows.length ?? 0) : `${visible.length}/${c?.rows.length ?? 0}`;
+        right.title = ` f · ${c ? icon(c.id) : icon("inventory")} ${c?.title ?? tr("inv.items")} · ${count}${filter !== "all" ? ` · ${tr(`filter.${filter}`)}` : ""}${marked.size ? ` · ${marked.size} ${tr("inv.marked")}` : ""} `;
+        summary.content = c ? (visible.length ? listSummary(theme, c.rows, marked.size) : t` ${fg(theme.textDim)(tr("filter.empty"))}`) : "";
         itemBoxes.forEach((box, i) => {
-          const r = c?.rows[i];
+          const r = visible[i];
           box.visible = Boolean(r);
           if (!r) return;
           const selected = i === row;
@@ -433,8 +479,25 @@ export const inventoryScreen: Screen = (() => {
         if (itemBoxes[row]) list.scrollChildIntoView(itemBoxes[row]!);
         if (catLines[cat]) catList.scrollChildIntoView(catLines[cat]!);
 
-        const r = c?.rows[row];
-        if (planLines.length && pending) {
+        const r = shown(c)[row];
+        if (progress) {
+          const p = progress;
+          const finished = p.events.filter((e) => e.status === "ok" || e.status === "skip" || e.status === "fail").length;
+          const failedSteps = p.events.filter((e) => e.status === "fail").length;
+          const seconds = Math.round((Date.now() - p.startedAt) / 1000);
+          const stateText = p.done === undefined ? tr("inv.progressRunning") : p.done === 0 ? tr("inv.progressDone") : tr("inv.progressFailed", { code: p.done });
+          detail.title = ` ${icon("update")}  ${tr(`verb.${p.verb}`)} ${p.ids.join(", ")} · ${stateText} `;
+          detail.borderColor = p.done === undefined ? theme.accent : p.done === 0 ? theme.ok : theme.error;
+          const [on, off] = meter(theme, finished, Math.max(p.total, finished, 1), 30, failedSteps ? theme.warn : theme.ok);
+          detailTitle.content = t`${on}${off}  ${bold(fg(theme.textStrong)(`${finished}/${Math.max(p.total, finished)}`))}  ${fg(theme.textDim)(`${seconds}s`)}${failedSteps ? fg(theme.error)(`  ✗ ${failedSteps}`) : ""}`;
+          const glyph = (st: string) => (st === "ok" ? "✓" : st === "fail" ? "✗" : st === "skip" ? "↷" : st === "start" ? "…" : "·");
+          detailText.content = p.events
+            .filter((e) => e.status !== "info")
+            .slice(short ? -3 : -5)
+            .map((e) => `${glyph(e.status)} ${[e.item, e.action].filter(Boolean).join(" · ")}${e.message && e.status === "fail" ? `: ${e.message}` : ""}`)
+            .join("\n");
+          detailFacts.content = p.done === undefined ? t`${fg(theme.textDim)(tr("inv.progressHint"))}` : t`${fg(theme.textDim)(tr("inv.progressClose"))}`;
+        } else if (planLines.length && pending) {
           detail.title = ` ${icon("plan")}  ${tr("inv.plan")} · ${tr(`verb.${pending.verb}`)} ${pending.ids.join(", ")} `;
           detail.borderColor = theme.warn;
           detailTitle.content = t`${fg(theme.warn)(tr("inv.steps", { n: planLines.length }))}`;
@@ -472,6 +535,8 @@ export const inventoryScreen: Screen = (() => {
     },
     onKey: (name) => {
       const c = categories[cat];
+      // A finished run stays on screen until the next key.
+      if (progress && progress.done !== undefined) progress = undefined;
       if (name === "i") {
         run("install");
         return true;
@@ -500,16 +565,28 @@ export const inventoryScreen: Screen = (() => {
         nextCategory(-1);
       } else if (name === "j" || name === "down") {
         if (focus === "categories") nextCategory(1);
-        else row = Math.min(row + 1, (c?.rows.length ?? 1) - 1);
+        else row = Math.min(row + 1, Math.max(shown(c).length - 1, 0));
       } else if (name === "k" || name === "up") {
         if (focus === "categories") nextCategory(-1);
         else row = Math.max(row - 1, 0);
       } else if (name === "g" || name === "home") {
         row = 0;
       } else if (name === "end") {
-        row = Math.max((c?.rows.length ?? 1) - 1, 0);
+        row = Math.max(shown(c).length - 1, 0);
+      } else if (name === "s") {
+        // Cycles the status filter: all, actionable, installed, problems.
+        filter = FILTERS[(FILTERS.indexOf(filter) + 1) % FILTERS.length]!;
+        row = 0;
+      } else if (name === "a") {
+        // Marks every tool of the list that can still be installed; again, clears them.
+        const targets = shown(c).filter((r) => markable(r) && r.status !== "installed").map((r) => r.item.id);
+        const allMarked = targets.length > 0 && targets.every((id) => marked.has(id));
+        for (const id of targets) {
+          if (allMarked) marked.delete(id);
+          else marked.add(id);
+        }
       } else if (name === "space" || name === " ") {
-        const r = c?.rows[row];
+        const r = shown(c)[row];
         if (r && markable(r)) {
           if (marked.has(r.item.id)) marked.delete(r.item.id);
           else marked.add(r.item.id);
@@ -675,8 +752,8 @@ export const doctorScreen: Screen = (() => {
           if (!list.length) return;
           body.add(sectionTitle(renderer, theme, `${title} (${list.length})`, color));
           for (const f of list) {
-            body.add(hangingRow(renderer, t`  ${fg(color)(glyph)}`, 5, t`${fg(withFix ? theme.text : theme.textDim)(f.text)}`));
-            if (withFix && f.fix) body.add(hangingRow(renderer, t`     ${fg(theme.accent)("→")}`, 8, t`${fg(theme.textDim)(f.fix)}${f.safe ? fg(theme.ok)("   [f]") : ""}`));
+            body.add(hangingRow(renderer, t`  ${fg(color)(glyph)}`, 5, t`${fg(withFix ? theme.text : theme.textDim)(findingText(f))}`));
+            if (withFix && f.fix) body.add(hangingRow(renderer, t`     ${fg(theme.accent)("→")}`, 8, t`${fg(theme.textDim)(findingFix(f) ?? f.fix)}${f.safe ? fg(theme.ok)("   [f]") : ""}`));
           }
           body.add(gap(renderer));
         };
@@ -743,6 +820,10 @@ export const logsScreen: Screen = (() => {
           empty.content = t`${fg(theme.textStrong)(tr("logs.empty"))}\n\n${dim(tr("logs.emptyHint"))}`;
           runList.add(empty);
           right.title = ` ${icon("events")}  ${tr("logs.events")} `;
+          // The events side explains what will show up here.
+          const explain = line(renderer, theme, { wrap: true });
+          explain.content = t`${dim(tr("logs.eventsEmpty"))}`;
+          events.add(explain);
           return;
         }
         let activeLine: TextRenderable | undefined;

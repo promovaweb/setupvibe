@@ -1,0 +1,37 @@
+/* Capa do EPUB: mesma composição da capa do PDF, em 160 × 256 mm (5:8). */
+
+@page {
+  size: 160mm 256mm;
+  margin: 0;
+}
+
+.cover {
+  width: 160mm;
+  height: 256mm;
+  padding: 22mm 18mm;
+}
+
+.cover-mark {
+  width: 200px;
+}
+
+.cover-title {
+  margin-top: 26mm;
+}
+
+.cover h1 {
+  font-size: 32pt;
+}
+
+.cover-tagline {
+  font-size: 12pt;
+}
+
+.cover-desc {
+  max-width: 118mm;
+  font-size: 11pt;
+}
+
+.cover-meta {
+  font-size: 8.5pt;
+}

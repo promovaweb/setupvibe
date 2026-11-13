@@ -20,6 +20,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync, chmodSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { baseDir } from "../core/config/paths.ts";
+import { manifest } from "../core/app/manifest.ts";
 
 export const STATE_FILES = ["config.json", "selection.json", "external.json"] as const;
 export type StateFile = (typeof STATE_FILES)[number];
@@ -86,7 +87,7 @@ export function readState<T extends Record<string, unknown>>(file: StateFile, fa
   let version = typeof data.schemaVersion === "number" ? data.schemaVersion : 0;
   const target = SCHEMA_VERSIONS[file];
   if (version > target) {
-    throw new Error(`${file} uses schema ${version}, newer than this SetupVibe (${target}). Run: setupvibe upgrade`);
+    throw new Error(`${file} uses schema ${version}, newer than this SetupVibe (${target}). Run: ${manifest.bin} upgrade`);
   }
   if (version < target) {
     backupFile(path, `${file}.schema-${version}`);

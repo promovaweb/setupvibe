@@ -143,7 +143,7 @@ const schema: Command = {
 
 export const configCommand: Command = {
   name: "config",
-  description: `Read and write preferences in ~/.${manifest.bin}/settings.json.`,
+  description: `Read and write preferences in ~/.${manifest.dataName}/settings.json.`,
   longDescription:
     `Preferences are stored in plain text at ${paths.settings()}. Nested keys use dot\n` +
     `notation. Keys outside the schema are accepted as text to leave room for project\n` +

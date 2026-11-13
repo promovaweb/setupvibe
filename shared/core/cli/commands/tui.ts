@@ -10,7 +10,7 @@ import type { Command } from "../registry.ts";
 
 export const tuiCommand: Command = {
   name: "tui",
-  description: "Open the terminal interface (Overview and About). Requires a TTY.",
+  description: "Open the terminal interface: the Home with one card per module (Inventory, User, Doctor, Logs, Tailscale, Machine, About). Requires a TTY.",
   options: [
     {
       name: "--tab",

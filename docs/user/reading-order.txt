@@ -1,0 +1,13 @@
+docs/user/README.md
+docs/user/00-visao-geral.md
+docs/user/01-instalacao-e-primeiro-uso.md
+docs/user/02-instalacao-automatica.md
+docs/user/03-itens-e-versoes.md
+docs/user/04-a-tui.md
+docs/user/05-shell-e-terminal.md
+docs/user/06-manutencao.md
+docs/user/07-servidor-e-seguranca.md
+docs/user/08-agentes-e-mcp.md
+docs/user/09-windows-e-wsl.md
+docs/user/10-vindo-do-setupvibe-1.md
+docs/user/11-problemas-e-glossario.md

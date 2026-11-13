@@ -172,7 +172,7 @@ const rotateKey: Command = {
 export const credentialsCommand: Command = {
   name: "credentials",
   aliases: ["cred"],
-  description: `Store encrypted secrets (AES-256-GCM) in ~/.${manifest.bin}/credentials.json.`,
+  description: `Store encrypted secrets (AES-256-GCM) in ~/.${manifest.dataName}/credentials.json.`,
   longDescription:
     `Values are encrypted with a 32-byte master key. The key comes from the variable\n` +
     `${MASTER_KEY_VARIABLE} (64 hex characters) or from master.key, created with mode 0600 on\n` +

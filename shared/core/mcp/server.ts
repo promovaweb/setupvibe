@@ -15,7 +15,6 @@ import { registerBaseTools } from "./tools/base.ts";
 import { registerConfigTools } from "./tools/config.ts";
 import { registerResources } from "./resources/base.ts";
 import { registerPrompts } from "./prompts.ts";
-import { registerDoctorTools } from "./tools/doctor.ts";
 import { registerSetupVibeTools } from "../../mcp/tools.ts";
 
 /** Metadata collected during registration, for `mcp --list`. */
@@ -52,7 +51,6 @@ function createServer(): Registrar {
 function registerAll(r: Registrar): void {
   registerBaseTools(r);
   registerConfigTools(r);
-  registerDoctorTools(r);
   registerSetupVibeTools(r);
   registerResources(r);
   registerPrompts(r);

@@ -19,8 +19,8 @@ import { manifest } from "../app/manifest.ts";
 import { systemSummary } from "../cli/commands/about.ts";
 import { icon } from "../../tui/icons.ts";
 import { hasText, otherLanguage, resetTuiLanguage, setTuiLanguage, tr, tuiLanguage } from "../../tui/i18n.ts";
-import { readSettings, getPath } from "../config/settings.ts";
-import { glyphs, currentTheme, type Theme } from "./theme.ts";
+import { readSettings, getPath, setPath, writeSettings } from "../config/settings.ts";
+import { glyphs, currentTheme, themes, type Theme } from "./theme.ts";
 import { home, screens } from "./screens/index.ts";
 import type { ScreenContext, Screen, ScreenKey } from "./screen.ts";
 
@@ -172,12 +172,26 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
       paddingRight: 1,
       zIndex: 10,
     });
+    // Keys of the open module first (some may not fit the bottom bar), then the global ones.
+    const moduleKeys = (active?.keys ?? []).filter((k) => k.key !== "│");
+    if (moduleKeys.length) {
+      helpBox.add(new TextRenderable(renderer, { content: tr("help.moduleKeys"), fg: theme.textDim }));
+      for (const k of moduleKeys) {
+        const row = new BoxRenderable(renderer, { flexDirection: "row" });
+        row.add(new TextRenderable(renderer, { content: k.key.padEnd(16), fg: theme.accent, flexShrink: 0 }));
+        row.add(new TextRenderable(renderer, { content: k.action, fg: theme.text }));
+        helpBox.add(row);
+      }
+      helpBox.add(new TextRenderable(renderer, { content: " ", height: 1 }));
+      helpBox.add(new TextRenderable(renderer, { content: tr("help.globalKeys"), fg: theme.textDim }));
+    }
     const rows: Array<[string, string]> = [
       ["←↑↓→  h j k l", tr("help.tabs")],
       ["Enter", tr("help.next")],
       [`1 … ${screens.length}`, tr("help.go")],
       ["Esc  Backspace", tr("help.back")],
       ["L", tr("help.language")],
+      ["T", tr("help.theme")],
       ["?", tr("help.toggle")],
       ["q  Ctrl+C", tr("help.quit")],
     ];
@@ -197,6 +211,7 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
     ...(onHome ? [] : [{ key: "esc", action: tr("global.back"), press: "escape" }]),
     { key: `1-${screens.length}`, action: tr("global.go") },
     { key: "L", action: tr("global.language"), press: "L" },
+    { key: "T", action: tr("global.theme"), press: "T" },
     { key: "?", action: tr("global.help"), press: "?" },
     { key: "q", action: tr("global.quit"), press: "q" },
   ];
@@ -275,6 +290,13 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
       switchLanguage();
     };
     header.add(languageSwitch);
+    // Theme switch: moon for the dark palette, sun for the light one; a click or T switches it.
+    const themeSwitch = new TextRenderable(renderer, { content: ` ${icon(theme.name === "day" ? "day" : "night")} `, fg: theme.accent, flexShrink: 0, selectable: false, bg: theme.barBackground });
+    themeSwitch.onMouseDown = (e) => {
+      e.stopPropagation();
+      switchTheme();
+    };
+    header.add(themeSwitch);
     clock = new TextRenderable(renderer, { content: "", fg: theme.barText, flexShrink: 0, bg: theme.barBackground });
     header.add(clock);
     tickClock();
@@ -297,6 +319,21 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
     footer = undefined;
     renderer.root.add(root);
     show(id);
+  };
+
+  /** Switches between the dark and light palettes, saves the choice and rebuilds in place. */
+  const switchTheme = () => {
+    theme = theme.name === "day" ? themes.night : themes.day;
+    context.theme = theme;
+    renderer.setBackgroundColor(theme.background);
+    try {
+      const settings = readSettings();
+      setPath(settings, "tui.theme", theme.name);
+      writeSettings(settings);
+    } catch {
+      // A read-only settings file keeps the choice for this session only.
+    }
+    build(active?.id ?? home.id);
   };
 
   const switchLanguage = () => {
@@ -325,6 +362,9 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
       case "L":
         switchLanguage();
         return;
+      case "T":
+        switchTheme();
+        return;
       default:
         break;
     }
@@ -336,7 +376,7 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
 
   const onKey = (key: KeyEvent) => {
     // Shift+l is L (language); plain l stays with the screens.
-    handle(key.name === "l" && key.shift ? "L" : key.name);
+    handle(key.name === "l" && key.shift ? "L" : key.name === "t" && key.shift ? "T" : key.name);
   };
   renderer.keyInput.on("keypress", onKey);
   renderer.once("destroy", () => {

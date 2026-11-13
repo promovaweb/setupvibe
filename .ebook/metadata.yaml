@@ -1,0 +1,18 @@
+---
+title: "SetupVibe: guia do usuário"
+subtitle: "Ambiente de desenvolvimento com versões fixadas, em um comando"
+author:
+  - "Promovaweb"
+publisher: "Promovaweb"
+lang: "pt-BR"
+rights: "Guia do usuário do SetupVibe, Promovaweb"
+description: "Guia do SetupVibe 2, da instalação ao uso avançado: init, auto, lista de itens com versões fixadas, TUI, shell, manutenção, servidor com segurança, agentes por MCP, migração do SetupVibe 1 e referência de CLI, configuração, exit codes e MCP."
+subject:
+  - "SetupVibe"
+  - "ambiente de desenvolvimento"
+  - "CLI"
+  - "TUI"
+  - "Model Context Protocol"
+  - "Docker Swarm"
+identifier: "https://github.com/promovaweb/setupvibe"
+---

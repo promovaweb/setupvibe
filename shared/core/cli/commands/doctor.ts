@@ -14,6 +14,9 @@ export interface DoctorCheck {
 }
 
 /** Collects independent checks without writing files or exposing secrets. */
+/** A check failure whose message is safe to show (no file content). */
+class ReadableCheckError extends Error {}
+
 export function collectDoctorChecks(runtime = { version: Bun.version, stdin: Boolean(process.stdin.isTTY), stdout: Boolean(process.stdout.isTTY) }) {
   const checks: DoctorCheck[] = [];
   const add = (name: string, status: DoctorCheck["status"], detail: string) => checks.push({ name, status, detail });
@@ -27,11 +30,14 @@ export function collectDoctorChecks(runtime = { version: Bun.version, stdin: Boo
       return;
     }
     try { check(); add(name, "ok", detail); }
-    catch { add(name, "fail", "Unreadable, invalid or incorrectly configured"); }
+    // Only messages written for the reader are shown; parser errors could quote file content.
+    catch (e) { add(name, "fail", e instanceof ReadableCheckError ? e.message : "Unreadable, invalid or incorrectly configured"); }
   };
   inspect("directory", paths.base(), () => {
     const stat = statSync(paths.base());
-    if (!stat.isDirectory() || (stat.mode & 0o777) !== 0o700) throw new Error("Invalid directory mode");
+    if (!stat.isDirectory()) throw new ReadableCheckError("Not a directory");
+    const mode = stat.mode & 0o777;
+    if (mode !== 0o700) throw new ReadableCheckError(`Mode ${mode.toString(8)}, expected 700; doctor --fix sets it`);
   }, "Directory exists; mode 0700");
   inspect("settings", paths.settings(), () => {
     const data: unknown = JSON.parse(readFileSync(paths.settings(), "utf8"));

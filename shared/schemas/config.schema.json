@@ -26,7 +26,8 @@
         "arch",
         "omarchy",
         "macos",
-        "windows"
+        "windows",
+        "wsl"
       ]
     },
     "user": {
@@ -63,7 +64,8 @@
             "arch",
             "omarchy",
             "macos",
-            "windows"
+            "windows",
+            "wsl"
           ]
         },
         "prerequisites": {

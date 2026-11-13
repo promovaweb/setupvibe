@@ -9,7 +9,7 @@
 import { z } from "zod";
 import { rawUrl } from "../repo.ts";
 
-const system = z.enum(["ubuntu", "debian", "mint", "zorin", "arch", "omarchy", "macos", "windows"]);
+const system = z.enum(["ubuntu", "debian", "mint", "zorin", "arch", "omarchy", "macos", "windows", "wsl"]);
 
 export const configSchema = z
   .object({

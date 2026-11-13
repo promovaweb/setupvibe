@@ -1,0 +1,43 @@
+# SetupVibe 2 · full inventory (spec section 17).
+#
+# The main CI installs only the `essencial` profile on macOS and Windows, to
+# keep every push fast. Once a week, and on demand, this workflow installs the
+# whole inventory on both, runs it a second time to prove idempotency, then
+# check. A failure here points at an item that breaks on a real runner.
+name: SetupVibe 2 · full inventory
+
+on:
+  schedule:
+    - cron: "41 7 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15-intel, windows-2025]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: v2
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run build -- --edition desktop
+      - name: auto, whole inventory, twice
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          bin=./dist/setupvibe
+          [ -f ./dist/setupvibe.exe ] && bin=./dist/setupvibe.exe
+          "$bin" auto --skip-network-check
+          "$bin" auto --skip-network-check
+          "$bin" check

@@ -15,12 +15,13 @@ import { panel } from "../core/tui/components.ts";
 import type { Theme } from "../core/tui/theme.ts";
 import type { Screen } from "../core/tui/screen.ts";
 import { collect, daysUntil, formatBytes, runNetcheck, since, type NetcheckResult, type TailscalePeer, type TailscaleSnapshot } from "../tailscale/status.ts";
-import { tr, type TextKey } from "./i18n.ts";
+import { tr, type TextKey, tailscaleState } from "./i18n.ts";
 import { icon } from "./icons.ts";
 import { fit } from "./model.ts";
 
-function line(renderer: CliRenderer, wrap = false, height?: number): TextRenderable {
-  return new TextRenderable(renderer, { content: "", wrapMode: wrap ? "word" : "none", flexShrink: 0, ...(height ? { height } : {}) });
+/** A text line in the theme text color (plain parts of styled text take it too). */
+function line(renderer: CliRenderer, theme: Theme, wrap = false, height?: number): TextRenderable {
+  return new TextRenderable(renderer, { content: "", fg: theme.text, wrapMode: wrap ? "word" : "none", flexShrink: 0, ...(height ? { height } : {}) });
 }
 
 function scroll(renderer: CliRenderer, theme: Theme): ScrollBoxRenderable {
@@ -36,7 +37,7 @@ export function connection(p: TailscalePeer): "direct" | "relay" | "idle" | "off
 
 /** Short summary for the Home card: state, machine, online peers. */
 export function tailscaleSummary(s: TailscaleSnapshot): { state: string; ok: boolean; online: number; total: number } {
-  return { state: s.installed ? s.state || "?" : "", ok: s.state === "Running", online: s.peers.filter((p) => p.online).length, total: s.peers.length };
+  return { state: s.installed ? tailscaleState(s.state) : "", ok: s.state === "Running", online: s.peers.filter((p) => p.online).length, total: s.peers.length };
 }
 
 export const tailscaleScreen: Screen = (() => {
@@ -65,7 +66,7 @@ export const tailscaleScreen: Screen = (() => {
       const root = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, gap: 1, paddingTop: 1 });
       const top = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, height: 15, flexShrink: 0 });
       const selfPanel = panel(renderer, theme, { title: `${icon("machine")}  ${tr("ts.self")}`, flexGrow: 3, flexBasis: 0, active: true });
-      const selfText = line(renderer);
+      const selfText = line(renderer, theme);
       selfPanel.add(new BoxRenderable(renderer, { height: 1, flexShrink: 0 }));
       selfPanel.add(selfText);
       const sidePanel = panel(renderer, theme, { title: `${icon("services")}  ${tr("ts.services")}`, flexGrow: 2, flexBasis: 0 });
@@ -77,12 +78,12 @@ export const tailscaleScreen: Screen = (() => {
 
       const bottom = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, flexGrow: 1, minHeight: 6 });
       const peersPanel = panel(renderer, theme, { title: `${icon("peers")}  ${tr("ts.peers")}`, flexGrow: 3, flexBasis: 0 });
-      const header = line(renderer, false, 1);
+      const header = line(renderer, theme, false, 1);
       const peerList = scroll(renderer, theme);
       peersPanel.add(header);
       peersPanel.add(peerList);
       const detailPanel = panel(renderer, theme, { title: `${icon("details")}  ${tr("inv.details")}`, flexGrow: 2, flexBasis: 0 });
-      const detailText = line(renderer, true);
+      const detailText = line(renderer, theme, true);
       detailPanel.add(new BoxRenderable(renderer, { height: 1, flexShrink: 0 }));
       detailPanel.add(detailText);
       bottom.add(peersPanel);
@@ -119,7 +120,7 @@ export const tailscaleScreen: Screen = (() => {
         const running = s.state === "Running";
         const me = s.self;
         const expiry = daysUntil(me?.keyExpiry);
-        selfText.content = t`${k("ts.state")}${fg(running ? theme.ok : theme.warn)(`● ${s.state || "?"}`)}${s.authUrl ? fg(theme.accent)(`  ${s.authUrl}`) : ""}
+        selfText.content = t`${k("ts.state")}${fg(running ? theme.ok : theme.warn)(`● ${tailscaleState(s.state)}`)}${s.authUrl ? fg(theme.accent)(`  ${s.authUrl}`) : ""}
 ${k("ts.name")}${strong(me?.name ?? "-")}  ${dim(me?.dnsName ?? "")}
 ${k("ts.ips")}${strong((me?.ips ?? []).join("  ") || "-")}
 ${k("ts.tailnet")}${strong(s.tailnet?.name ?? "-")}${s.tailnet ? dim(`  MagicDNS ${s.tailnet.magicDNSEnabled ? "on" : "off"} · ${s.tailnet.magicDNSSuffix}`) : ""}
@@ -130,11 +131,11 @@ ${k("ts.tags")}${me?.tags.length ? strong(me.tags.join(", ")) : dim("-")}
 ${k("ts.routes")}${strong(String(me?.routes.length ?? 0))}  ${dim(tr("ts.certs"))} ${strong(String(me?.certDomains.length ?? 0))}
 ${k("ts.caps")}${dim((me?.capabilities ?? []).join(", ") || "-")}`;
         if (!running) {
-          selfText.content = t`${k("ts.state")}${fg(theme.warn)(`● ${s.state || "?"}`)}\n\n${dim(tr("ts.startHint"))}\n${fg(theme.accent)(s.authUrl ?? "sudo tailscale up")}`;
+          selfText.content = t`${k("ts.state")}${fg(theme.warn)(`● ${tailscaleState(s.state)}`)}\n\n${dim(tr("ts.startHint"))}\n${fg(theme.accent)(s.authUrl ?? "sudo tailscale up")}`;
         }
 
         const add = (content: ReturnType<typeof t> | string, wrap = true) => {
-          const l = line(renderer, wrap);
+          const l = line(renderer, theme, wrap);
           l.content = content;
           side.add(l);
         };
@@ -166,7 +167,7 @@ ${k("ts.caps")}${dim((me?.capabilities ?? []).join(", ") || "-")}`;
         header.content = t`${dim(`    ${fit(tr("ts.col.name").toLocaleUpperCase(), 20)}${fit(tr("ts.col.os").toLocaleUpperCase(), 9)}${fit("IP", 16)}${fit(tr("ts.col.conn").toLocaleUpperCase(), 12)}${tr("ts.col.seen").toLocaleUpperCase()}`)}`;
         row = Math.min(row, Math.max(0, s.peers.length - 1));
         s.peers.forEach((p, i) => {
-          const l = line(renderer, false, 1);
+          const l = line(renderer, theme, false, 1);
           const active = i === row;
           const c = connection(p);
           const seen = p.online ? (p.lastSeen ? since(p.lastSeen) : tr("ts.now")) : since(p.lastSeen) || "-";

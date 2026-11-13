@@ -19,6 +19,8 @@ export interface EditionDocs {
   readonly mcp: string;
   readonly config: string;
   readonly exitCodes: string;
+  readonly troubleshooting: string;
+  readonly migration: string;
 }
 
 /** Languages of the embedded documentation (spec decision: Portuguese and English). */

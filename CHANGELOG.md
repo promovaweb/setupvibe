@@ -4,6 +4,47 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.25] - 2026-11-13
+
+### Added
+
+- TUI light theme: `T` or the moon and sun switch in the header toggle between the dark (`night`) and light (`day`) palettes, saved in `tui.theme`.
+- Inventory status filter (`s`: all, to install, installed, with problems) and mark all (`a`).
+- Live progress of Install and Remove in the Inventory details panel, read from the run log: bar, finished and total steps, elapsed time, the last steps and the error of each failure.
+- The help (`?`) lists the keys of the open module first, including the ones that do not fit the bottom bar.
+- Home cards: Logs shows one mark per recent run (green without failures, red with any); About shows whether a newer version exists and how many items are outdated; `u` re-reads the state.
+- MCP tools `report`, `init` and `migrate` (dry run by default; a real migrate needs `confirm: true`), `logs`, `tailscale` and `machine`; resources `setupvibe://inventory` and `setupvibe://selection`. The `doctor` tool now runs `setupvibe doctor`; `health` keeps only the SetupVibe findings.
+- User guide in `docs/user/` (Portuguese, in chapters from the first run to servers, MCP, Windows and migration) and its ebook, `ebook/SetupVibe-Guia-v2.0.0-dev.25.pdf` and `.epub`, built by `bun run ebook` and checked by `bun run ebook:verify`; the appendices are generated from the CLI, configuration, exit codes and MCP references.
+- MCP `install` takes `external` (a mise tool, `tool@version` included) and `remove` takes `force` and `external`.
+- Embedded topics `troubleshooting` and `migration`; `--skill` accepts the same topics as `docs` and MCP, `inventory` included.
+- Documentation: the CLI manual documents every command and subcommand of both editions (options, output, effects, permissions, exit codes and five examples each); configuration, exit codes and TUI references rewritten; new troubleshooting and migration guides; tests fail when a command, setting or exit code has no documentation.
+- Tests: every TUI screen at four sizes, in both languages and palettes, with layout, text key and contrast rules; timers stop when the TUI closes; Nerd Font glyph check; a smoke test of the compiled binary in a real terminal in CI; a weekly workflow installs the whole inventory on macOS and Windows. Coverage minimum raised to 90% of lines and 87% of functions.
+
+### Changed
+
+- The Home redraws only the Machine card every two seconds; the rest is read when the Home opens, after an action or with `u`. Before, it re-read everything and ran `sudo -n true` every two seconds.
+- The Home Doctor card counts the same findings as the Doctor module, which also feed the MCP `health` tool.
+- Doctor findings, the Tailscale state and the About texts follow the TUI language; commands stay as they are.
+- `--help` examples show real use (`auto --profile essencial --dry-run`, `install docker node`, `doctor --fix`, `migrate --dry-run`); the `tui` command describes the Home and its seven modules.
+- Secondary text of both palettes is darker or lighter for contrast.
+
+### Fixed
+
+- `auto --config` accepts the file written by `config export` (`profile: "none"`).
+- `wsl` is a valid system in `config.json`, so WSL no longer warns at every start.
+- `doctor --fix` converts SetupVibe 1 shell files before writing the new block, like `auto` and `shell apply`.
+- `doctor` says the mode of `~/.setupvibe` when it is not 0700 and that `doctor --fix` sets it.
+- `config` and `credentials` help show `~/.setupvibe/` in the server edition too; the newer-state message names the running binary.
+- `install` and `remove` declare `NOT_FOUND` (6); `upgrade` declares `UNSUPPORTED_SYSTEM` (11).
+- Text without a color took the terminal default, unreadable on the light palette (Tailscale, Machine and Home cards).
+- Home cards no longer draw past their border; long Doctor findings show their head only; the About credits keep the role on its own line.
+
+### Validation
+
+- `bun run validate` with 404 tests, coverage 90.36% of lines and 88.09% of functions, the TUI smoke test of both binaries, `ebook:verify` and markdownlint on 59 files.
+
+---
+
 ## [v2.0.0-dev.24] - 2026-11-12
 
 ### Changed

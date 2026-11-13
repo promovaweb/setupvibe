@@ -1,0 +1,305 @@
+/*
+ * Design system de PDF do guia do SetupVibe.
+ * pdf-design-system: 1.0.0
+ *
+ * Composição A4 do kit de /home/luizeof/hub/brand/pdf, com os tokens e a
+ * tipografia do SetupVibe. Variante declarada no build.json.
+ */
+
+@font-face {
+  font-family: "Inter";
+  src: url("../brand/fonts/inter-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("../brand/fonts/inter-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Manrope";
+  src: url("../brand/fonts/manrope-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Manrope";
+  src: url("../brand/fonts/manrope-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+
+:root {
+  --pdf-font-body: "Inter", -apple-system, "Segoe UI", Arial, sans-serif;
+  --pdf-font-title: "Manrope", "Inter", -apple-system, "Segoe UI", Arial, sans-serif;
+  --pdf-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --pdf-black: #001117;
+  --pdf-white: #ffffff;
+  --pdf-graphite: #03212a;
+  --pdf-fog: #f2f8f9;
+  --pdf-gray: #2d4c58;
+  --pdf-border: #c9d6dc;
+  --pdf-link: #075985;
+  --pdf-kicker: #1c8986;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@page {
+  size: A4;
+  margin: 23mm 19mm 21mm;
+
+  @bottom-center {
+    content: "SetupVibe · Guia do usuário · " counter(page) " / " counter(pages);
+    color: var(--pdf-gray);
+    font-family: var(--pdf-font-body);
+    font-size: 8.5pt;
+  }
+}
+
+@page cover {
+  margin: 0;
+
+  @bottom-center {
+    content: none;
+  }
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  color: var(--pdf-graphite);
+  font-family: var(--pdf-font-body);
+  font-size: 10.5pt;
+  line-height: 1.58;
+}
+
+.cover {
+  page: cover;
+  page-break-after: always;
+  width: 210mm;
+  height: 297mm;
+  padding: 26mm 22mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--pdf-white);
+  color: var(--pdf-black);
+}
+
+.cover-mark {
+  width: 240px;
+  height: auto;
+}
+
+.cover-title {
+  margin-top: 30mm;
+}
+
+.cover-kicker {
+  font-family: var(--pdf-font-body);
+  font-size: 10pt;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pdf-kicker);
+}
+
+.cover h1 {
+  margin: 12px 0 16px;
+  font-family: var(--pdf-font-title);
+  font-size: 34pt;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.cover-tagline {
+  margin-bottom: 18px;
+  font-family: var(--pdf-font-title);
+  font-size: 13pt;
+  font-weight: 600;
+}
+
+.cover-desc {
+  max-width: 105mm;
+  color: var(--pdf-gray);
+  font-size: 12pt;
+}
+
+.cover-meta {
+  padding-top: 14px;
+  border-top: 1px solid var(--pdf-border);
+  color: var(--pdf-gray);
+  font-size: 9pt;
+}
+
+.cover-meta div {
+  margin: 3px 0;
+}
+
+#TOC {
+  page-break-after: always;
+}
+
+#TOC::before {
+  content: "Sumário";
+  display: block;
+  margin-bottom: 18px;
+  font-family: var(--pdf-font-title);
+  font-size: 20pt;
+  font-weight: 700;
+}
+
+#TOC ul {
+  padding-left: 0;
+  list-style: none;
+}
+
+#TOC ul ul {
+  padding-left: 17px;
+}
+
+#TOC li {
+  margin: 5px 0;
+}
+
+#TOC a {
+  color: var(--pdf-graphite);
+  text-decoration: none;
+}
+
+#TOC a::after {
+  content: leader(".") target-counter(attr(href), page);
+  color: var(--pdf-gray);
+  font-size: 8.5pt;
+}
+
+main > h1 {
+  page-break-before: always;
+}
+
+main > h1:first-child {
+  page-break-before: avoid;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--pdf-font-title);
+  page-break-after: avoid;
+}
+
+h1 {
+  margin: 0 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--pdf-black);
+  font-size: 21pt;
+  line-height: 1.2;
+}
+
+h2 {
+  margin: 24px 0 10px;
+  font-size: 15pt;
+}
+
+h3 {
+  margin: 20px 0 8px;
+  font-size: 12pt;
+}
+
+p {
+  margin: 0 0 10px;
+  orphans: 3;
+  widows: 3;
+}
+
+li {
+  margin-bottom: 4px;
+}
+
+a {
+  color: var(--pdf-link);
+}
+
+code {
+  padding: 1px 2px;
+  border-radius: 3px;
+  background: var(--pdf-fog);
+  font-family: var(--pdf-font-mono);
+  font-size: 0.88em;
+}
+
+pre {
+  padding: 11px 13px;
+  border-left: 3px solid var(--pdf-kicker);
+  background: var(--pdf-fog);
+  break-inside: avoid;
+  page-break-inside: avoid;
+  white-space: pre-wrap;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+}
+
+blockquote {
+  margin: 14px 0;
+  padding: 4px 0 4px 14px;
+  border-left: 3px solid var(--pdf-kicker);
+  font-weight: 500;
+}
+
+table {
+  width: 100%;
+  margin: 12px 0 18px;
+  border-collapse: collapse;
+  font-size: 9.3pt;
+}
+
+th,
+td {
+  padding: 6px 8px;
+  border: 1px solid var(--pdf-border);
+  overflow-wrap: anywhere;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--pdf-fog);
+  color: var(--pdf-gray);
+  font-size: 8.4pt;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+tr,
+img,
+figure {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--pdf-border);
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "version": "2.0.0-dev.25",
+  "edition": "v2.0.0-dev.25",
+  "design_system": "1.0.0",
+  "generated_at": "2026-11-13T12:48:55Z",
+  "source_sha256": "2ccef721f07e1dfb64df7e481d6b29b17b4aab70601592e1c2eca490879ca157",
+  "sources": [
+    ".ebook/assets/logo.png",
+    ".ebook/build-ebook.mjs",
+    ".ebook/cover.css",
+    ".ebook/cover.html",
+    ".ebook/epub.css",
+    ".ebook/metadata.yaml",
+    ".ebook/pdf.css",
+    ".ebook/template.html",
+    "desktop/docs/cli.md",
+    "desktop/docs/configuration.md",
+    "desktop/docs/exit-codes.md",
+    "desktop/docs/mcp.md",
+    "docs/user/00-visao-geral.md",
+    "docs/user/01-instalacao-e-primeiro-uso.md",
+    "docs/user/02-instalacao-automatica.md",
+    "docs/user/03-itens-e-versoes.md",
+    "docs/user/04-a-tui.md",
+    "docs/user/05-shell-e-terminal.md",
+    "docs/user/06-manutencao.md",
+    "docs/user/07-servidor-e-seguranca.md",
+    "docs/user/08-agentes-e-mcp.md",
+    "docs/user/09-windows-e-wsl.md",
+    "docs/user/10-vindo-do-setupvibe-1.md",
+    "docs/user/11-problemas-e-glossario.md",
+    "docs/user/README.md",
+    "docs/user/reading-order.txt",
+    "ebook/VERSION",
+    "package.json"
+  ],
+  "artifacts": {
+    "pdf": {
+      "file": "SetupVibe-Guia-v2.0.0-dev.25.pdf",
+      "sha256": "df8de992f881b81e2db66d70c37abbaea6ae723a73e26fb65751f044a376fbea"
+    },
+    "epub": {
+      "file": "SetupVibe-Guia-v2.0.0-dev.25.epub",
+      "sha256": "a04ba6834e5ca64af456adaa40abf3ff4962f22708462ab65dedb6e303e8af4d"
+    }
+  }
+}

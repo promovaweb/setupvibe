@@ -28,17 +28,18 @@ import { meter, usageColor } from "./style.ts";
 export { usageColor };
 
 /** A panel body made of one text line per entry, rewritten on each refresh. */
-function lines(renderer: CliRenderer, parent: BoxRenderable) {
+function lines(renderer: CliRenderer, parent: BoxRenderable, color: string) {
   const box = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, minHeight: 0 });
   parent.add(box);
   return (content: Array<StyledText | string>) => {
     for (const child of box.getChildren()) box.remove(child);
-    for (const c of content) box.add(new TextRenderable(renderer, { content: c, height: 1, flexShrink: 0, wrapMode: "none" }));
+    for (const c of content) box.add(new TextRenderable(renderer, { content: c, fg: color, height: 1, flexShrink: 0, wrapMode: "none" }));
   };
 }
 
 export const machineScreen: Screen = (() => {
   let info: MachineInfo | undefined;
+  let detected: ReturnType<typeof detectSystem> | undefined;
   let sampler = new LiveSampler();
   let live: LiveReading | undefined;
   let timer: ReturnType<typeof setInterval> | undefined;
@@ -61,7 +62,7 @@ export const machineScreen: Screen = (() => {
         const p = panel(renderer, theme, { title: `${icon(glyph)}  ${tr(title)}`, flexGrow: grow, flexBasis: 0, active });
         p.add(new BoxRenderable(renderer, { height: 1, flexShrink: 0 }));
         parent.add(p);
-        return lines(renderer, p);
+        return lines(renderer, p, theme.text);
       };
       const r1Height = Math.max(12, 11 + Math.ceil(cores / 2));
       const r1 = row(r1Height);
@@ -86,7 +87,8 @@ export const machineScreen: Screen = (() => {
         const strong = fg(theme.textStrong);
         const k = (key: TextKey, w = 14) => dim(fit(tr(key), w));
         const pct = (v: number) => fg(usageColor(theme, v))(`${String(v).padStart(3)}%`);
-        const detected = detectSystem((edition().inventory as Inventory).systems);
+        // Read once per visit: the system does not change while the module is open.
+        detected ??= detectSystem((edition().inventory as Inventory).systems);
 
         sys([
           t`${bold(strong(m.hostname))}`,
@@ -165,6 +167,7 @@ export const machineScreen: Screen = (() => {
     },
     onEnter: () => {
       info = machineInfo();
+      detected = undefined;
       sampler = new LiveSampler();
       live = undefined;
       refresh();

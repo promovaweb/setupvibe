@@ -99,9 +99,13 @@ sudo rule, which `auto` removes at the end unless `--keep-nopasswd` is given.
 ```bash
 setupvibe config export setupvibe.json          # on the reference machine
 setupvibe auto --config setupvibe.json          # on the new one
+setupvibe config import setupvibe.json          # or apply the selection in place
 ```
 
 The answers file carries the items and the Git identity, never secrets.
+`profile: "none"` means an empty base, so the `only` list and its requirements
+drive the plan, and `auto --config` repeats the exported selection. Passing
+`--profile` on the command line overrides the file.
 
 ## Corporate networks and caches
 

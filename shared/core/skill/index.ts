@@ -11,11 +11,11 @@
 import { docsLanguage, edition, type DocsLanguage } from "../app/edition.ts";
 import { manifest } from "../app/manifest.ts";
 import { exitCodeDescriptions } from "../app/exit-codes.ts";
-import { GLOBAL_OPTIONS, type Command, type OptionDefinition } from "../cli/registry.ts";
+import { GLOBAL_OPTIONS, SKILL_TOPICS, type Command, type OptionDefinition } from "../cli/registry.ts";
 import { inventoryMarkdown, type Inventory } from "../../inventory.ts";
 
 /** Topics accepted by `--skill <topic>` and by the MCP tool/resource `skill`. */
-export const SKILL_TOPICS = ["cli", "tui", "mcp", "config", "exit-codes", "inventory", "reference"] as const;
+export { SKILL_TOPICS };
 export type SkillTopic = (typeof SKILL_TOPICS)[number];
 
 function substitute(text: string): string {
@@ -76,7 +76,7 @@ export function commandReference(root: Command): string {
 
 /** Returns the requested section or the whole documentation. */
 export function skillText(root: Command, topic?: string, language: DocsLanguage = docsLanguage()): string {
-  const { overview, cli: cliDoc, tui: tuiDoc, mcp: mcpDoc, config: configDoc, exitCodes: exitCodesDoc } = edition().docs[language];
+  const { overview, cli: cliDoc, tui: tuiDoc, mcp: mcpDoc, config: configDoc, exitCodes: exitCodesDoc, troubleshooting, migration } = edition().docs[language];
   const sections: Record<SkillTopic, () => string> = {
     reference: () => commandReference(root),
     cli: () => `${substitute(cliDoc)}\n\n${commandReference(root)}`,
@@ -84,6 +84,8 @@ export function skillText(root: Command, topic?: string, language: DocsLanguage 
     mcp: () => substitute(mcpDoc),
     config: () => substitute(configDoc),
     "exit-codes": () => substitute(exitCodesDoc),
+    troubleshooting: () => substitute(troubleshooting),
+    migration: () => substitute(migration),
     inventory: () => inventoryMarkdown(edition().inventory as Inventory, language),
   };
   if (topic) {
