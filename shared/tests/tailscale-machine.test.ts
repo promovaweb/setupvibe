@@ -104,3 +104,27 @@ describe("home bento", () => {
     expect(moveInBento(1, 0, "x")).toEqual([1, 0]);
   });
 });
+
+describe("live machine readings", () => {
+  const live = require("../system/live") as typeof import("../system/live");
+
+  test("network, disk and process parsers", () => {
+    const net = live.parseNetDev("Inter-| Receive\n face |bytes\n    lo: 10 1 0 0 0 0 0 0 10 1 0 0 0 0 0 0\n ens18: 2048 5 0 0 0 0 0 0 4096 7 0 0 0 0 0 0\n veth1: 1 1 0 0 0 0 0 0 1 1 0 0 0 0 0 0\n");
+    expect(net).toEqual({ ens18: { rx: 2048, tx: 4096 } });
+    expect(live.parseDiskstats("   8       0 sda 100 0 4000 0 50 0 2000 0 0 0 0\n   8       1 sda1 1 0 1 0 1 0 1 0 0 0 0\n 259 0 nvme0n1 1 0 8 0 1 0 16 0 0 0 0\n")).toEqual({ sda: { read: 4000, write: 2000 }, nvme0n1: { read: 8, write: 16 } });
+    expect(live.parsePs(" 123 node 12.5 3.0 40960\n 9 kworker/0:1 0.0 0.0 0\nbad line\n")).toEqual([{ pid: 123, name: "node", cpu: 12.5, mem: 3, rssKb: 40960 }, { pid: 9, name: "kworker/0:1", cpu: 0, mem: 0, rssKb: 0 }]);
+  });
+
+  test("sparkline, rates and a real tick", () => {
+    expect(live.sparkline([0, 50, 100], 5)).toBe("  ▁▅█");
+    expect(live.rate(512)).toBe("512 B/s");
+    expect(live.rate(15 * 1024)).toBe("15 KB/s");
+    expect(live.rate(3.4 * 1024 * 1024)).toBe("3.4 MB/s");
+    const sampler = new live.LiveSampler();
+    const r = sampler.tick(3);
+    expect(r.cpu).toBeGreaterThanOrEqual(0);
+    expect(r.perCore.length).toBeGreaterThan(0);
+    expect(r.memTotal).toBeGreaterThan(0);
+    expect(r.cpuHistory.length).toBe(1);
+  });
+});

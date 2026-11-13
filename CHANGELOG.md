@@ -4,6 +4,20 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.22] - 2026-11-12
+
+### Changed
+
+- Machine module, live every second: total CPU with a 60-second history, load, temperature when there is a sensor and one bar per core; RAM and swap with history; network per interface in bytes per second; disk reads and writes per second; the processes using the most CPU. Readings come from `/proc` and `ps` through a sampler that keeps the previous counters.
+- Home cards refresh on their own while the Home is shown: Machine every 2 seconds (CPU, RAM, disk, load, network and CPU history), Tailscale every 15 seconds.
+- One progress bar for the whole TUI: a thin solid track with the done part in the state color, replacing the dotted bars. Inventory tools show the status as a colored pill and the version on the right; the second line keeps only the description; the duplicated legend is gone.
+
+### Validation
+
+- `bun run validate` with 368 tests (live readings and parsers included); the screens checked as PNG images with their real colors.
+
+---
+
 ## [v2.0.0-dev.21] - 2026-11-12
 
 ### Changed

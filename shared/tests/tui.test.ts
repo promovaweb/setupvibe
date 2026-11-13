@@ -130,7 +130,7 @@ describe("screens", () => {
     setup.mockInput.pressKey(" ");
     await setup.renderOnce();
     frame = setup.captureCharFrame();
-    expect(frame).toContain("◼");
+    expect(frame).toContain("●");
     expect(frame).toContain("1 marked");
     expect(frame).toContain("24.22.3 (exact)");
     setup.mockInput.pressEscape();
@@ -152,7 +152,7 @@ describe("screens", () => {
     setup.mockInput.pressKey("6");
     await setup.renderOnce();
     const frame = setup.captureCharFrame();
-    expect(frame).toContain("CPU and memory");
+    expect(frame).toContain("Processes");
     expect(frame).toContain("Disks");
     setup.mockInput.pressEscape();
     await Bun.sleep(60);

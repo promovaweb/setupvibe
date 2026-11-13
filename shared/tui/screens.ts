@@ -17,7 +17,7 @@
  * Text follows SETUPVIBE_LANG or LANG (see i18n.ts). Colors come from the
  * theme, so the day and night palettes need no change here.
  */
-import { BoxRenderable, ScrollBoxRenderable, TextAttributes, TextRenderable, bold, fg, t, type CliRenderer, type StyledText } from "@opentui/core";
+import { BoxRenderable, ScrollBoxRenderable, TextAttributes, TextRenderable, bg, bold, fg, t, type CliRenderer, type StyledText } from "@opentui/core";
 import { agentAliasesEnabled } from "../shell/config.ts";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";
@@ -146,29 +146,48 @@ function blockColors(theme: Theme, selected: boolean, focused: boolean) {
   return { bg: theme.surface, strong: theme.text, text: theme.text, dim: theme.textDim, bar: theme.surface };
 }
 
+/** Status as a pill: dark text on the status color, padded. */
+function pill(theme: Theme, status: string, label: string, width: number) {
+  const color = statusColor(theme, status);
+  const quiet = ["unavailable", "system", "init", "gui"].includes(status);
+  const text = ` ${label} `.padStart(width);
+  return quiet ? fg(color)(text) : bg(color)(fg(theme.background)(text));
+}
+
 /**
- * An item as a two-line block: marker, status and the name in bold with the
- * status on the right; below, the description and the versions.
+ * An item as a two-line block: marker, status icon and the name in bold with
+ * the status pill on the right; below, the description, with the pinned
+ * version (and the installed one, when it differs) on the right.
  */
 function itemBlock(theme: Theme, r: InventoryRow, marked: boolean, selected: boolean, focused: boolean, width: number): StyledText {
   const c = blockColors(theme, selected, focused);
+  const strongSel = selected && focused;
   const status = statusColor(theme, r.status);
-  const mark = markable(r) ? (marked ? "◼" : "◻") : " ";
-  const statusLabel = statusText(r.status);
-  const nameWidth = Math.max(12, width - statusLabel.length - 8);
-  const versions = `${tr("inv.pinned").toLowerCase()} ${r.item.version} · ${tr("inv.installedVersion").toLowerCase()} ${r.installed ?? "-"}`;
-  const descWidth = Math.max(10, width - versions.length - 8);
-  return t`${fg(c.bar)("▌")} ${fg(marked ? (selected && focused ? c.strong : theme.accent) : c.dim)(mark)} ${fg(selected && focused ? c.strong : status)(STATUS_GLYPH[r.status] ?? " ")} ${bold(fg(r.status === "unavailable" && !selected ? theme.textDim : c.strong)(fit(r.item.name, nameWidth)))} ${fg(selected && focused ? c.strong : status)(statusLabel)}
-${fg(c.bar)("▌")}     ${fg(c.dim)(fit(r.item.description[tuiLanguage()], descWidth))}  ${fg(c.dim)(versions)}`;
+  const mark = markable(r) ? (marked ? "●" : "○") : " ";
+  const label = statusText(r.status);
+  const pillWidth = Math.max(label.length + 2, 12);
+  const nameWidth = Math.max(12, width - pillWidth - 8);
+  const version = r.installed && r.installed !== r.item.version ? `${r.installed} → ${r.item.version}` : r.item.version;
+  const descWidth = Math.max(10, width - version.length - 9);
+  return t`${fg(c.bar)("▌")} ${fg(marked ? (strongSel ? c.strong : theme.accent) : c.dim)(mark)} ${fg(strongSel ? c.strong : status)(STATUS_GLYPH[r.status] ?? " ")}  ${bold(fg(r.status === "unavailable" && !selected ? theme.textDim : c.strong)(fit(r.item.name, nameWidth)))}${pill(theme, r.status, label, pillWidth)}
+${fg(c.bar)("▌")}       ${fg(c.dim)(fit(r.item.description[tuiLanguage()], descWidth))}  ${fg(strongSel ? c.text : theme.accentSecondary)(version)}`;
 }
 
-/** A category as a two-line block: name in bold and the count; below, a progress bar. */
+/** Thin progress line: the done part in the status color, the rest dim. */
+function thinBar(done: number, total: number, width: number): [string, string] {
+  const filled = total > 0 ? Math.round((done / total) * width) : 0;
+  return ["━".repeat(filled), "─".repeat(Math.max(0, width - filled))];
+}
+
+/** A category as a two-line block: name in bold and the count; below, a thin progress line. */
 function categoryBlock(theme: Theme, title: string, done: number, total: number, selected: boolean, focused: boolean, width: number): StyledText {
   const c = blockColors(theme, selected, focused);
+  const strongSel = selected && focused;
   const complete = total > 0 && done === total;
   const count = `${done}/${total}`;
-  return t`${fg(c.bar)("▌")} ${bold(fg(c.strong)(fit(title, width - count.length - 4)))} ${fg(complete && !(selected && focused) ? theme.ok : c.dim)(count)}
-${fg(c.bar)("▌")} ${fg(complete ? (selected && focused ? c.strong : theme.ok) : c.dim)(progressBar(done, total, Math.max(6, width - 4)))}`;
+  const [on, off] = thinBar(done, total, Math.max(6, width - 3));
+  return t`${fg(c.bar)("▌")} ${bold(fg(c.strong)(fit(title, width - count.length - 3)))} ${fg(complete && !strongSel ? theme.ok : c.dim)(count)}
+${fg(c.bar)("▌")} ${fg(strongSel ? c.strong : theme.ok)(on)}${fg(strongSel ? c.dim : theme.border)(off)}`;
 }
 
 export const inventoryScreen: Screen = (() => {
@@ -311,8 +330,6 @@ export const inventoryScreen: Screen = (() => {
         itemLines.push(l);
         return box;
       });
-      const legend = line(renderer, theme, { height: 1 });
-      right.add(legend);
       top.add(left);
       top.add(right);
 
@@ -341,7 +358,6 @@ export const inventoryScreen: Screen = (() => {
       root.add(status);
 
       const dim = fg(theme.textDim);
-      legend.content = t`${fg(theme.ok)("●")} ${dim(statusText("installed"))}  ${fg(theme.warn)("↑")} ${dim(statusText("outdated"))}  ${fg(theme.accent)("○")} ${dim(statusText("available"))}  ${fg(theme.warn)("◐")} ${dim(statusText("other"))}  ${dim("◆")} ${dim(statusText("system"))}`;
 
       refresh = () => {
         const c = categories[cat];

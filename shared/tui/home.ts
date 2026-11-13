@@ -13,7 +13,7 @@
  * cards read only local state, so the Home opens instantly; the Tailscale
  * card fills in when `tailscale status` answers.
  */
-import { BoxRenderable, TextRenderable, fg, t, type StyledText } from "@opentui/core";
+import { BoxRenderable, TextRenderable, bold, fg, t, type StyledText } from "@opentui/core";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";
 import { panel } from "../core/tui/components.ts";
@@ -29,10 +29,12 @@ import { detectV1Here } from "../legacy/v1.ts";
 import { agentAliasesEnabled } from "../shell/config.ts";
 import { collect } from "../tailscale/status.ts";
 import { formatDuration, machineInfo } from "../system/info.ts";
+import { LiveSampler, rate, sparkline, type LiveReading } from "../system/live.ts";
+import { meter, usageColor } from "./style.ts";
 import { tailscaleSummary } from "./tailscale.ts";
 import { checklistText } from "./screens.ts";
 import { tr, tuiLanguage, type TextKey } from "./i18n.ts";
-import { currentGroups, doctorFindings, fit, inventoryModel, logEvents, logFiles, progressBar, runLabel, statusCounts, sudoWithoutPassword, userChecklist, userName } from "./model.ts";
+import { currentGroups, doctorFindings, fit, inventoryModel, logEvents, logFiles, runLabel, statusCounts, sudoWithoutPassword, userChecklist, userName } from "./model.ts";
 
 /** Card layout in reading order: rows of module ids with their relative widths. */
 export const BENTO: Array<Array<{ id: string; grow: number }>> = [
@@ -71,6 +73,11 @@ export function createHomeScreen(modules: () => readonly Screen[]): Screen {
   let col = 0;
   let refresh = () => {};
   let context: ScreenContext | undefined;
+  let fast: ReturnType<typeof setInterval> | undefined;
+  let slow: ReturnType<typeof setInterval> | undefined;
+  let pollTailscale = () => {};
+  let sampler = new LiveSampler();
+  let live: LiveReading | undefined;
   const numberOf = (id: string) => modules().findIndex((m) => m.id === id) + 1;
   const titleOf = (id: string) => modules().find((m) => m.id === id)?.title ?? id;
 
@@ -92,16 +99,21 @@ export function createHomeScreen(modules: () => readonly Screen[]): Screen {
       const root = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, gap: 1, paddingTop: 1 });
       const next = new TextRenderable(renderer, { content: "", height: 1, flexShrink: 0, wrapMode: "none" });
       root.add(next);
-      const bodies = new Map<string, TextRenderable>();
+      const bodies = new Map<string, (content: Array<StyledText | string>) => void>();
       const cards = new Map<string, BoxRenderable>();
       BENTO.forEach((cells, r) => {
         // Fixed heights keep the grid compact; on short terminals the rows shrink.
-        const rowBox = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, height: r === 0 ? 15 : 12, flexShrink: 1, minHeight: 6 });
+        const rowBox = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, ...(r === 0 ? { height: 18, flexShrink: 1 } : { flexGrow: 1 }), minHeight: 6 });
         cells.forEach((cell, c) => {
           const card = panel(renderer, theme, { title: "", flexGrow: cell.grow, flexBasis: 0 });
-          const body = new TextRenderable(renderer, { content: "", wrapMode: "word", flexShrink: 1 });
           card.add(new BoxRenderable(renderer, { height: 1, flexShrink: 0 }));
-          card.add(body);
+          const bodyBox = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, minHeight: 0 });
+          card.add(bodyBox);
+          // One text line per entry, rewritten on each refresh.
+          const body = (content: Array<StyledText | string>) => {
+            for (const child of bodyBox.getChildren()) bodyBox.remove(child);
+            for (const c of content) bodyBox.add(new TextRenderable(renderer, { content: c, height: 1, flexShrink: 0, wrapMode: "none" }));
+          };
           card.onMouseDown = (e) => {
             e.stopPropagation();
             row = r;
@@ -153,43 +165,84 @@ export function createHomeScreen(modules: () => readonly Screen[]): Screen {
         next.content = t`${fg(theme.accent)(" → ")}${strong(tr(step[0]))}`;
 
         const categories = detected.system ? inventoryModel(inventory, detected.system, detected.headless, selection, tuiLanguage(), () => undefined) : [];
-        const catLines = categories
-          .map((c) => {
-            const cc = statusCounts(c.rows);
-            const d = cc.installed + cc.outdated + cc.failed;
-            return `${fit(c.title, 22)} ${progressBar(d, cc.markable, 12)} ${d}/${cc.markable}`;
-          })
-          .join("\n");
-        const findingLines = findings
-          .filter((f) => f.level !== "ok")
-          .slice(0, 3)
-          .map((f) => `${f.level === "fail" ? "✗" : "!"} ${f.text}`)
-          .join("\n");
-        const runLines = files
-          .slice(0, 4)
-          .map((f) => runLabel(f))
-          .join("\n");
-        const pendingLines = checklist
-          .filter((e) => !e.ok)
-          .slice(0, 4)
-          .map((e) => `! ${checklistText(e.label)}`)
-          .join("\n");
         const mi = machineInfo();
-        const memPct = mi.memTotal ? Math.round(((mi.memTotal - mi.memAvailable) / mi.memTotal) * 100) : 0;
+        if (!live) live = sampler.tick();
+        const l = live;
+        const memPct = l.memTotal ? Math.round((l.memUsed / l.memTotal) * 100) : 0;
         const rootDisk = mi.disks.find((d) => d.mount === "/") ?? mi.disks[0];
-        const loadPct = Math.round((mi.load[0] / Math.max(mi.cores, 1)) * 100);
-        const body: Record<string, StyledText> = {
-          machine: t`${strong(mi.hostname)}\n${dim(`${mi.cores} ${tr("mc.cores")} · ${formatDuration(mi.uptimeSec)}`)}\n\n${dim(fit(tr("mc.load"), 9))}${fg(loadPct >= 90 ? theme.error : loadPct >= 75 ? theme.warn : theme.ok)(mi.load[0].toFixed(2))}\n${dim(fit(tr("mc.memory"), 9))}${fg(memPct >= 90 ? theme.error : memPct >= 75 ? theme.warn : theme.ok)(`${progressBar(memPct, 100, 12)} ${memPct}%`)}\n${dim(fit(rootDisk ? tr("mc.disks") : "", 9))}${fg(rootDisk && rootDisk.percent >= 90 ? theme.error : rootDisk && rootDisk.percent >= 75 ? theme.warn : theme.ok)(rootDisk ? `${progressBar(rootDisk.percent, 100, 12)} ${rootDisk.percent}%` : "")}`,
-          inventory: t`${fg(theme.ok)(progressBar(done, counts.markable, 30))}  ${strong(`${done}/${counts.markable}`)}\n\n${fg(theme.ok)(`● ${String(counts.installed).padStart(3)}`)} ${dim(tr("summary.installed"))}    ${fg(theme.warn)(`↑ ${String(counts.outdated).padStart(3)}`)} ${dim(tr("summary.outdated"))}\n${fg(theme.accent)(`○ ${String(counts.available).padStart(3)}`)} ${dim(tr("summary.available"))}    ${fg(theme.error)(`✗ ${String(counts.failed).padStart(3)}`)} ${dim(tr("status.failed"))}\n\n${dim(catLines)}`,
-          doctor: t`${fg(problems ? theme.error : theme.ok)(`✗ ${problems}`)} ${dim(tr("doctor.problems").toLowerCase())}\n${fg(warnings ? theme.warn : theme.ok)(`! ${warnings}`)} ${dim(tr("doctor.warnings").toLowerCase())}\n\n${initOk ? fg(theme.ok)(`✓ init ${tr("overview.initDone")}`) : fg(theme.warn)(`! init ${tr("overview.initPending")}`)}${v1.found ? fg(theme.warn)(`\n! SetupVibe 1`) : ""}\n\n${dim(findingLines)}`,
+        const loadPct = Math.round((l.load[0] / Math.max(mi.cores, 1)) * 100);
+        const lbl = (text: string, w = 9) => dim(fit(text, w));
+        const [invOn, invOff] = meter(theme, done, counts.markable, 34, theme.ok);
+        const [cpuOn, cpuOff] = meter(theme, l.cpu, 100, 14);
+        const [memOn, memOff] = meter(theme, memPct, 100, 14);
+        const [dskOn, dskOff] = meter(theme, rootDisk?.percent ?? 0, 100, 14);
+        const netNow = l.net.reduce((acc, n) => ({ rx: acc.rx + n.rxPerSec, tx: acc.tx + n.txPerSec }), { rx: 0, tx: 0 });
+
+        const body: Record<string, Array<StyledText | string>> = {
+          inventory: [
+            t`${invOn}${invOff}  ${bold(strong(`${done}/${counts.markable}`))}`,
+            "",
+            t`${fg(theme.ok)(`● ${String(counts.installed).padStart(3)}`)} ${dim(fit(tr("summary.installed"), 14))}${fg(theme.warn)(`↑ ${String(counts.outdated).padStart(3)}`)} ${dim(tr("summary.outdated"))}`,
+            t`${fg(theme.accent)(`○ ${String(counts.available).padStart(3)}`)} ${dim(fit(tr("summary.available"), 14))}${fg(theme.error)(`✗ ${String(counts.failed).padStart(3)}`)} ${dim(tr("status.failed"))}`,
+            "",
+            ...categories.map((c) => {
+              const cc = statusCounts(c.rows);
+              const d = cc.installed + cc.outdated + cc.failed;
+              const [on, off] = meter(theme, d, cc.markable, 14, theme.ok);
+              return t`${dim(fit(c.title, 24))}${on}${off} ${dim(`${d}/${cc.markable}`)}`;
+            }),
+          ],
+          doctor: [
+            t`${bold(fg(problems ? theme.error : theme.ok)(`✗ ${problems}`))} ${dim(tr("doctor.problems").toLowerCase())}    ${bold(fg(warnings ? theme.warn : theme.ok)(`! ${warnings}`))} ${dim(tr("doctor.warnings").toLowerCase())}`,
+            "",
+            initOk ? t`${fg(theme.ok)(`✓ init ${tr("overview.initDone")}`)}` : t`${fg(theme.warn)(`! init ${tr("overview.initPending")}`)}`,
+            ...(v1.found ? [t`${fg(theme.warn)("! SetupVibe 1")}`] : []),
+            "",
+            ...findings.filter((x) => x.level !== "ok").slice(0, 3).map((x) => t`${fg(x.level === "fail" ? theme.error : theme.warn)(x.level === "fail" ? "✗" : "!")} ${dim(x.text)}`),
+          ],
+          machine: [
+            t`${bold(strong(mi.hostname))}`,
+            t`${dim(`${mi.cores} ${tr("mc.cores")} · ${formatDuration(l.uptimeSec)}`)}`,
+            "",
+            t`${lbl("CPU")}${cpuOn}${cpuOff} ${fg(usageColor(theme, l.cpu))(`${l.cpu}%`)}`,
+            t`${lbl(tr("mc.ram"))}${memOn}${memOff} ${fg(usageColor(theme, memPct))(`${memPct}%`)}`,
+            t`${lbl(tr("mc.disks"))}${dskOn}${dskOff} ${fg(usageColor(theme, rootDisk?.percent ?? 0))(`${rootDisk?.percent ?? 0}%`)}`,
+            t`${lbl(tr("mc.load"))}${fg(usageColor(theme, loadPct))(l.load[0].toFixed(2))}  ${fg(theme.ok)(`↓ ${rate(netNow.rx)}`)}  ${fg(theme.accent)(`↑ ${rate(netNow.tx)}`)}`,
+            t`${lbl("")}${fg(theme.accent)(sparkline(l.cpuHistory, 26))}`,
+          ],
           tailscale: tailscale
             ? tailscale.state
-              ? t`${fg(tailscale.ok ? theme.ok : theme.warn)(`● ${tailscale.state}`)}  ${strong(tailscaleIp)}\n${dim(tailnetLine)}\n\n${strong(`${tailscale.online}/${tailscale.total}`)} ${dim("online")}\n${dim(tailscaleOnline.slice(0, 4).join("\n"))}`
-              : t`${dim(tr("ts.notInstalled"))}`
-            : t`${dim(tr("ts.loading"))}`,
-          user: t`${strong(userName(config))}\n${pending ? fg(theme.warn)(tr("user.pending", { n: pending })) : fg(theme.ok)(`✓ ${tr("user.allGood")}`)}\n${dim(checklist[1]?.ok ? tr("home.sudoOk") : tr("home.sudoPassword"))}\n\n${fg(theme.warn)(pendingLines)}`,
-          logs: files[0] ? t`${strong(runLabel(files[0]))}\n${fg(theme.ok)(`✓ ${lastEvents.length - failed}`)}  ${fg(failed ? theme.error : theme.textDim)(`✗ ${failed}`)}\n\n${dim(runLines)}\n${dim(`${files.length} ${tr("logs.runs").toLowerCase()}`)}` : t`${dim(tr("logs.empty"))}`,
-          about: t`${strong(`v${manifest.version}`)}  ${dim(manifest.edition)}\n\n${dim(detected.name)}\n${dim(`${detected.arch} · ${detected.variant ?? ""}`)}`,
+              ? [
+                  t`${fg(tailscale.ok ? theme.ok : theme.warn)(`● ${tailscale.state}`)}  ${bold(strong(tailscaleIp))}`,
+                  t`${dim(tailnetLine)}`,
+                  "",
+                  t`${bold(strong(`${tailscale.online}/${tailscale.total}`))} ${dim("online")}`,
+                  ...tailscaleOnline.slice(0, 5).map((n) => t`${fg(theme.ok)("●")} ${dim(n)}`),
+                ]
+              : [t`${dim(tr("ts.notInstalled"))}`]
+            : [t`${dim(tr("ts.loading"))}`],
+          user: [
+            t`${bold(strong(userName(config)))}`,
+            pending ? t`${fg(theme.warn)(tr("user.pending", { n: pending }))}` : t`${fg(theme.ok)(`✓ ${tr("user.allGood")}`)}`,
+            t`${dim(checklist[1]?.ok ? tr("home.sudoOk") : tr("home.sudoPassword"))}`,
+            "",
+            ...checklist.filter((e) => !e.ok).slice(0, 5).map((e) => t`${fg(theme.warn)("!")} ${dim(checklistText(e.label))}`),
+          ],
+          logs: files[0]
+            ? [
+                t`${bold(strong(runLabel(files[0])))}`,
+                t`${fg(theme.ok)(`✓ ${lastEvents.length - failed}`)}  ${fg(failed ? theme.error : theme.textDim)(`✗ ${failed}`)}`,
+                "",
+                ...files.slice(1, 6).map((x) => t`${dim(runLabel(x))}`),
+              ]
+            : [t`${dim(tr("logs.empty"))}`, "", t`${dim(tr("logs.emptyHint"))}`],
+          about: [
+            t`${bold(strong(`v${manifest.version}`))}  ${dim(manifest.edition)}`,
+            "",
+            t`${dim(detected.name)}`,
+            t`${dim(`${detected.arch} · ${detected.variant ?? ""}`)}`,
+            t`${dim(tuiLanguage() === "pt-BR" ? "português · PT" : "English · EN")}`,
+          ],
         };
         for (const cells of BENTO) {
           for (const cell of cells) {
@@ -198,22 +251,43 @@ export function createHomeScreen(modules: () => readonly Screen[]): Screen {
             card.title = ` ${numberOf(cell.id)} ${titleOf(cell.id)} `;
             card.borderColor = selected ? theme.borderActive : theme.border;
             card.titleColor = selected ? theme.accent : theme.textDim;
-            bodies.get(cell.id)!.content = body[cell.id] ?? "";
+            bodies.get(cell.id)!(body[cell.id] ?? []);
           }
         }
       };
 
+      pollTailscale = () =>
+        void collect().then((s) => {
+          tailscale = tailscaleSummary(s);
+          tailnetLine = s.tailnet?.name ?? "";
+          tailscaleIp = s.self?.ips[0] ?? "";
+          tailscaleOnline = s.peers.filter((p) => p.online).map((p) => p.name);
+          refresh();
+        });
       refresh();
-      void collect().then((s) => {
-        tailscale = tailscaleSummary(s);
-        tailnetLine = s.tailnet?.name ?? "";
-        tailscaleIp = s.self?.ips[0] ?? "";
-        tailscaleOnline = s.peers.filter((p) => p.online).map((p) => p.name);
-        refresh();
-      });
+      pollTailscale();
       return root;
     },
-    onEnter: () => refresh(),
+    onEnter: () => {
+      refresh();
+      // Live cards: machine every 2 s, Tailscale every 15 s, while the Home is shown.
+      if (fast) clearInterval(fast);
+      if (slow) clearInterval(slow);
+      sampler = new LiveSampler();
+      fast = setInterval(() => {
+        live = sampler.tick(5);
+        refresh();
+      }, 2000);
+      slow = setInterval(() => pollTailscale(), 15_000);
+      fast.unref?.();
+      slow.unref?.();
+    },
+    onLeave: () => {
+      if (fast) clearInterval(fast);
+      if (slow) clearInterval(slow);
+      fast = undefined;
+      slow = undefined;
+    },
     onKey: (name) => {
       if (["left", "right", "up", "down", "h", "j", "k", "l"].includes(name)) {
         [row, col] = moveInBento(row, col, name);
