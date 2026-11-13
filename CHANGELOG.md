@@ -4,6 +4,19 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.21] - 2026-11-12
+
+### Changed
+
+- Inventory panels have keys: `c` selects the categories, `f` the tools and `Tab` switches; `j`/`k` move in the active panel, whose border takes the accent color and whose title shows the key.
+- Tools are two-line blocks with an empty row between them: marker, status and the name in bold with the status on the right; below, the description and the pinned and installed versions. Categories show the name in bold, the count and a progress bar. The selection of the active panel is a full accent bar; in the other panel it stays subtle.
+
+### Validation
+
+- `bun run validate` with 366 tests, the panel keys included.
+
+---
+
 ## [v2.0.0-dev.20] - 2026-11-12
 
 ### Changed

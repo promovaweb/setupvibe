@@ -123,7 +123,7 @@ describe("screens", () => {
     let frame = setup.captureCharFrame();
     expect(frame).toContain("› Inventory");
     expect(frame).toContain("Categories");
-    expect(frame).toContain("PINNED");
+    expect(frame).toContain("c · Categories");
     setup.mockInput.pressKey("l");
     await setup.renderOnce();
     expect(setup.captureCharFrame()).toContain("Node.js");

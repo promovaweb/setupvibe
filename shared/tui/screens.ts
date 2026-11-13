@@ -17,7 +17,7 @@
  * Text follows SETUPVIBE_LANG or LANG (see i18n.ts). Colors come from the
  * theme, so the day and night palettes need no change here.
  */
-import { BoxRenderable, ScrollBoxRenderable, TextAttributes, TextRenderable, fg, t, type CliRenderer, type StyledText } from "@opentui/core";
+import { BoxRenderable, ScrollBoxRenderable, TextAttributes, TextRenderable, bold, fg, t, type CliRenderer, type StyledText } from "@opentui/core";
 import { agentAliasesEnabled } from "../shell/config.ts";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";
@@ -40,6 +40,7 @@ import {
   logFiles,
   markable,
   planFromEnvelope,
+  progressBar,
   runLabel,
   statusCounts,
   STATUS_GLYPH,
@@ -132,23 +133,42 @@ async function runCli(args: string[]): Promise<{ code: number; out: string }> {
 
 /* ------------------------------------------------------------- Inventory */
 
-/** Width of the item columns; narrower on small terminals (see `fitColumns`). */
-const COL = { lead: 6, name: 26, pinned: 14, installed: 14 };
+/** Which list of the Inventory takes j/k: categories or tools (c, f or Tab switch). */
+type InventoryFocus = "categories" | "items";
 
-/** Adjusts the columns to the terminal width. */
-function fitColumns(width: number): void {
-  const narrow = width < 110;
-  COL.name = narrow ? 20 : 26;
-  COL.pinned = narrow ? 11 : 14;
-  COL.installed = narrow ? 11 : 14;
+/**
+ * Colors of a list block: the selected block of the focused list is a full
+ * accent bar with light text; in the other list the selection stays subtle.
+ */
+function blockColors(theme: Theme, selected: boolean, focused: boolean) {
+  if (selected && focused) return { bg: theme.keyBackground, strong: theme.keyText, text: theme.keyText, dim: theme.barText, bar: theme.keyText };
+  if (selected) return { bg: theme.surfaceHigh, strong: theme.textStrong, text: theme.text, dim: theme.textDim, bar: theme.accent };
+  return { bg: theme.surface, strong: theme.text, text: theme.text, dim: theme.textDim, bar: theme.surface };
 }
 
-function itemLine(theme: Theme, r: InventoryRow, marked: boolean, active: boolean): StyledText {
-  const pointer = active ? "▶" : " ";
+/**
+ * An item as a two-line block: marker, status and the name in bold with the
+ * status on the right; below, the description and the versions.
+ */
+function itemBlock(theme: Theme, r: InventoryRow, marked: boolean, selected: boolean, focused: boolean, width: number): StyledText {
+  const c = blockColors(theme, selected, focused);
+  const status = statusColor(theme, r.status);
   const mark = markable(r) ? (marked ? "◼" : "◻") : " ";
-  const color = statusColor(theme, r.status);
-  const nameColor = active ? theme.textStrong : r.status === "unavailable" ? theme.textDim : theme.text;
-  return t`${fg(theme.accent)(pointer)} ${fg(marked ? theme.accent : theme.textDim)(mark)} ${fg(color)(STATUS_GLYPH[r.status] ?? " ")} ${fg(nameColor)(fit(r.item.name, COL.name))}${fg(theme.textDim)(fit(r.item.version, COL.pinned))}${fg(r.installed ? theme.text : theme.textDim)(fit(r.installed ?? "-", COL.installed))}${fg(color)(statusText(r.status))}`;
+  const statusLabel = statusText(r.status);
+  const nameWidth = Math.max(12, width - statusLabel.length - 8);
+  const versions = `${tr("inv.pinned").toLowerCase()} ${r.item.version} · ${tr("inv.installedVersion").toLowerCase()} ${r.installed ?? "-"}`;
+  const descWidth = Math.max(10, width - versions.length - 8);
+  return t`${fg(c.bar)("▌")} ${fg(marked ? (selected && focused ? c.strong : theme.accent) : c.dim)(mark)} ${fg(selected && focused ? c.strong : status)(STATUS_GLYPH[r.status] ?? " ")} ${bold(fg(r.status === "unavailable" && !selected ? theme.textDim : c.strong)(fit(r.item.name, nameWidth)))} ${fg(selected && focused ? c.strong : status)(statusLabel)}
+${fg(c.bar)("▌")}     ${fg(c.dim)(fit(r.item.description[tuiLanguage()], descWidth))}  ${fg(c.dim)(versions)}`;
+}
+
+/** A category as a two-line block: name in bold and the count; below, a progress bar. */
+function categoryBlock(theme: Theme, title: string, done: number, total: number, selected: boolean, focused: boolean, width: number): StyledText {
+  const c = blockColors(theme, selected, focused);
+  const complete = total > 0 && done === total;
+  const count = `${done}/${total}`;
+  return t`${fg(c.bar)("▌")} ${bold(fg(c.strong)(fit(title, width - count.length - 4)))} ${fg(complete && !(selected && focused) ? theme.ok : c.dim)(count)}
+${fg(c.bar)("▌")} ${fg(complete ? (selected && focused ? c.strong : theme.ok) : c.dim)(progressBar(done, total, Math.max(6, width - 4)))}`;
 }
 
 export const inventoryScreen: Screen = (() => {
@@ -156,6 +176,7 @@ export const inventoryScreen: Screen = (() => {
   let cat = 0;
   let row = 0;
   const marked = new Set<string>();
+  let focus: InventoryFocus = "items";
   let refresh = () => {};
   let busy = false;
   let message: { text: string; level: "info" | "ok" | "error" } | undefined;
@@ -216,7 +237,8 @@ export const inventoryScreen: Screen = (() => {
     description: "Pinned tools by category: mark with space, install with i, remove with r",
     get keys() {
       return [
-        { key: "h/l", action: tr("key.category"), press: "l" },
+        { key: "c", action: tr("inv.categories").toLowerCase(), press: "c" },
+        { key: "f", action: tr("inv.tools").toLowerCase(), press: "f" },
         { key: "j/k", action: tr("key.item"), press: "j" },
         { key: "space", action: tr("key.mark"), press: "space" },
         { key: "i", action: tr("key.install"), press: "i" },
@@ -232,22 +254,24 @@ export const inventoryScreen: Screen = (() => {
       busy = false;
       cat = 0;
       row = 0;
+      focus = "items";
       load();
-      fitColumns(renderer.width);
       const short = renderer.height < 32;
       const root = new BoxRenderable(renderer, { flexDirection: "column", flexGrow: 1, gap: short ? 0 : 1, paddingTop: short ? 0 : 1 });
       const top = new BoxRenderable(renderer, { flexDirection: "row", flexGrow: 1, gap: 2, minHeight: 6 });
 
-      const left = panel(renderer, theme, { title: tr("inv.categories"), width: renderer.width < 110 ? 28 : 32 });
+      const leftWidth = renderer.width < 110 ? 28 : 34;
+      const left = panel(renderer, theme, { title: tr("inv.categories"), width: leftWidth });
       if (!short) left.add(gap(renderer));
       const catList = scrollBox(renderer, theme);
       left.add(catList);
       const catLines = Array.from({ length: Math.max(categories.length, 1) }, (_, i) => {
-        const l = line(renderer, theme, { height: 1 });
+        const l = new TextRenderable(renderer, { content: "", height: 2, flexShrink: 0, wrapMode: "none" });
         l.onMouseDown = () => {
           if (!categories[i]) return;
           cat = i;
           row = 0;
+          focus = "categories";
           pending = undefined;
           planLines = [];
           message = undefined;
@@ -259,27 +283,33 @@ export const inventoryScreen: Screen = (() => {
 
       const right = panel(renderer, theme, { title: tr("inv.items"), flexGrow: 1, active: true });
       if (!short) right.add(gap(renderer));
-      const header = line(renderer, theme, { height: 1 });
-      right.add(header);
       const list = scrollBox(renderer, theme);
       right.add(list);
+      // Items are two-line blocks with an empty row between them.
+      const itemWidth = Math.max(40, renderer.width - leftWidth - 10);
       const poolSize = Math.max(...categories.map((c) => c.rows.length), 1);
-      const itemLines = Array.from({ length: poolSize }, (_, i) => {
-        const l = line(renderer, theme, { height: 1 });
-        l.onMouseDown = (e) => {
+      const itemLines: TextRenderable[] = [];
+      const itemBoxes = Array.from({ length: poolSize }, (_, i) => {
+        const box = new BoxRenderable(renderer, { flexDirection: "column", height: 3, flexShrink: 0 });
+        const l = new TextRenderable(renderer, { content: "", height: 2, flexShrink: 0, wrapMode: "none" });
+        box.add(l);
+        box.add(new BoxRenderable(renderer, { height: 1, flexShrink: 0 }));
+        box.onMouseDown = (e) => {
           const r = categories[cat]?.rows[i];
           if (!r) return;
           row = i;
-          // The first four cells hold the pointer and the marker: a click there marks.
-          if (e.x - l.x <= 3 && markable(r)) {
+          focus = "items";
+          // The first cells of the block hold the marker: a click there marks.
+          if (e.x - box.x <= 3 && markable(r)) {
             if (marked.has(r.item.id)) marked.delete(r.item.id);
             else marked.add(r.item.id);
           }
           if (!busy && !pending) message = undefined;
           refresh();
         };
-        list.add(l);
-        return l;
+        list.add(box);
+        itemLines.push(l);
+        return box;
       });
       const legend = line(renderer, theme, { height: 1 });
       right.add(legend);
@@ -311,11 +341,16 @@ export const inventoryScreen: Screen = (() => {
       root.add(status);
 
       const dim = fg(theme.textDim);
-      header.content = t`${dim(`${" ".repeat(COL.lead)} ${fit(tr("inv.col.item"), COL.name)}${fit(tr("inv.col.pinned"), COL.pinned)}${fit(tr("inv.col.installed"), COL.installed)}${tr("inv.col.status")}`)}`;
       legend.content = t`${fg(theme.ok)("●")} ${dim(statusText("installed"))}  ${fg(theme.warn)("↑")} ${dim(statusText("outdated"))}  ${fg(theme.accent)("○")} ${dim(statusText("available"))}  ${fg(theme.warn)("◐")} ${dim(statusText("other"))}  ${dim("◆")} ${dim(statusText("system"))}`;
 
       refresh = () => {
         const c = categories[cat];
+        // The focused list gets the accent border and its key in the title.
+        left.borderColor = focus === "categories" ? theme.borderActive : theme.border;
+        left.titleColor = focus === "categories" ? theme.accent : theme.textDim;
+        right.borderColor = focus === "items" ? theme.borderActive : theme.border;
+        right.titleColor = focus === "items" ? theme.accent : theme.textDim;
+        left.title = ` c · ${tr("inv.categories")} `;
         catLines.forEach((l, i) => {
           const category = categories[i];
           if (!category) {
@@ -324,19 +359,20 @@ export const inventoryScreen: Screen = (() => {
           }
           const counts = statusCounts(category.rows);
           const done = counts.installed + counts.outdated + counts.failed;
-          const active = i === cat;
-          l.content = t`${fg(theme.accent)(active ? "▶ " : "  ")}${fg(active ? theme.textStrong : theme.text)(fit(category.title, renderer.width < 110 ? 17 : 21))}${fg(counts.markable && done === counts.markable ? theme.ok : theme.textDim)(`${done}/${counts.markable}`.padStart(5))}`;
-          l.bg = active ? theme.surfaceHigh : theme.surface;
+          const selected = i === cat;
+          l.content = categoryBlock(theme, category.title, done, counts.markable, selected, focus === "categories", leftWidth - 6);
+          l.bg = blockColors(theme, selected, focus === "categories").bg;
         });
-        right.title = ` ${c?.title ?? tr("inv.items")} · ${c?.rows.length ?? 0}${marked.size ? ` · ${marked.size} ${tr("inv.marked")}` : ""} `;
-        itemLines.forEach((l, i) => {
+        right.title = ` f · ${c?.title ?? tr("inv.items")} · ${c?.rows.length ?? 0}${marked.size ? ` · ${marked.size} ${tr("inv.marked")}` : ""} `;
+        itemBoxes.forEach((box, i) => {
           const r = c?.rows[i];
-          l.visible = Boolean(r);
+          box.visible = Boolean(r);
           if (!r) return;
-          l.content = itemLine(theme, r, marked.has(r.item.id), i === row);
-          l.bg = i === row ? theme.surfaceHigh : theme.surface;
+          const selected = i === row;
+          itemLines[i]!.content = itemBlock(theme, r, marked.has(r.item.id), selected, focus === "items", itemWidth);
+          itemLines[i]!.bg = blockColors(theme, selected, focus === "items").bg;
         });
-        if (itemLines[row]) list.scrollChildIntoView(itemLines[row]!);
+        if (itemBoxes[row]) list.scrollChildIntoView(itemBoxes[row]!);
         if (catLines[cat]) catList.scrollChildIntoView(catLines[cat]!);
 
         const r = c?.rows[row];
@@ -390,16 +426,26 @@ export const inventoryScreen: Screen = (() => {
       const cancelled = Boolean(pending);
       pending = undefined;
       planLines = [];
-      if (name === "l" || name === "]") {
-        cat = (cat + 1) % Math.max(categories.length, 1);
+      const nextCategory = (delta: number) => {
+        cat = (cat + delta + categories.length) % Math.max(categories.length, 1);
         row = 0;
-      } else if (name === "h" || name === "[") {
-        cat = (cat - 1 + categories.length) % Math.max(categories.length, 1);
-        row = 0;
+      };
+      if (name === "c") {
+        focus = "categories";
+      } else if (name === "f") {
+        focus = "items";
+      } else if (name === "tab") {
+        focus = focus === "items" ? "categories" : "items";
+      } else if (name === "l" || name === "]" || name === "right") {
+        nextCategory(1);
+      } else if (name === "h" || name === "[" || name === "left") {
+        nextCategory(-1);
       } else if (name === "j" || name === "down") {
-        row = Math.min(row + 1, (c?.rows.length ?? 1) - 1);
+        if (focus === "categories") nextCategory(1);
+        else row = Math.min(row + 1, (c?.rows.length ?? 1) - 1);
       } else if (name === "k" || name === "up") {
-        row = Math.max(row - 1, 0);
+        if (focus === "categories") nextCategory(-1);
+        else row = Math.max(row - 1, 0);
       } else if (name === "g" || name === "home") {
         row = 0;
       } else if (name === "end") {

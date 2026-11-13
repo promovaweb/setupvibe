@@ -88,3 +88,40 @@ describe("mouse and language", () => {
     expect(setup.captureCharFrame()).not.toContain("troca o idioma");
   });
 });
+
+describe("inventory panel keys", () => {
+  let dir: string;
+  let setup: TestRendererSetup;
+  let closed: Promise<void>;
+  beforeAll(async () => {
+    dir = mkdtempSync(join(tmpdir(), "sv-focus-"));
+    process.env[HOME_VARIABLE] = dir;
+    process.env.SETUPVIBE_LANG = "en";
+    setup = await createTestRenderer({ width: 140, height: 40 });
+    closed = mountTui(setup.renderer, { initialTab: "inventory" });
+    await setup.renderOnce();
+  });
+  afterAll(async () => {
+    setup.renderer.destroy();
+    await closed.catch(() => undefined);
+    rmSync(dir, { recursive: true, force: true });
+    delete process.env[HOME_VARIABLE];
+    delete process.env.SETUPVIBE_LANG;
+  });
+
+  test("c focuses the categories and j/k change the category; f and Tab go back to the tools", async () => {
+    expect(setup.captureCharFrame()).toContain("f · System");
+    setup.mockInput.pressKey("c");
+    setup.mockInput.pressKey("j");
+    await setup.renderOnce();
+    expect(setup.captureCharFrame()).toContain("f · Languages");
+    setup.mockInput.pressKey("f");
+    setup.mockInput.pressKey("j");
+    await setup.renderOnce();
+    expect(setup.captureCharFrame()).toContain("f · Languages");
+    setup.mockInput.pressTab();
+    setup.mockInput.pressKey("j");
+    await setup.renderOnce();
+    expect(setup.captureCharFrame()).toContain("f · Terminal tools");
+  });
+});
