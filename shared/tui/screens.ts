@@ -17,7 +17,7 @@
  * Text follows SETUPVIBE_LANG or LANG (see i18n.ts). Colors come from the
  * theme, so the day and night palettes need no change here.
  */
-import { BoxRenderable, ScrollBoxRenderable, TextAttributes, TextRenderable, bg, bold, fg, t, type CliRenderer, type StyledText } from "@opentui/core";
+import { BoxRenderable, ScrollBoxRenderable, TextAttributes, TextRenderable, bg, bold, fg, t, type CliRenderer, StyledText } from "@opentui/core";
 import { agentAliasesEnabled } from "../shell/config.ts";
 import { manifest } from "../core/app/manifest.ts";
 import { edition } from "../core/app/edition.ts";
@@ -33,6 +33,7 @@ import { selfArgv } from "../commands/auto.ts";
 import { machineFindings } from "../commands/maintenance.ts";
 import { tr, tuiLanguage, type TextKey } from "./i18n.ts";
 import { icon } from "./icons.ts";
+import { tint } from "./style.ts";
 import {
   currentGroups,
   fit,
@@ -142,38 +143,61 @@ type InventoryFocus = "categories" | "items";
  * accent bar with light text; in the other list the selection stays subtle.
  */
 function blockColors(theme: Theme, selected: boolean, focused: boolean) {
-  if (selected && focused) return { bg: theme.keyBackground, strong: theme.keyText, text: theme.keyText, dim: theme.barText, bar: theme.keyText };
+  if (selected && focused) return { bg: tint(theme.accent, theme.surface, 0.2), strong: theme.textStrong, text: theme.text, dim: theme.text, bar: theme.accent };
   if (selected) return { bg: theme.surfaceHigh, strong: theme.textStrong, text: theme.text, dim: theme.textDim, bar: theme.accent };
   return { bg: theme.surface, strong: theme.text, text: theme.text, dim: theme.textDim, bar: theme.surface };
 }
 
-/** Status as a pill: dark text on the status color, padded. */
-function pill(theme: Theme, status: string, label: string, width: number, onBar = false) {
+/** States that ask for attention get a filled tag; the others are quiet colored text. */
+const LOUD = new Set(["outdated", "failed"]);
+/** States that color the left edge of an item; the rest keep it neutral. */
+const EDGE = new Set(["installed", "outdated", "failed"]);
+
+/** Status tag of an item, right-aligned in `width` cells. */
+function statusTag(theme: Theme, status: string, width: number) {
   const color = statusColor(theme, status);
-  const quiet = ["unavailable", "system", "init", "gui"].includes(status);
-  const text = ` ${label} `.padStart(width);
-  // Quiet states are plain text; on the selected bar they take the bar text color to stay readable.
-  if (quiet) return fg(onBar ? theme.barText : color)(text);
-  return bg(color)(fg(theme.background)(text));
+  const text = `${STATUS_GLYPH[status] ?? " "} ${statusText(status)}`;
+  if (LOUD.has(status)) return bg(color)(fg(theme.background)(bold(` ${text} `.padStart(width))));
+  return fg(status === "other" || status === "init" || status === "system" || status === "gui" || status === "unavailable" ? theme.textDim : color)(`${text} `.padStart(width));
 }
 
 /**
- * An item as a two-line block: marker, status icon and the name in bold with
- * the status pill on the right; below, the description, with the pinned
- * version (and the installed one, when it differs) on the right.
+ * An item as a two-line block. Line one: a left edge in the status color
+ * (installed, outdated, failed), the check box and the name in bold, with the
+ * status tag on the right. Line two: the description, with the pinned version
+ * (or installed → pinned, when they differ) on the right.
  */
 function itemBlock(theme: Theme, r: InventoryRow, marked: boolean, selected: boolean, focused: boolean, width: number): StyledText {
   const c = blockColors(theme, selected, focused);
-  const strongSel = selected && focused;
-  const status = statusColor(theme, r.status);
-  const mark = markable(r) ? (marked ? "●" : "○") : " ";
-  const label = statusText(r.status);
-  const pillWidth = Math.max(label.length + 2, 12);
-  const nameWidth = Math.max(12, width - pillWidth - 8);
+  // Neutral states leave the edge empty, so the band behind shows through.
+  const edge = selected ? fg(theme.accent)("▌") : EDGE.has(r.status) ? fg(statusColor(theme, r.status))("▎") : fg(c.dim)(" ");
+  const box = markable(r) ? fg(marked ? theme.accent : selected ? theme.text : theme.textDim)(icon(marked ? "check" : "uncheck") || (marked ? "■" : "□")) : " ";
+  const tagWidth = Math.max(statusText(r.status).length + 4, 21);
+  const nameWidth = Math.max(10, width - tagWidth - 5);
+  const nameColor = marked ? theme.accent : r.status === "unavailable" ? theme.textDim : c.strong;
   const version = r.installed && r.installed !== r.item.version ? `${r.installed} → ${r.item.version}` : r.item.version;
-  const descWidth = Math.max(10, width - version.length - 9);
-  return t`${fg(c.bar)("▌")} ${fg(marked ? (strongSel ? c.strong : theme.accent) : c.dim)(mark)} ${fg(strongSel ? c.strong : status)(STATUS_GLYPH[r.status] ?? " ")}  ${bold(fg(r.status === "unavailable" && !selected ? theme.textDim : c.strong)(fit(r.item.name, nameWidth)))}${pill(theme, r.status, label, pillWidth, strongSel)}
-${fg(c.bar)("▌")}       ${fg(c.dim)(fit(r.item.description[tuiLanguage()], descWidth))}  ${fg(strongSel ? c.text : theme.accentSecondary)(version)}`;
+  // Ends one cell before the edge, like the status tag above it.
+  const descWidth = Math.max(10, width - version.length - 8);
+  const versionColor = r.status === "outdated" ? theme.warn : r.status === "unavailable" ? theme.textDim : theme.accentSecondary;
+  return t`${edge} ${box}  ${bold(fg(nameColor)(fit(r.item.name, nameWidth)))}${statusTag(theme, r.status, tagWidth)}
+${edge}    ${fg(c.dim === theme.text ? theme.text : theme.textDim)(fit(r.item.description[tuiLanguage()], descWidth))}  ${fg(versionColor)(version.padStart(1))} `;
+}
+
+/** Counts of the shown category, plus the marks and what i/r do with them. */
+function listSummary(theme: Theme, rows: InventoryRow[], marks: number): StyledText {
+  const counts = statusCounts(rows);
+  const parts: StyledText[] = [];
+  const add = (n: number, status: string, label: string) => {
+    if (n) parts.push(t`${fg(statusColor(theme, status))(`${STATUS_GLYPH[status]} ${n}`)} ${fg(theme.textDim)(label)}`);
+  };
+  add(counts.installed, "installed", tr("summary.installed"));
+  add(counts.outdated, "outdated", tr("summary.outdated"));
+  add(counts.failed, "failed", tr("status.failed"));
+  add(counts.available, "available", tr("summary.available"));
+  add(counts.other, "other", tr("summary.other"));
+  const chunks = parts.flatMap((p, i) => (i ? [fg(theme.border)("   "), ...p.chunks] : [...p.chunks]));
+  const tail = marks ? [fg(theme.border)("   │  "), fg(theme.accent)(`${icon("check") || "■"} ${marks} ${tr("inv.marked")}`)] : [];
+  return new StyledText([fg(theme.text)(" "), ...chunks, ...tail]);
 }
 
 /** Thin progress line: the done part in the status color, the rest dim. */
@@ -190,7 +214,7 @@ function categoryBlock(theme: Theme, title: string, done: number, total: number,
   const count = `${done}/${total}`;
   const [on, off] = thinBar(done, total, Math.max(6, width - 3));
   return t`${fg(c.bar)("▌")} ${bold(fg(c.strong)(fit(title, width - count.length - 3)))} ${fg(complete && !strongSel ? theme.ok : c.dim)(count)}
-${fg(c.bar)("▌")} ${fg(strongSel ? c.strong : theme.ok)(on)}${fg(strongSel ? c.dim : theme.border)(off)}`;
+${fg(c.bar)("▌")} ${fg(theme.ok)(on)}${fg(theme.border)(off)}`;
 }
 
 export const inventoryScreen: Screen = (() => {
@@ -304,18 +328,19 @@ export const inventoryScreen: Screen = (() => {
       });
 
       const right = panel(renderer, theme, { title: tr("inv.items"), flexGrow: 1, active: true });
+      const summary = line(renderer, theme, { height: 1 });
+      right.add(summary);
       if (!short) right.add(gap(renderer));
       const list = scrollBox(renderer, theme);
       right.add(list);
-      // Items are two-line blocks with an empty row between them.
+      // Items are two-line blocks, one under the other; the whole category usually fits.
       const itemWidth = Math.max(40, renderer.width - leftWidth - 10);
       const poolSize = Math.max(...categories.map((c) => c.rows.length), 1);
       const itemLines: TextRenderable[] = [];
       const itemBoxes = Array.from({ length: poolSize }, (_, i) => {
-        const box = new BoxRenderable(renderer, { flexDirection: "column", height: 3, flexShrink: 0 });
+        const box = new BoxRenderable(renderer, { flexDirection: "column", height: 2, flexShrink: 0 });
         const l = new TextRenderable(renderer, { content: "", height: 2, flexShrink: 0, wrapMode: "none" });
         box.add(l);
-        box.add(new BoxRenderable(renderer, { height: 1, flexShrink: 0 }));
         box.onMouseDown = (e) => {
           const r = categories[cat]?.rows[i];
           if (!r) return;
@@ -351,7 +376,8 @@ export const inventoryScreen: Screen = (() => {
         detailText.overflow = "hidden";
       }
       const factsBox = new BoxRenderable(renderer, { width: Math.min(54, Math.floor(renderer.width * 0.45)), flexShrink: 0, flexDirection: "column" });
-      const detailFacts = line(renderer, theme, { wrap: true });
+      // On short terminals each fact keeps one line, so a long path cannot push into the counts below.
+      const detailFacts = line(renderer, theme, { wrap: !short });
       factsBox.add(detailFacts);
       const actions = new BoxRenderable(renderer, { flexDirection: "row", gap: 2, height: 1, flexShrink: 0, marginTop: short ? 0 : 1 });
       actions.add(button(renderer, theme, `i  ${tr("btn.install")}`, theme.keyBackground, () => run("install")));
@@ -393,13 +419,16 @@ export const inventoryScreen: Screen = (() => {
           l.bg = blockColors(theme, selected, focus === "categories").bg;
         });
         right.title = ` f · ${c ? icon(c.id) : icon("inventory")} ${c?.title ?? tr("inv.items")} · ${c?.rows.length ?? 0}${marked.size ? ` · ${marked.size} ${tr("inv.marked")}` : ""} `;
+        summary.content = c ? listSummary(theme, c.rows, marked.size) : "";
         itemBoxes.forEach((box, i) => {
           const r = c?.rows[i];
           box.visible = Boolean(r);
           if (!r) return;
           const selected = i === row;
           itemLines[i]!.content = itemBlock(theme, r, marked.has(r.item.id), selected, focus === "items", itemWidth);
-          itemLines[i]!.bg = blockColors(theme, selected, focus === "items").bg;
+          // Every other item gets a faint band so the two-line blocks read apart.
+          const base = blockColors(theme, selected, focus === "items").bg;
+          itemLines[i]!.bg = !selected && i % 2 === 1 ? tint(theme.text, theme.surface, 0.035) : base;
         });
         if (itemBoxes[row]) list.scrollChildIntoView(itemBoxes[row]!);
         if (catLines[cat]) catList.scrollChildIntoView(catLines[cat]!);

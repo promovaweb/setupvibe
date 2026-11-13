@@ -4,6 +4,24 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.24] - 2026-11-12
+
+### Changed
+
+- Inventory tool list redesigned: a check box instead of the circle marker, the status as quiet colored text on the right (only outdated and failed keep a filled tag), a left edge in the status color for installed, outdated and failed, and two-line blocks without the empty row between them, on alternating bands, so a whole category usually fits. The version sits under the status, aligned to it.
+- The selection of the active list (tools and categories) is a soft accent tint with an accent left edge, replacing the full blue bar.
+- A line above the tools shows the counts of the category and how many items are marked.
+
+### Fixed
+
+- On short terminals a long path in the details (another copy) no longer wraps into the counts line.
+
+### Validation
+
+- `bun run validate` with 373 tests; the list checked as PNG images at 130 × 40 and 100 × 24.
+
+---
+
 ## [v2.0.0-dev.23] - 2026-11-12
 
 ### Changed
