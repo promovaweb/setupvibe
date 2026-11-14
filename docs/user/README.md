@@ -1,25 +1,24 @@
 # SetupVibe
 
-Uma máquina de desenvolvimento se degrada por acúmulo. Cada pessoa instala o
-runtime de que precisa na versão do dia, acrescenta um CLI para resolver um
-problema da semana e ajusta o `.zshrc` até o prompt ficar aceitável. Seis meses
-depois, duas máquinas da mesma equipe rodam versões diferentes de Node e
-ninguém sabe qual linha do shell veio do instalador e qual veio de um teste.
+Ao preparar uma máquina de desenvolvimento, você instala runtimes, acrescenta
+CLIs e ajusta o `.zshrc`. Se essas alterações ficam sem registro, comparar a
+máquina com outro ambiente exige conferir as versões instaladas e descobrir a
+origem de cada alteração no shell.
 
 O SetupVibe 2 trata esse preparo como parte do projeto. Um binário único lê uma
 lista de itens com versões fixadas, instala o que você marcar, registra o que
 fez em `~/.setupvibe/` e confere depois se a máquina continua com o que foi
-combinado. A mesma abordagem atende um notebook e um servidor, e a lista que o
-binário segue vem embutida nele, sem serviço externo.
+combinado. A lista vem embutida no binário e pode ser usada tanto num notebook
+quanto num servidor.
 
 ## Um binário, três modos
 
 O mesmo executável atende três públicos, sem três bases de código.
 
-| Modo | Como entrar | Para quem |
+| Modo | Como entrar | Uso |
 | --- | --- | --- |
-| TUI | `setupvibe` sem argumentos em um terminal interativo | pessoas que querem ver o estado e agir pelo teclado |
-| CLI | `setupvibe <command> [options]`, com saída em texto ou `--json` | pessoas, scripts e agentes |
+| TUI | `setupvibe` sem argumentos em um terminal interativo | consultar o estado e agir pelo teclado |
+| CLI | `setupvibe <command> [options]`, com saída em texto ou `--json` | executar comandos diretamente ou por scripts e agentes |
 | MCP | `setupvibe mcp`, servidor Model Context Protocol via stdio | agentes de IA que operam a máquina |
 
 Os três leem a mesma identidade, a mesma configuração, o mesmo cofre de
@@ -56,8 +55,8 @@ ou de um exit code.
 
 ### Parte 1. Primeiro uso
 
-O produto, o binário no lugar, o preparo da máquina, a instalação sem perguntas
-e o controle do que entra e sai.
+Os primeiros capítulos explicam o produto e acompanham a preparação da máquina
+até a instalação das ferramentas que você selecionou.
 
 | Capítulo | Pergunta que responde |
 | --- | --- |
@@ -68,8 +67,8 @@ e o controle do que entra e sai.
 
 ### Parte 2. Operação
 
-O uso que continua depois da instalação: interface, shell, manutenção,
-servidor, agentes de IA, Windows, migração e falhas.
+Consulte estes capítulos para operar a máquina depois da instalação ou adaptar
+o procedimento ao servidor, ao Windows e à migração da versão anterior.
 
 | Capítulo | O que você aprende |
 | --- | --- |
@@ -103,9 +102,9 @@ comando em dois estados: com o item ausente e com o item já instalado na
 máquina por outro gerenciador.
 
 Os blocos `text` foram copiados de execuções reais do binário com dois ajustes:
-a pasta pessoal aparece como `~` e as listas longas aparecem cortadas com `…`.
-Números de memória, de disco e de versão mudam de máquina para máquina, e cada
-bloco diz de qual máquina veio.
+a pasta pessoal aparece como `~` e as listas longas são abreviadas com `…`.
+Cada bloco identifica a máquina de origem, pois os números de memória, disco
+e versão variam entre ambientes.
 
 Commands, opções, keys e campos do `--json` ficam em inglês, como o binário
 escreve. O texto em volta é em português do Brasil.
@@ -116,7 +115,7 @@ O guia não substitui a documentação do mise, do Docker Swarm, do Model Contex
 Protocol nem do Git. Ele mostra o que o SetupVibe faz com essas ferramentas e
 aponta a fonte oficial quando o assunto fica fora do escopo do produto. Também
 não ensina a especificação interna: o código de `shared/` e o documento da
-especificação ficam no repositório, para quem mantém o SetupVibe.
+especificação ficam no repositório e orientam a manutenção do SetupVibe.
 
 ## Documentação relacionada
 

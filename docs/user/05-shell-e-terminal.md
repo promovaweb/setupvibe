@@ -6,9 +6,9 @@ um bloco delimitado: ele escreve só entre dois marcadores, guarda uma cópia do
 arquivo antes da primeira mudança e deixa um arquivo separado para as suas
 linhas.
 
-Quem aplica esse bloco é o `auto`, ao fim da instalação, e o `shell apply`,
-quando você quer refazer. Os dois usam o mesmo código e convertem um arquivo do
-SetupVibe 1 quando encontram um, então o bloco novo nunca cai sobre o antigo.
+O `auto` aplica esse bloco ao fim da instalação e `shell apply` permite
+reaplicá-lo depois. Ambos convertem arquivos do SetupVibe 1 antes de escrever
+o bloco novo, preservando as suas personalizações num arquivo separado.
 
 ## O que o `shell apply` escreve
 
@@ -32,8 +32,8 @@ setupvibe shell apply --dry-run
 setupvibe shell apply
 ```
 
-O primeiro comando mostra os arquivos e os blocos que seriam escritos; o
-segundo escreve. Depois de aplicar, abra um terminal novo ou recarregue o shell
+Use o primeiro comando para consultar os arquivos e os blocos previstos e o
+segundo para gravá-los. Depois de aplicar, abra um terminal novo ou recarregue o shell
 na sessão atual:
 
 ```bash
@@ -54,15 +54,15 @@ export EDITOR=vim
 alias deploy='./scripts/deploy.sh'
 ```
 
-O formato é o mesmo do `.zshrc`, e o arquivo é carregado no fim do bloco. Para
+O arquivo usa o formato do `.zshrc` e é carregado no fim do bloco. Para
 tmux, `~/.tmux.conf.local` é carregado antes do TPM, o que permite trocar teclas
-e tema sem tocar no arquivo gerenciado.
+e tema sem alterar o arquivo gerenciado.
 
 ## Aliases
 
 Os aliases passam por um guarda que só define o nome quando nada responde por
-ele: nem alias, nem função, nem comando instalado. O seu setup sempre vence, e
-nenhum alias do SetupVibe esconde um programa real. `df` é a exceção, porque
+ele: nem alias, nem função, nem comando instalado. Com essa verificação, os
+nomes existentes são preservados. `df` é a exceção, porque
 envolve o próprio comando de propósito.
 
 Nomes que escondiam programas comuns foram renomeados: `gs` virou `gstat`
@@ -71,8 +71,8 @@ Nomes que escondiam programas comuns foram renomeados: `gs` virou `gstat`
 silêncio quando o pnpm já instala comandos com esses nomes, porque fazem a mesma
 coisa. O `setupvibe doctor` lista os aliases pulados na máquina.
 
-Os aliases de agente ficam em arquivo separado e abrem a ferramenta sem pedir
-confirmação: `cco` para Claude Code, `cxo` para `codex --yolo` e `oco` para
+Os aliases de agente ficam em arquivo separado e desativam as confirmações
+da ferramenta: `cco` para Claude Code, `cxo` para `codex --yolo` e `oco` para
 `opencode --auto`. `cc` não serve para Claude Code porque já é o compilador C.
 Para deixar os três de fora e voltar a abrir os agentes pelo comando completo:
 
@@ -107,7 +107,7 @@ O comando não desinstala pacote, não apaga o estado e não desfaz a troca do
 shell de login. Para desfazer tudo, use `self uninstall`, no capítulo de
 manutenção.
 
-Se você removeu o bloco e quer o ambiente de volta, aplique outra vez:
+Para restaurar o ambiente depois de remover o bloco, aplique outra vez:
 
 ```bash
 setupvibe shell apply
@@ -118,8 +118,8 @@ setupvibe shell apply
 O Omarchy já tem shell, prompt, tmux e aliases próprios. Nessa máquina, o
 SetupVibe escreve no `~/.bashrc` um bloco que aponta para o Starship do
 SetupVibe e para os aliases, sem substituir `.bashrc`, `starship.toml` nem a
-configuração de tmux do sistema. Tudo o que o Omarchy mantém continua valendo, e
-o que o SetupVibe acrescenta fica dentro do bloco.
+configuração de tmux do sistema. Os acréscimos do SetupVibe ficam dentro do
+bloco e preservam a configuração mantida pelo Omarchy.
 
 ## Próximo passo
 

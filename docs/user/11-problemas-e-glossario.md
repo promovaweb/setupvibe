@@ -1,10 +1,9 @@
 # Problemas comuns e glossário
 
-Quase toda falha do SetupVibe tem um comando que a diagnostica. O `doctor` lê o
-runtime, o `init`, os itens, o `PATH`, o bloco do shell e os restos do SetupVibe
-1, e mostra o comando ao lado de cada achado. Este capítulo reúne os sintomas
-que aparecem com mais frequência, o que cada um significa e o vocabulário usado
-no resto do guia.
+Para investigar uma falha, comece pelo `doctor`. Ele confere o runtime e o
+estado da instalação (incluindo os restos do SetupVibe 1) e mostra um comando
+de correção ao lado de cada achado. Este capítulo explica os sintomas
+identificados por essas verificações e os termos usados no guia.
 
 ## Comece pelo `doctor`
 
@@ -12,9 +11,9 @@ no resto do guia.
 setupvibe doctor
 ```
 
-Um `✗` é problema, um `!` é aviso, e cada linha que exige ação traz o comando
+Um `✗` é problema e um `!` é aviso. Cada linha que exige ação traz o comando
 que resolve. Quando o achado é de nível `fail`, o comando termina com 3,
-`CONFIG`; leia o texto antes de tratar como arquivo de configuração quebrado.
+`CONFIG`. Leia a mensagem para identificar a falha apontada pela verificação.
 
 ## Sintomas e saídas
 
@@ -30,7 +29,7 @@ que resolve. Quando o achado é de nível `fail`, o comando termina com 3,
 | `3 of 42 steps failed` | falha parcial; o resto ficou aplicado | ler o log e repetir só o que faltou |
 | `SetupVibe 1 found` | máquina preparada pela versão 1 | `setupvibe migrate --dry-run` |
 | `! Restart needed` | `/var/run/reboot-required` existe | reiniciar ou `auto --reboot` |
-| contêiner publicando em `0.0.0.0` | Docker não passa pelo UFW | publicar em `127.0.0.1` |
+| container publicando em `0.0.0.0` | Docker não passa pelo UFW | publicar em `127.0.0.1` |
 | alias não definido | já existe comando com o mesmo nome | conferir com `type <nome>` |
 | `settings.json` inválido | valor fora do schema | `setupvibe config list` e corrigir |
 | `Run: setupvibe upgrade` | arquivo de estado de versão mais nova | `setupvibe upgrade` |
@@ -41,7 +40,7 @@ que resolve. Quando o achado é de nível `fail`, o comando termina com 3,
 
 O `auto` exige `sudo` sem senha porque não abre prompt. `init`, `migrate` e
 `shell apply` pedem a senha uma vez num terminal e seguem com a credencial em
-cache; sem terminal, param antes de alterar a máquina.
+cache. Sem terminal, os comandos param antes de alterar a máquina.
 
 ```bash
 setupvibe user nopasswd deploy
@@ -54,7 +53,7 @@ regra temporária que ele criou.
 ## Falha parcial
 
 Um passo com falha não interrompe os seguintes. O resultado fica no log e no
-`last-run.json`, com status por item, e o comando termina com 10, `PARTIAL`.
+`last-run.json` com status por item. O comando termina com 10, `PARTIAL`.
 Corrija a causa e repita só o que faltou:
 
 ```bash
@@ -68,7 +67,7 @@ Não é preciso recomeçar do zero: o que passou continua aplicado.
 ## Ferramenta de outro gerenciador
 
 `other` aparece quando o comando existe fora das pastas do mise e de
-`~/.local/bin`. O SetupVibe não sobrescreve a cópia existente; ele instala a
+`~/.local/bin`. O SetupVibe preserva a cópia existente e instala a
 dele ao lado. Para conferir qual responde primeiro:
 
 ```bash
@@ -87,8 +86,8 @@ antiga. O `doctor` mostra o caminho da cópia que ganhou a disputa.
 - O apêndice de códigos de saída, no fim do livro, lista a classe de cada
   número.
 - O apêndice de configuração explica cada arquivo de `~/.setupvibe/`.
-- `setupvibe report` gera o Markdown para anexar numa issue quando a falha
-  precisa de outra pessoa.
+- `setupvibe report` gera o Markdown para anexar numa issue e encaminhar a
+  investigação ao suporte.
 
 ## Glossário
 
@@ -116,5 +115,5 @@ antiga. O `doctor` mostra o caminho da cópia que ganhou a disputa.
 
 O guia termina nos apêndices. Quando precisar da lista exata de uma option, do
 conteúdo de um arquivo de estado ou do significado de um exit code, comece por
-eles; quando precisar lembrar por que a máquina está naquele estado, volte ao
+eles. Para consultar a origem de uma alteração na máquina, volte ao
 capítulo da operação correspondente.

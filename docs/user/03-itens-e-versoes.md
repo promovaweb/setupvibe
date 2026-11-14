@@ -2,7 +2,7 @@
 
 O SetupVibe não instala o que estiver na versão mais nova do repositório de cada
 fornecedor. Ele instala o que está na lista embutida no binário, com a versão
-que aquela lista fixa, e confere depois. A lista é o arquivo
+que aquela lista fixa e confere depois. A lista é o arquivo
 `desktop/inventory.json` na edição desktop e `server/inventory.json` na server,
 compilado dentro do executável.
 
@@ -33,7 +33,7 @@ com a máquina, use `check`.
 ## Instalar
 
 `setupvibe install <itens>` instala os itens citados e as dependências deles, na
-ordem que a lista define. Um item que já passa na verificação é pulado, e o
+ordem que a lista define. Um item que já passa na verificação é pulado e o
 motivo aparece na saída.
 
 ```bash
@@ -49,13 +49,13 @@ setupvibe install node php bat eza jq --dry-run
 
 O plano mostra o método de cada item. Em Debian e Ubuntu, um pacote nativo passa
 pelo APT com a chave do repositório conferida contra a impressão digital da
-lista; uma ferramenta de versão fixa passa pelo mise; um release binário é
+lista. Uma ferramenta de versão fixa passa pelo mise. Um release binário é
 baixado, conferido contra o SHA-256 e extraído. A ordem de resolução do método
 é o sistema, a família (`debian-family` ou `arch-family`), `linux`, `unix` e
 `all`.
 
 Quando o item já está instalado por outro gerenciador, o comando avisa o caminho
-e instala a cópia do SetupVibe numa pasta própria. As duas convivem, e o `PATH`
+e instala a cópia do SetupVibe numa pasta própria. As duas convivem e o `PATH`
 decide qual responde. Para substituir a instalação existente por completo,
 remova a outra cópia depois de conferir a versão que ficou ativa.
 
@@ -69,21 +69,21 @@ setupvibe install node --force
 ## Remover
 
 `remove` tira o que foi instalado no espaço do usuário e atualiza a seleção.
-Pacote do sistema só sai com `--include-native`, e item adotado pelo `init` só
-sai com `--force`.
+Para incluir pacotes do sistema, informe `--include-native`. A remoção de
+itens adotados pelo `init` exige `--force`.
 
 ```bash
 setupvibe remove go
 setupvibe remove docker --include-native --dry-run
 ```
 
-Antes de remover, o comando verifica se outro item selecionado depende daquele.
-Se depende, ele recusa e explica; `--force` remove mesmo assim. Sem terminal, a
-confirmação precisa vir de `--yes`. A resposta negativa ou um `Ctrl+C` termina
-com 130, sem remover nada.
+Antes de remover, o comando verifica as dependências dos itens selecionados e
+recusa a remoção de uma dependência ainda necessária, salvo com `--force`.
+Sem terminal, confirme com `--yes`. Uma resposta negativa ou um `Ctrl+C`
+encerra o comando com 130 sem remover itens.
 
 O que o SetupVibe não instalou fica. Item que veio do sistema, item do módulo de
-segurança e item marcado como `initOnly` não são removidos por `remove`, e o
+segurança e item marcado como `initOnly` não são removidos por `remove`. O
 motivo aparece no texto. Para desfazer a preparação inteira, existe
 `self uninstall`, no capítulo de manutenção.
 
@@ -106,7 +106,7 @@ setupvibe upgrade
 setupvibe update
 ```
 
-Item instalado com `--external` não entra no `update`; ele é atualizado pela
+Item instalado com `--external` não entra no `update`. Ele é atualizado pela
 própria ferramenta ou por um novo `install --external`.
 
 ## Conferir
@@ -119,7 +119,8 @@ setupvibe check
 setupvibe check node php --json
 ```
 
-Sem argumentos, ele usa a seleção. Sem seleção, usa o perfil `essencial`. Itens
+Sem argumentos, ele verifica a seleção ou, se ela estiver vazia, o perfil
+`essencial`. Itens
 `initOnly`, do módulo de segurança e sem instalação possível neste sistema não
 entram na verificação. O exit code é 0 quando tudo confere e 10 quando algum
 item falha, o que permite usar o comando num pipeline sem interpretar texto:
@@ -156,7 +157,7 @@ setupvibe remove --external terraform
 Três flags da lista explicam diferenças que aparecem na prática:
 
 - `gui`: o item depende de interface gráfica e fica de fora em máquina sem
-  display, como um VPS ou um contêiner.
+  display, como um VPS ou um container.
 - `service`: precisa de systemd ou de `linger` para rodar sem sessão aberta.
 - `port`: publica uma porta. Nas variantes remotas, o `auto` grava a entrada de
   compose com a porta presa a `127.0.0.1`, para o serviço não ficar exposto.

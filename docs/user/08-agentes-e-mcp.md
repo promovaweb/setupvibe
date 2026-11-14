@@ -6,7 +6,7 @@ versão do binário pode quebrar a leitura. O servidor MCP existe para isso: o
 agente pergunta em protocolo, recebe um objeto com o mesmo envelope do `--json` e
 decide pelo exit code.
 
-O servidor roda dentro do mesmo executável, sobre stdio, e não escreve nada
+O servidor roda dentro do mesmo executável sobre stdio e não escreve nada
 além do protocolo em stdout. Diagnóstico vai para stderr.
 
 ```bash
@@ -16,7 +16,7 @@ setupvibe mcp
 ## O que o servidor expõe
 
 São 20 tools, 6 resources e 1 prompt. As tools que executam o CLI devolvem
-`{ exitCode, ok, command, data }` ou `{ exitCode, ok: false, error }`; as tools
+`{ exitCode, ok, command, data }` ou `{ exitCode, ok: false, error }`. As tools
 nativas, como `logs` e `machine`, devolvem o objeto próprio.
 
 | Tool | O que faz | Altera a máquina |
@@ -42,15 +42,15 @@ nativas, como `logs` e `machine`, devolvem o objeto próprio.
 | `init` | pré-requisitos do SetupVibe | só com `dry_run: false` |
 | `migrate` | migra uma máquina do SetupVibe 1 | só com `dry_run: false` e `confirm: true` |
 
-A regra de escrita é deliberada. Instalar, remover, atualizar, preparar e migrar
-fazem dry run por padrão; o agente precisa pedir a execução real, e as duas
-operações destrutivas exigem confirmação explícita. Nenhuma tool devolve valor de
-credencial, e nenhuma grava `settings.json`: a configuração continua no CLI, onde
-há uma pessoa para confirmar.
+As tools que alteram a máquina fazem dry run por padrão. Para executar a
+alteração, o agente precisa informar `dry_run: false`. Remoção e migração
+exigem também `confirm: true`. As credenciais ficam fora das respostas.
+A gravação de `settings.json` continua pelo CLI, para você confirmar a alteração.
 
 ## Resources
 
-Os resources são leitura passiva. O agente pede o URI e recebe JSON ou Markdown.
+Os resources permitem consultar o estado sem alterá-lo: o agente informa o
+URI e recebe JSON ou Markdown.
 
 | Resource | Conteúdo |
 | --- | --- |
@@ -86,7 +86,7 @@ setupvibe mcp --list --json
 ```
 
 A lista mostra nome e descrição de cada tool, o URI de cada resource e o prompt,
-na ordem em que o servidor registra. Use-a para conferir o que a versão do
+na ordem de registro do servidor. Use-a para conferir o que a versão do
 binário expõe antes de configurar um cliente.
 
 ## Configurar o cliente
@@ -120,19 +120,19 @@ execução é idempotente: rodar de novo não duplica o que já está configurad
 O exemplo junta as três leituras que um agente faz antes de agir.
 
 1. **Entender o problema.** `check` com o item citado devolve `status` e
-   `expected`; `doctor` devolve os achados com o comando que corrige.
+   `expected`. O `doctor` devolve os achados com o comando que corrige.
 2. **Ver o que mudaria.** `install` com o padrão de dry run devolve `items` e
    `skipped`, sem alterar a máquina.
-3. **Executar.** `install` com `dry_run: false` devolve `log` e `results`, e o
-   agente confere o `exitCode` antes de relatar sucesso.
+3. **Executar.** `install` com `dry_run: false` devolve `log` e `results`.
+   O agente confere o `exitCode` antes de relatar sucesso.
 
 Para remover, o mesmo caminho com `dry_run: false` e `confirm: true`. Para uma
-máquina vinda do SetupVibe 1, `migrate` segue a mesma regra: dry run primeiro,
+máquina vinda do SetupVibe 1, use `migrate` na mesma sequência: dry run primeiro,
 confirmação depois.
 
 O agente deve tratar `exitCode` antes de `isError` e antes da mensagem. Um
 `doctor` com achado de nível `fail` marca `isError` e devolve os achados junto,
-com exit code 3; ler só o `isError` esconde o que precisa ser corrigido.
+com exit code 3. Ler apenas o `isError` omite o diagnóstico da falha.
 
 ## Skill do próprio binário
 

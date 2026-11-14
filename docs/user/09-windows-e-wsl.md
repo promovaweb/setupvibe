@@ -1,9 +1,9 @@
 # Windows e WSL
 
 O Windows não aceita o mesmo preparo de um Linux. O gerenciador de pacotes é
-outro, o shell é PowerShell, e boa parte das ferramentas que um projeto espera
+outro e o shell é PowerShell. Boa parte das ferramentas que um projeto espera
 roda dentro do WSL. O SetupVibe trata os dois como alvos separados: o binário
-nativo prepara o Windows, e o WSL recebe o binário Linux quando você entra na
+nativo prepara o Windows. O WSL recebe o binário Linux quando você entra na
 distribuição.
 
 ## Instalar no Windows
@@ -23,20 +23,20 @@ Para passar argumentos ao binário, use a forma de scriptblock:
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.ps1))) auto
 ```
 
-No lançamento, `windows.setupvibe.dev` passa a servir o mesmo arquivo. Até lá, o
-endereço acima é o que está publicado no branch `v2`, e o endereço público
+No lançamento da v2, `windows.setupvibe.dev` servirá o mesmo arquivo. Até lá, o
+endereço acima é o que está publicado no branch `v2`. O endereço público
 continua apontando para o SetupVibe 1.
 
 O binário exige Windows x64 com build 22621 ou mais recente. Uma arquitetura
 fora de x64 e uma build anterior saem com 11, `UNSUPPORTED_SYSTEM`. Como o `auto`
-precisa instalar pacotes e alterar serviços, rode num PowerShell elevado; o
+precisa instalar pacotes e alterar serviços, rode num PowerShell elevado. O
 binário não abre o UAC sozinho.
 
 ## O que entra no Windows
 
 O winget instala os utilitários: Git, PowerShell 7, Windows Terminal, 7-Zip,
 FFmpeg, ImageMagick, Nerd Font, nmap, Speedtest, btop e Tailscale. O servidor
-OpenSSH usa instalador próprio, e o Claude Code e o Antigravity entram pelo
+OpenSSH usa instalador próprio. Claude Code e Antigravity entram pelo
 instalador oficial de cada fornecedor.
 
 Os runtimes e as ferramentas de terminal entram pelo mise, igual ao Linux: Node,
@@ -44,13 +44,13 @@ Python, Go, Rust, uv, Bun, pnpm, `bat`, `eza`, `jq` e `ripgrep`. O WSL entra
 como configuração, não como distribuição: o item `wsl` prepara a base e deixa a
 escolha da distribuição para você.
 
-O que não existe no Windows aparece como `unavailable` na lista, e o `auto` não
+O que não existe no Windows aparece como `unavailable` na lista. O `auto` não
 tenta instalar. ZSH, Oh My Zsh, Starship, tmux e os itens gráficos de desktop
 ficam de fora, porque o alvo é o shell nativo.
 
 ## O WSL
 
-Instalar uma distribuição Linux no Windows é decisão sua. O SetupVibe não baixa
+Você escolhe se deseja instalar uma distribuição Linux no Windows. O SetupVibe não baixa
 Ubuntu nem Debian sozinho: ele prepara a base do WSL 2 e o arquivo de
 configuração que faz o resto funcionar.
 
@@ -70,9 +70,9 @@ autoMemoryReclaim=gradual
 sparseVhd=true
 ```
 
-A rede espelhada faz o WSL herdar as interfaces e a VPN do Windows, e o
+A rede espelhada faz o WSL herdar as interfaces e a VPN do Windows. O
 tunelamento de DNS resolve o caso de VPN corporativa. O firewall do Hyper-V
-continua ligado com o padrão que bloqueia conexões de entrada: um serviço que
+continua ligado com a política padrão de negar conexões de entrada: um serviço que
 roda dentro do WSL e responde ali não responde a partir do Windows até você abrir
 a porta.
 
@@ -95,10 +95,10 @@ instale o binário Linux com o installer normal, como no capítulo de instalaç�
 curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh | sh
 ```
 
-O detectSystem reconhece o WSL pelo `WSL_DISTRO_NAME` ou pelo `/proc/version`, e
-a lista da edição desktop já tem entradas para esse sistema. O que muda é a
+A detecção reconhece o WSL pelo `WSL_DISTRO_NAME` ou pelo `/proc/version`.
+A lista da edição desktop já tem entradas para esse sistema. O que muda é a
 origem de alguns itens: no WSL, o Docker CLI pode ser dispensado quando o Docker
-Desktop do Windows já o fornece, e o `auto` respeita isso.
+Desktop do Windows já o fornece. O `auto` respeita essa condição.
 
 ## Diagnóstico no Windows
 
@@ -112,9 +112,9 @@ setupvibe doctor --repair-windows
 
 Ela roda `DISM /RestoreHealth` e depois `sfc /scannow`, exige PowerShell elevado
 e devolve 10 quando um dos dois falha. Um component store que não pode ser
-reparado pede a imagem de instalação da mesma build.
+reparado exige a imagem de instalação da mesma build.
 
-Quando o sistema pede reinício, o `auto` termina com 20, `REBOOT_PENDING`. Com
+Com reinício pendente no sistema, o `auto` termina com 20, `REBOOT_PENDING`. Com
 `--reboot`, ele cria a tarefa `SetupVibeAutoResume`, que roda o `auto` de novo
 com privilégio máximo depois do reinício e se apaga no fim.
 
@@ -124,7 +124,7 @@ com privilégio máximo depois do reinício e se apaga no fim.
 | --- | --- | --- |
 | `init` ou `auto` param com 20 | reinício pendente do Windows | reinicie ou repita com `--reboot` |
 | `doctor` avisa do component store | componentes corrompidos | rode `doctor --repair-windows` num PowerShell elevado |
-| serviço no WSL não responde de fora | firewall do Hyper-V bloqueia entrada | abra só a porta necessária ou use túnel |
+| serviço no WSL não responde de fora | firewall do Hyper-V nega a entrada | abra só a porta necessária ou use túnel |
 | item marcado como `unavailable` | aquele item não existe no Windows | confira a tabela do `docs inventory` |
 | `setupvibe: command not found` | pasta fora do `PATH` do usuário | abra um terminal novo ou acrescente a pasta |
 

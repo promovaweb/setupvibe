@@ -1,11 +1,9 @@
 # Instalação automática
 
-Preparar uma máquina à mão funciona uma vez. Na terceira vez, você já não
-lembra qual item foi marcado no notebook, qual opção foi passada no servidor e
-por que aquele runtime ficou numa versão diferente. O `auto` existe para esse
-caso: ele percorre a instalação inteira sem perguntar nada e transforma o que
-foi escolhido num passo que outro computador, um pipeline ou um agente pode
-repetir.
+Para repetir a instalação de um notebook num servidor ou num pipeline, você
+precisa registrar a seleção de itens e as opções usadas. O `auto` lê essas
+respostas e percorre a instalação sem perguntas, permitindo reproduzir a
+seleção noutra máquina.
 
 A diferença em relação ao capítulo anterior é o ponto de partida. O `init` mais
 `install` serve para uma máquina que você opera e quer entender passo a passo.
@@ -14,8 +12,8 @@ ninguém para responder.
 
 ## O que o `auto` faz
 
-O comando encadeia as etapas na ordem abaixo, e uma falha não interrompe as
-seguintes.
+O comando encadeia as etapas na ordem abaixo e continua com as seguintes
+quando uma delas falha.
 
 | Etapa | O que acontece |
 | --- | --- |
@@ -39,10 +37,10 @@ setupvibe auto --user deploy --ssh-key ~/.ssh/id_ed25519.pub
 ## Perfis, itens e dependências
 
 Sem `--profile`, entra todo item compatível com o sistema. Itens gráficos ficam
-de fora numa máquina sem interface, e itens que já vêm no sistema, como no
+de fora numa máquina sem interface. Itens que já vêm no sistema, como no
 macOS e no Omarchy, são pulados.
 
-Na edição desktop, o perfil `essencial` repete a seleção padrão da TUI, e o
+Na edição desktop, o perfil `essencial` repete a seleção padrão da TUI. O perfil
 `remoto` estende o essencial com `linger`, `mosh`, `tailscale`,
 `openssh-server`, `swap`, `ufw`, `fail2ban`, `unattended-upgrades` e
 `time-sync`. Na edição server existe o `essencial`, voltado à operação.
@@ -87,8 +85,8 @@ A tabela acima cobre o que muda entre máquinas.
 
 ## Veja o plano antes de executar
 
-Duas opções mostram o mesmo plano sem alterar a máquina. `--dry-run` imprime em
-texto, e `--plan` grava JSON para comparar duas máquinas.
+Para consultar o plano sem alterar a máquina, use `--dry-run` para imprimir
+em texto ou `--plan` para gravar JSON e comparar duas máquinas.
 
 ```bash
 setupvibe auto --dry-run
@@ -101,8 +99,8 @@ pulado, porque cada passo carrega a condição que o dispensa.
 
 ## Acompanhe a execução
 
-Em texto, cada etapa sai com `✓`, `-` ou `✗`, e o fechamento lista o que falhou
-e o que foi pulado, inclusive partes de segurança. Com `--json`, cada evento
+Em texto, cada etapa sai com `✓`, `-` ou `✗`. O fechamento lista as falhas e
+as etapas puladas, inclusive as de segurança. Com `--json`, cada evento
 entra no stdout como uma linha NDJSON antes do envelope final, o que permite
 acompanhar um provisionamento longo sem esperar o fim.
 
@@ -172,10 +170,10 @@ runcmd:
         creates: "{{ ansible_env.HOME }}/.setupvibe/last-run.json"
 ```
 
-O `creates` evita repetir a execução a cada rodada. Remova a linha quando quiser
+O `creates` evita repetir a execução enquanto o arquivo existir. Remova a linha quando quiser
 que o `auto` rode de novo, porque ele é idempotente.
 
-**Dockerfile**, com um recorte de itens:
+**Dockerfile**, com uma seleção parcial de itens:
 
 ```dockerfile
 FROM debian:13
@@ -215,9 +213,9 @@ O `GITHUB_TOKEN` mantém o mise abaixo do limite anônimo da API do GitHub.
 rodam com sudo. Em rede corporativa, `--ca-file` acrescenta o bundle de CA para
 Node, Bun, curl, Git e ferramentas Python. `--cache-dir` guarda os downloads do
 mise, npm, uv, Homebrew e do próprio SetupVibe numa pasta que várias máquinas
-podem compartilhar; o que já está no cache instala sem rede.
+podem compartilhar. O que já está no cache instala sem rede.
 
-Numa máquina que fica sempre atrás da mesma CA ou do mesmo cache, grave os dois
+Numa máquina que usa uma CA ou um cache fixos, grave os dois
 em `~/.setupvibe/config.json` para não repetir a option:
 
 ```json
@@ -228,7 +226,5 @@ A ordem de leitura é option, variável de ambiente e esse bloco.
 
 ## Próximo passo
 
-A máquina ficou preparada sem uma única pergunta. O capítulo
-[Itens e versões fixadas](03-itens-e-versoes.md) mostra o que fazer depois: ver
-o que entrou, remover o que não serve, atualizar quando o binário muda e
-conferir item por item.
+Depois da instalação automática, consulte [Itens e versões fixadas](03-itens-e-versoes.md)
+para conferir a seleção e manter as ferramentas instaladas.

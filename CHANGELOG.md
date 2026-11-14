@@ -4,6 +4,13 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.26] - 2026-11-14
+
+### Corrigido
+
+- Revisada a redação do guia do usuário em `docs/user/`, com explicações mais precisas e correções de linguagem.
+- Atualizados os formatos portáteis da documentação a partir das fontes revisadas.
+
 ## [v2.0.0-dev.25] - 2026-11-13
 
 ### Added

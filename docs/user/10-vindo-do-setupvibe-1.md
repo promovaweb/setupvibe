@@ -1,9 +1,9 @@
 # Vindo do SetupVibe 1
 
-Uma máquina preparada pelo SetupVibe 1 tem valor: o shell funciona, as chaves
-estão no lugar, as ferramentas respondem. O problema é que aquele preparo foi
+Numa máquina preparada pelo SetupVibe 1, o shell e as ferramentas já funcionam
+com as suas chaves e configurações. Aquele preparo, porém, foi
 escrito por scripts que não deixam versão em disco. O SetupVibe 2 não apaga o que
-encontra; ele reconhece os rastros, oferece converter e deixa você decidir o que
+encontra. Ele reconhece os rastros, oferece converter e deixa você escolher o que
 sai.
 
 ## Como a máquina antiga é reconhecida
@@ -19,7 +19,7 @@ conhecidas:
 | `~/.setupvibe/bin/ssh_copy_id` e `~/.setupvibe/portainer-compose.yml` | qualquer |
 | `%ProgramData%\SetupVibe\*.json` e `~/.setupvibe/windows-utilities.json` | Windows |
 
-Um arquivo conta como SetupVibe 1 quando carrega a assinatura da versão 0.41.x ou
+Um arquivo é identificado como SetupVibe 1 quando carrega a assinatura da versão 0.41.x ou
 quando pelo menos 60% das linhas estão nos originais embutidos no binário. Isso
 cobre releases anteriores da mesma série.
 
@@ -35,10 +35,9 @@ setupvibe doctor
 ## O que acontece sem migrar
 
 O `auto` e o `shell apply` convertem um `.zshrc` e um `.tmux.conf` do SetupVibe
-1 antes de escrever os blocos novos, então o bloco do SetupVibe 2 nunca cai sobre
-o arquivo antigo. A conversão é sem perda: o arquivo vai para
+1 antes de escrever os blocos novos. Na conversão, o arquivo original vai para
 `~/.setupvibe/backups/`, as linhas que você acrescentou passam para
-`~/.zshrc.local` ou `~/.tmux.conf.local` sob um comentário com data, e o arquivo
+`~/.zshrc.local` ou `~/.tmux.conf.local` sob um comentário com data. O arquivo
 é reescrito com o bloco.
 
 Numa máquina que já tem ferramentas, o `init` monta a primeira seleção com o que
@@ -93,25 +92,25 @@ setupvibe migrate --remove-legacy all
 ```
 
 As duplicidades são o Go em `~/.local/go`, o `rbenv`, o `~/.npm-global` e o
-repositório NodeSource. O Node instalado continua; o que sai é o repositório APT
+repositório NodeSource. O Node instalado continua. O que sai é o repositório APT
 que a versão antiga acrescentou.
 
-O Linuxbrew é a exceção: ele nunca é removido pelo SetupVibe, porque outras
-fórmulas podem depender dele. O comando imprime o desinstalador para você rodar
+O SetupVibe preserva o Linuxbrew, pois outras fórmulas podem depender dele.
+O comando imprime o desinstalador para você rodar
 quando quiser. O `ssh_copy_id` antigo continua funcionando como atalho de
 `setupvibe ssh copy-id`, com as mesmas options `--host`, `--user`, `--pass`,
 `--key` e `--port`.
 
 No fim, o `config.json` registra `migratedFromV1` com a data e a edição de
-origem, e os itens encontrados entram como adotados.
+origem. Os itens encontrados entram como adotados.
 
 ## O que conferir depois
 
 1. **Abra um shell novo.** O bloco novo carrega o mise, o Starship e os aliases.
 2. **Rode `setupvibe check`.** O comando confere os itens adotados contra a
-   versão fixada; o que estiver fora aparece com `✗`.
+   versão fixada e marca as divergências com `✗`.
 3. **Leia o `doctor`.** Os avisos de restos do SetupVibe 1 devem desaparecer
-   depois da migração; o que ficar tem um comando ao lado.
+   depois da migração. Confira os comandos indicados ao lado dos avisos restantes.
 4. **Confira as suas linhas.** O conteúdo movido está em `~/.zshrc.local` e
    `~/.tmux.conf.local`, na mesma ordem do arquivo antigo.
 5. **Confira os backups.** O original está em `~/.setupvibe/backups/` se algo
@@ -134,4 +133,4 @@ apagado sem confirmação.
 
 A máquina migrou e a configuração antiga está preservada. O capítulo
 [Problemas comuns e glossário](11-problemas-e-glossario.md) reúne os sintomas que
-aparecem com mais frequência e o vocabulário usado no resto do guia.
+tratados pelo `doctor` e o vocabulário usado no resto do guia.

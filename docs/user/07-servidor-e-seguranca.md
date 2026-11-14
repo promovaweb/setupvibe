@@ -28,11 +28,11 @@ curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaw
 
 A verificação é a mesma da desktop: versão lida de `version.json`, binário do
 release, `SHA256SUMS` e assinatura Sigstore quando o `cosign` existe. A edição
-server roda só em Linux, em Ubuntu e Debian; em macOS o installer recusa com
+server roda em Ubuntu e Debian. Em macOS, o installer recusa com
 11, `UNSUPPORTED_SYSTEM`.
 
 As edições são exclusivas por máquina. Se a máquina já tiver a desktop
-preparada, o `init` da server sai com 2 e pede o `self uninstall` antes da
+preparada, o `init` da server sai com 2 e orienta executar `self uninstall` antes da
 troca.
 
 ## Usuário de trabalho
@@ -47,27 +47,28 @@ setupvibe user create deploy --ssh-key ~/.ssh/id_ed25519.pub
 ```
 
 A saída termina com o próximo passo: entrar como o usuário novo e rodar o `init`.
-A regra sem senha é temporária quando criada pelo `auto`; quando criada por
-`user create --nopasswd`, fica até você removê-la:
+A permissão de sudo sem senha criada pelo `auto` é temporária. Com
+`user create --nopasswd`, ela fica até você removê-la:
 
 ```bash
 setupvibe user nopasswd deploy --remove
 ```
 
 A regra fica em `/etc/sudoers.d/90-setupvibe-deploy`. Outras regras em
-`/etc/sudoers.d/` não são tocadas.
+`/etc/sudoers.d/` são preservadas.
 
 ## Módulo de segurança
 
-`security apply` aplica o módulo compartilhado: UFW negando entrada, com SSH
-liberado e, no servidor com `--swarm`, as portas do Swarm; o jail `sshd` do
-fail2ban; atualizações automáticas de segurança em Debian e Ubuntu; e
-sincronização de horário, com `--timezone` quando você quer fixar o fuso.
+`security apply` configura o UFW para negar conexões de entrada, liberando SSH
+e as portas do Swarm quando você usa `--swarm` no servidor. O módulo também
+configura o jail `sshd` do fail2ban e as atualizações automáticas de segurança
+em Debian e Ubuntu. Para fixar o fuso usado pela sincronização de horário,
+informe `--timezone`.
 
 O SSH muda para login só por chave com `/etc/ssh/sshd_config.d/10-setupvibe.conf`
 apenas quando o usuário atual já tem uma chave autorizada. O arquivo passa por
-`sshd -t` antes de o serviço recarregar. O SetupVibe nunca liga autenticação por
-senha.
+`sshd -t` antes de o serviço recarregar. O arquivo define
+`PasswordAuthentication no` para desativar o acesso por senha.
 
 ```bash
 setupvibe security apply --dry-run
@@ -84,7 +85,7 @@ setupvibe security remove
 
 O `remove` apaga os arquivos que o SetupVibe criou, desliga o fail2ban e o UFW
 quando eles estavam desligados antes e apaga o registro. Os pacotes continuam
-instalados, e arquivos que existiam antes ficam como estavam. Sem registro, o
+instalados. Os arquivos preexistentes são preservados. Sem registro, o
 comando sai com 3, `CONFIG`.
 
 ## O fluxo de um VPS novo
@@ -112,28 +113,28 @@ curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install-ser
     --join "$TOKEN" --advertise-addr 10.0.0.2:2377
 ```
 
-`swarm token manager` devolve o token de manager, e `--rotate` troca o token de
+`swarm token manager` devolve o token de manager. A option `--rotate` troca o token de
 worker antes de imprimir. Com `--encrypted-network`, a rede overlay do Swarm
-passa a cifrar o tráfego. O token entra por variável de ambiente ou pela option,
-nunca pelo histórico do shell quando você usa `SETUPVIBE_SWARM_TOKEN`.
+cifra o tráfego. Para fornecer o token sem escrevê-lo na linha de comando,
+use a variável `SETUPVIBE_SWARM_TOKEN`.
 
 ## Portainer e portas publicadas
 
 Nas variantes remotas, o `auto` prende o Portainer a `127.0.0.1` e grava
 `"ip": "127.0.0.1"` em `/etc/docker/daemon.json` quando o arquivo não tem
-endereço. Docker escreve as próprias regras de iptables e não passa pelo UFW; uma
+endereço. Docker escreve as próprias regras de iptables e não passa pelo UFW. Uma
 porta publicada sem esse cuidado ficaria aberta para a internet. Chegue ao
 Portainer por túnel SSH ou pela tailnet.
 
-O `doctor` lista contêiner que publica porta em todas as interfaces e mostra o
+O `doctor` lista cada container que publica uma porta em todas as interfaces e mostra o
 comando para prender a porta ao localhost. Para abrir só uma porta, publique com
 `-p 127.0.0.1:PORTA:PORTA` e alcance pelo túnel ou pelo Tailscale.
 
 ## Acesso remoto
 
 Três itens resolvem o acesso de trabalho: `openssh-server`, `tailscale` e
-`mosh`. O Tailscale entra com a auth key da variável `TAILSCALE_AUTHKEY`, e
-`--tailscale-ssh` liga o SSH do Tailscale depois que a máquina entra na tailnet.
+`mosh`. O Tailscale entra com a auth key da variável `TAILSCALE_AUTHKEY`.
+Depois da entrada na tailnet, `--tailscale-ssh` ativa o SSH do Tailscale.
 
 ```bash
 setupvibe auto --profile remoto --tailscale-authkey "$TAILSCALE_AUTHKEY" --tailscale-ssh
@@ -159,7 +160,7 @@ setupvibe-server doctor
 
 O `doctor` mostra o estado do Swarm, das portas publicadas, do firewall e dos
 itens. O `report` gera o Markdown para uma issue quando a falha precisa de
-análise de outra pessoa.
+investigação pelo suporte.
 
 ## Se algo der errado
 
@@ -173,6 +174,5 @@ análise de outra pessoa.
 
 ## Próximo passo
 
-O servidor está preparado e fechado. O capítulo [Agentes de IA e MCP](08-agentes-e-mcp.md)
-mostra como um agente lê esse estado e executa o SetupVibe por protocolo, sem
-depender de você copiar a saída do terminal.
+O capítulo [Agentes de IA e MCP](08-agentes-e-mcp.md) mostra como um agente
+consulta o estado do servidor e executa o SetupVibe por protocolo.

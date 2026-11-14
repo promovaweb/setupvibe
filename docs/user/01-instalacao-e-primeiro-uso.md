@@ -1,9 +1,8 @@
 # Instalação e primeiro uso
 
-Uma máquina nova não está pronta para trabalhar. Falta compilador, `git`,
-runtime, CLI, container e um shell que carregue tudo no lugar certo. Feito à
-mão, esse preparo vira uma sequência de comandos que ninguém revisa e que muda
-quando alguém instala a versão mais nova de um runtime.
+Antes de trabalhar numa máquina nova, você precisa instalar as ferramentas do
+projeto e configurar o shell para encontrá-las. Fazer esse preparo à mão exige
+registrar os comandos e as versões escolhidas para reproduzir o ambiente depois.
 
 O SetupVibe 2 separa o preparo em duas etapas que você pode repetir. A
 primeira instala o binário: um arquivo com versão do release e checksum
@@ -13,7 +12,7 @@ de compilação e o mise. Só depois disso os itens entram, um a um ou pelo
 
 Neste capítulo você percorre as duas etapas num host Linux, olha a lista de
 itens antes e depois, instala o primeiro conjunto e confere o resultado. O
-Windows e o servidor têm capítulos próprios; aqui o caminho é o de uma máquina
+Windows e o servidor têm capítulos próprios. Aqui o caminho é o de uma máquina
 de trabalho com terminal.
 
 ## O que a máquina precisa
@@ -71,7 +70,7 @@ caso, o installer confere a assinatura Sigstore do `SHA256SUMS` contra o
 workflow de release do repositório e aborta quando ela não corresponde. Sem
 `cosign`, a conferência fica no checksum.
 
-O destino é `~/.local/bin` para quem não é root e `/usr/local/bin` para root.
+O destino é `~/.local/bin` na instalação sem root e `/usr/local/bin` com root.
 Quando a pasta não está no `PATH`, o installer avisa em vez de editar o seu
 shell. Confira a versão:
 
@@ -121,10 +120,10 @@ As teclas que bastam na primeira sessão:
 
 Num pipe, sem terminal interativo, o binário imprime a ajuda e sai com exit
 code 2. O comando explícito `setupvibe tui` sem TTY sai com 8, `NO_TTY`. Isso
-mantém um agente ou um script longe de uma tela que nunca vai responder.
+evita que um agente ou um script aguarde entrada numa tela sem terminal.
 
 O resto do capítulo segue pelo CLI. Cada passo fica registrado num comando que
-você repete numa máquina diferente, e a TUI executa os mesmos comandos em outro
+você pode repetir noutra máquina. A TUI também executa esses comandos em outro
 processo.
 
 ## 3. Veja o que a lista mostra
@@ -169,13 +168,13 @@ O estado explica o que fazer a seguir:
 
 O `list` usa ● para os três estados de item selecionado e ○ para todo o resto,
 o que basta quando você só quer saber se o item entrou. A TUI separa os casos
-com símbolos próprios, e é nela que a diferença entre instalado, desatualizado
-e com falha aparece na primeira olhada.
+com símbolos próprios para distinguir instalado, desatualizado
+e com falha.
 
-`other` não é erro. A ferramenta está na máquina, instalada por outro
-gerenciador, e o SetupVibe instala a própria cópia pelo método que a lista
+O estado `other` indica uma ferramenta instalada por outro gerenciador.
+O SetupVibe instala a própria cópia pelo método que a lista
 define para aquele item. Ele não sobrescreve a cópia que veio de APT, Homebrew,
-npm ou do instalador do fornecedor. As duas convivem, e o `PATH` define qual
+npm ou do instalador do fornecedor. As duas convivem e o `PATH` define qual
 responde primeiro.
 
 Para ver só uma categoria, filtre pelo id. Para rodar a verificação de cada
@@ -195,7 +194,7 @@ O `init` altera pacotes do sistema e grava o primeiro estado. Rode com
 setupvibe init --dry-run
 ```
 
-As primeiras linhas desta máquina, com a lista de pacotes do passo 2 cortada:
+As primeiras linhas desta máquina, com a lista de pacotes do passo 2 abreviada:
 
 ```text
 Requirements
@@ -249,7 +248,7 @@ quantos itens foram adotados e lista os ids.
 
 Itens adotados não saem num `remove` sem `--force`, porque não foi o SetupVibe
 que os instalou. Se um passo falhar, o `init` continua os outros e termina com
-10 `PARTIAL`; o log da execução mostra cada resultado.
+10 `PARTIAL`, com o resultado de cada passo no log da execução.
 
 ## 5. Instale os primeiros itens
 
@@ -272,11 +271,11 @@ setupvibe install zsh starship tmux
 
 O `install` grava em `~/.setupvibe/selection.json` o item e a versão instalada.
 Se o item já passa na verificação com a versão fixada, ele é pulado e o motivo
-aparece na saída; `--force` reinstala. Quando existe outra cópia da ferramenta
+aparece na saída. Use `--force` para reinstalar. Quando existe outra cópia da ferramenta
 na máquina, o comando avisa o caminho antes de instalar a cópia do SetupVibe,
 que fica em pasta própria e não substitui a outra.
 
-Se você pular o `init`, o comando recusa e aponta o que falta:
+Sem o `init` concluído, o comando recusa a instalação e aponta o que falta:
 
 ```text
 ✗ init has not been completed. Run: setupvibe init
@@ -303,22 +302,22 @@ instala os itens, configura o shell e aplica o módulo de segurança quando cabe
 setupvibe auto --dry-run
 ```
 
-O `--dry-run` mostra o plano completo sem alterar nada, e o `--plan arquivo.json`
-grava o mesmo plano para revisão. O capítulo
+Para revisar o plano completo, use `--dry-run` para imprimi-lo ou
+`--plan arquivo.json` para gravá-lo num arquivo. O capítulo
 [Instalação automática](02-instalacao-automatica.md) mostra os perfis, o arquivo
 de respostas, a retomada depois de uma falha e o uso em provisionamento.
 
 | Situação | Caminho |
 | --- | --- |
 | máquina pessoal, você quer escolher item por item | `init` e depois `install` |
-| máquina de equipe, VPS ou CI, que precisa ficar igual à outra | `auto` com `--profile` ou `--config` |
+| máquina que precisa reproduzir outra instalação, VPS ou CI | `auto` com `--profile` ou `--config` |
 | quer revisar antes de executar | `auto --dry-run` ou `auto --plan` |
 
 ## 7. Confira o resultado
 
 `setupvibe check` roda a verificação de cada item selecionado e compara com a
 versão fixada. Sem itens na seleção, ele confere o perfil `essencial`. O comando
-não altera nada; ele responde com exit code 0 quando tudo confere e 10 quando
+não altera nada e responde com exit code 0 quando tudo confere e 10 quando
 algum item falha. Com `--json`, a mesma informação chega no envelope que um
 script lê.
 
@@ -346,8 +345,8 @@ Runtime
 ```
 
 `✓` é aprovado, `!` é aviso e `✗` é problema. O estado do SetupVibe deve ficar
-numa pasta `0700`, porque ela guarda o cofre; o `doctor --fix` corrige o modo e
-as demais correções seguras (pastas e bloco do shell), e deixa o resto para você
+numa pasta `0700`, porque ela guarda o cofre. O `doctor --fix` corrige o modo e
+as demais correções seguras (pastas e bloco do shell). O restante fica para você
 decidir. Sem `--fix`, o comando não aplica correção alguma.
 
 ## O que mudou na máquina
