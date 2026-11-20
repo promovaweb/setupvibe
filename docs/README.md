@@ -120,6 +120,8 @@ installation and never executes package-removal commands.
 
 - [English](en/ORCA.md)
 - [Portuguese](pt-br/ORCA.md)
+- [French](fr/ORCA.md)
+- [Spanish](es/ORCA.md)
 
 ### Executables
 

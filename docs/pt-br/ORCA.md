@@ -24,6 +24,16 @@ Os passos abaixo foram testados no Debian 13 (amd64) com o Orca 1.4.247. Outras 
 
 Baixe o pacote `.deb` da sua arquitetura na página de [releases do Orca](https://github.com/stablyai/orca/releases). O arquivo se chama `orca-ide_<versão>_amd64.deb`.
 
+Confira o arquivo antes de instalar, porque o pacote roda com `sudo`. Cada release do Orca publica o SHA-256 dos seus arquivos. Imprima o valor publicado e o valor do arquivo que você baixou:
+
+```bash
+curl -fsSL https://api.github.com/repos/stablyai/orca/releases/tags/v<versão> \
+    | jq -r '.assets[] | select(.name == "orca-ide_<versão>_amd64.deb") | .digest'
+sha256sum orca-ide_<versão>_amd64.deb
+```
+
+O primeiro comando imprime `sha256:` seguido do hash. O hash precisa ser o mesmo nas duas saídas. Se forem diferentes, apague o arquivo e não instale.
+
 ```bash
 sudo apt-get install -y ./orca-ide_<versão>_amd64.deb xvfb
 orca-ide --version
@@ -49,11 +59,22 @@ ss -ltn | grep 6768
 
 ## Manter a porta privada
 
-O servidor escuta em todas as interfaces e avisa isso na própria saída. Quem alcançar a porta 6768 pode tentar parear, então libere-a só pelo Tailscale. Com `ufw`:
+O servidor escuta em todas as interfaces e avisa isso na própria saída. Quem alcançar a porta 6768 pode tentar parear, então libere-a só pelo Tailscale.
+
+A edição Server não instala nem ativa um firewall. Uma regra gravada com o `ufw` inativo não tem efeito, e a porta continua aberta na internet. Instale o `ufw`, libere o SSH antes de ativar o firewall para não perder o acesso ao servidor, e depois libere a porta do Orca só na interface do Tailscale:
 
 ```bash
+sudo apt-get install -y ufw
+sudo ufw allow OpenSSH
+sudo ufw default deny incoming
 sudo ufw allow in on tailscale0 to any port 6768 proto tcp
+sudo ufw enable
+sudo ufw status verbose
 ```
+
+O status precisa mostrar `Status: active`, o padrão `deny (incoming)` e as duas regras. Se você acessa o servidor por SSH só pelo Tailscale, troque `sudo ufw allow OpenSSH` por `sudo ufw allow in on tailscale0 to any port 22 proto tcp`.
+
+O `ufw default deny incoming` fecha todas as outras portas que não têm regra. Crie uma regra para cada serviço que esta máquina publica na internet, como as portas 80 e 443 de um servidor web. Portas publicadas por contêineres Docker não passam pelo `ufw`, então esta mudança não as fecha.
 
 Confira de dois lugares. Pelo endereço do Tailscale o servidor deve responder, e pelo endereço público não:
 

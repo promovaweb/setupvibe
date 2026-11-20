@@ -24,6 +24,16 @@ The steps below were tested on Debian 13 (amd64) with Orca 1.4.247. Other distri
 
 Download the `.deb` package for your architecture from the [Orca releases](https://github.com/stablyai/orca/releases) page. The file is named `orca-ide_<version>_amd64.deb`.
 
+Check the file before you install it, because the package runs with `sudo`. Each Orca release publishes the SHA-256 of its files. Print the published value and the value of the file you downloaded:
+
+```bash
+curl -fsSL https://api.github.com/repos/stablyai/orca/releases/tags/v<version> \
+    | jq -r '.assets[] | select(.name == "orca-ide_<version>_amd64.deb") | .digest'
+sha256sum orca-ide_<version>_amd64.deb
+```
+
+The first command prints `sha256:` followed by the hash. The hash must be the same in both outputs. If they differ, delete the file and do not install it.
+
 ```bash
 sudo apt-get install -y ./orca-ide_<version>_amd64.deb xvfb
 orca-ide --version
@@ -49,11 +59,22 @@ ss -ltn | grep 6768
 
 ## Keep the Port Private
 
-The server listens on all interfaces and warns about it in its own output. Anyone who can reach port 6768 can try to pair, so allow it only through Tailscale. With `ufw`:
+The server listens on all interfaces and warns about it in its own output. Anyone who can reach port 6768 can try to pair, so allow it only through Tailscale.
+
+The Server edition does not install or turn on a firewall. A rule saved while `ufw` is inactive has no effect, and the port stays open to the internet. Install `ufw`, allow SSH before you turn the firewall on so you keep access to the server, and then allow the Orca port only on the Tailscale interface:
 
 ```bash
+sudo apt-get install -y ufw
+sudo ufw allow OpenSSH
+sudo ufw default deny incoming
 sudo ufw allow in on tailscale0 to any port 6768 proto tcp
+sudo ufw enable
+sudo ufw status verbose
 ```
+
+The status must show `Status: active`, the default `deny (incoming)`, and the two rules. If you reach the server by SSH only through Tailscale, replace `sudo ufw allow OpenSSH` with `sudo ufw allow in on tailscale0 to any port 22 proto tcp`.
+
+`ufw default deny incoming` closes every other port that has no rule. Add a rule for each service you serve to the internet from this machine, such as ports 80 and 443 of a web server. Ports published by Docker containers do not pass through `ufw`, so this change does not close them.
 
 Check it from two places. Through the Tailscale address the server must answer, and through the public address it must not:
 
