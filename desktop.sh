@@ -27,7 +27,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.42.3"
+VERSION="0.42.4"
 PHP_VERSION="8.5"
 RUBY_VERSION="3.4.13"
 PYTHON_VERSION="3.14"
@@ -60,6 +60,72 @@ export COMPOSER_ALLOW_SUPERUSER=1
 die() {
     echo -e "${RED}Error: $*${NC}" >&2
     exit 1
+}
+
+# --- HARDWARE PREFLIGHT (#51) ---
+# Prebuilt CLI binaries need CPU instructions that generic VM CPU types such
+# as kvm64 or qemu64 do not expose, and their npm install can exhaust a small
+# VM that has no swap.
+# OpenCode and other Bun or Go programs need the x86-64-v2 set below (#51),
+# and Antigravity CLI also needs pclmulqdq (#60).
+
+# Print the instructions from the list that a cpuinfo file lacks, space separated.
+cpu_missing_flags() {
+    local cpuinfo=$1
+    shift
+    local flags
+    local flag
+    local missing=""
+
+    [[ -r "$cpuinfo" ]] || return 0
+    flags=$(awk -F: '/^flags/ {print $2; exit}' "$cpuinfo")
+    [[ -n "$flags" ]] || return 0
+    for flag in "$@"; do
+        [[ " $flags " == *" $flag "* ]] || missing="${missing:+$missing }$flag"
+    done
+    echo "$missing"
+}
+
+# Print RAM plus swap from a meminfo file, in MB.
+memory_total_mb() {
+    local meminfo=$1
+
+    [[ -r "$meminfo" ]] || return 0
+    awk '/^(MemTotal|SwapTotal):/ {sum += $2} END {printf "%d\n", sum / 1024}' "$meminfo"
+}
+
+# Explain how to fix a VM whose CPU type hides the instructions.
+cpu_flags_hint() {
+    echo -e "${YELLOW}⚠ This CPU does not expose: $CPU_MISSING_FLAGS.${NC}" >&2
+    echo -e "${YELLOW}  Prebuilt CLI binaries may stop with 'Illegal instruction'. On a VM, set the CPU type to 'host'${NC}" >&2
+    echo -e "${YELLOW}  (Proxmox: Hardware > Processors > Type), restart the VM and run SetupVibe again.${NC}" >&2
+}
+
+hardware_preflight() {
+    local memory_mb
+
+    if [[ -n "$CPU_MISSING_FLAGS" ]]; then
+        cpu_flags_hint
+    fi
+
+    memory_mb=$(memory_total_mb /proc/meminfo)
+    if [[ -n "$memory_mb" ]] && (( memory_mb < MIN_MEMORY_MB )); then
+        echo -e "${YELLOW}⚠ RAM plus swap is ${memory_mb} MB. The AI CLI installs can be stopped by the kernel for lack of memory.${NC}" >&2
+        echo -e "${YELLOW}  Add swap before the next run:${NC}" >&2
+        echo -e "${YELLOW}  sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile${NC}" >&2
+    fi
+}
+
+# End the AI CLI step when some CLIs failed. A CPU without the required
+# instructions is a limit of the machine, so the step warns and still passes.
+ai_cli_failures() {
+    echo -e "${RED}✘ AI CLI tools with failures: $*${NC}" >&2
+    if [[ -n "$CPU_MISSING_FLAGS" ]]; then
+        cpu_flags_hint
+        echo -e "${YELLOW}  The tools above were skipped. Everything else was installed.${NC}" >&2
+        return 0
+    fi
+    return 1
 }
 
 # Run as real user (handles both running as root and running as user)
@@ -452,6 +518,14 @@ else
     fi
     BREW_PREFIX="/home/linuxbrew/.linuxbrew"
 fi
+
+# Steps run in subshells, so the CPU check happens once here.
+readonly MIN_MEMORY_MB=5120
+CPU_MISSING_FLAGS=""
+if $IS_LINUX && [[ "$ARCH_RAW" == "amd64" ]]; then
+    CPU_MISSING_FLAGS=$(cpu_missing_flags /proc/cpuinfo ssse3 sse4_1 sse4_2 popcnt pclmulqdq)
+fi
+readonly CPU_MISSING_FLAGS
 
 
 # Install Figlet and Git silently for UI (platform-specific)
@@ -1047,8 +1121,13 @@ install_antigravity() {
     user_do rm -f -- "$manifest_tmp" "$payload_tmp" "$antigravity_tmp_dir/antigravity"
     user_do rmdir -- "$antigravity_tmp_dir"
 
-    user_do env PATH="$REAL_HOME/.local/bin:$PATH" agy install --skip-aliases --skip-path
-    user_do env PATH="$REAL_HOME/.local/bin:$PATH" agy --version >/dev/null
+    # Explicit check: the caller tolerates a failure with `||`, which turns
+    # errexit off inside this function.
+    if ! user_do env PATH="$REAL_HOME/.local/bin:$PATH" agy install --skip-aliases --skip-path ||
+        ! user_do env PATH="$REAL_HOME/.local/bin:$PATH" agy --version >/dev/null; then
+        echo -e "${RED}✘ Antigravity CLI was downloaded but does not run on this machine.${NC}" >&2
+        return 1
+    fi
     echo -e "${GREEN}✔ Antigravity CLI installed and validated.${NC}"
 }
 
@@ -1061,6 +1140,7 @@ step_1() {
         echo "macOS build tools are provided by Xcode Command Line Tools (already installed)"
         echo "Base tools via Homebrew will be installed after Homebrew is set up (Step 3)..."
     else
+        hardware_preflight
         echo "Updating APT..."
         apt_update
         echo "Installing Build Essentials & Tmux..."
@@ -2063,7 +2143,7 @@ step_13() {
     install_herdr
 
     echo "Installing Antigravity CLI..."
-    install_antigravity
+    install_antigravity || failed+=("agy (install)")
 
     echo "Installing Hermes Agent..."
     install_hermes || failed+=("hermes (install)")
@@ -2076,8 +2156,7 @@ step_13() {
     fi
 
     if (( ${#failed[@]} > 0 )); then
-        echo -e "${RED}✘ AI CLI tools with failures: ${failed[*]}${NC}"
-        return 1
+        ai_cli_failures "${failed[@]}"
     fi
 }
 

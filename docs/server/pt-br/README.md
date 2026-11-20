@@ -1,6 +1,6 @@
 # SetupVibe — Edição Servidor
 
-> Configuração de servidor Linux — v0.42.3
+> Configuração de servidor Linux — v0.42.4
 
 Um script de configuração focado em servidores Linux. Sem Homebrew, ecossistemas de linguagens ou ferramentas de desktop, ele instala Docker, Ansible, recursos de rede, shell, tmux e ferramentas de CLI de IA.
 
@@ -14,6 +14,18 @@ Um script de configuração focado em servidores Linux. Sem Homebrew, ecossistem
 | **Arquiteturas** | x86_64 (amd64), ARM64 (aarch64) |
 
 > Somente Linux. O script encerra imediatamente se executado no macOS.
+
+### Máquinas virtuais
+
+Tipos genéricos de CPU de VM, como `kvm64` e `qemu64`, escondem instruções que os binários prontos das CLIs exigem. O OpenCode e outros programas em Bun ou Go precisam de SSSE3, SSE4.1, SSE4.2 e POPCNT.
+
+O SetupVibe avisa no início quando a CPU não tem essas instruções. A CLI que não roda é pulada com um aviso, e as outras ferramentas são instaladas. Para corrigir, mude o tipo de CPU da VM para `host` no hypervisor (Proxmox: **Hardware > Processors > Type**), reinicie a VM e rode o SetupVibe de novo.
+
+O SetupVibe também avisa quando RAM mais swap ficam abaixo de 5 GB, porque a instalação das CLIs pode ser encerrada pelo kernel por falta de memória. Crie swap antes da próxima execução:
+
+```bash
+sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
+```
 
 ## Instalação
 
@@ -160,6 +172,8 @@ Instala o **Node.js 24** pelo repositório APT do NodeSource, instala os pacotes
 | Herdr              | Binário do manifesto oficial     |
 
 O [Vercel Labs Skills CLI](https://github.com/vercel-labs/skills), o [Herdr](https://github.com/herdrdev/herdr) e cada comando de CLI de IA são validados após a instalação. O Herdr é instalado em `~/.local/bin` conforme a arquitetura detectada. Consulte o [guia do Herdr](../../pt-br/HERDR.md) para entender sessões, atalhos, atualizações e diagnóstico. O pacote descontinuado `@githubnext/github-copilot-cli` é removido. Os pacotes globais do npm são instalados em `~/.npm-global` sempre que o usuário de destino não for root, inclusive quando o instalador for executado por `sudo`.
+
+Quando uma CLI falha na instalação ou na execução, as demais ferramentas desta etapa continuam sendo instaladas e as falhas são listadas no final. A etapa termina em erro, exceto quando a CPU não tem as instruções descritas em [Máquinas virtuais](#máquinas-virtuais): nesse caso ela lista as CLIs puladas com a correção e termina em OK.
 
 ### Passo 8 — Finalização e Limpeza
 

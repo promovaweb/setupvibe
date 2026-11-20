@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-**SetupVibe** is a cross-platform automated development environment setup script (v0.42.3). It installs and configures a complete developer toolkit in one command, supporting Windows 11 22H2+, macOS 12+, Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+) and Omarchy 4 on Arch Linux x86_64.
+**SetupVibe** is a cross-platform automated development environment setup script (v0.42.4). It installs and configures a complete developer toolkit in one command, supporting Windows 11 22H2+, macOS 12+, Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+) and Omarchy 4 on Arch Linux x86_64.
 
 There are four editions:
 
@@ -173,6 +173,8 @@ REAL_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
 **Release-pinned downloads** — `desktop.sh`, `server.sh` and `omarchy.sh` download their `conf/` and `bin/` files from the release tag of the running version (`v${VERSION}`), not from `main`. The tag must exist before the version is served, so publish `main` and the tag in one `git push --atomic`. APT repository keys are checked against the primary fingerprints declared at the top of `desktop.sh` and `server.sh`.
 
 **APT lock waiting** — server script polls for APT lock release before running apt commands (needed for cloud VMs with unattended-upgrades running at boot).
+
+**Hardware preflight** — on Linux amd64, `desktop.sh` and `server.sh` read the CPU flags from `/proc/cpuinfo` once, outside the steps, and warn when a generic VM CPU type hides instructions that prebuilt CLI binaries need (`ssse3`, `sse4_1`, `sse4_2`, `popcnt`, plus `pclmulqdq` in the Desktop edition for Antigravity CLI). They also warn when RAM plus swap is below 5120 MB. In the AI CLI step one failing CLI never stops the others; when the CPU lacks the instructions the step lists the skipped CLIs and passes, otherwise it still fails.
 
 **Architecture detection**:
 

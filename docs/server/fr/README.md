@@ -1,6 +1,6 @@
 # SetupVibe — Édition Serveur
 
-> Configuration de serveur Linux — v0.42.3
+> Configuration de serveur Linux — v0.42.4
 
 Un script de configuration léger et ciblé pour les serveurs Linux. Pas de Homebrew, pas d'écosystèmes de langages, pas d'outils de bureau. Installe uniquement ce dont un serveur de production a besoin : Docker, Ansible, réseau, shell, tmux et outils AI CLI.
 
@@ -14,6 +14,18 @@ Un script de configuration léger et ciblé pour les serveurs Linux. Pas de Home
 | **Architectures** | x86_64 (amd64), ARM64 (aarch64) |
 
 > Linux uniquement. Le script s'arrête immédiatement s'il est exécuté sur macOS.
+
+### Machines virtuelles
+
+Les types de CPU génériques des VM, comme `kvm64` et `qemu64`, masquent des instructions dont les binaires précompilés des CLI ont besoin. OpenCode et d'autres programmes en Bun ou Go ont besoin de SSSE3, SSE4.1, SSE4.2 et POPCNT.
+
+SetupVibe avertit au démarrage quand le CPU ne les expose pas. La CLI qui ne peut pas s'exécuter est ignorée avec un avertissement, et les autres outils sont installés. Pour corriger, réglez le type de CPU de la VM sur `host` dans l'hyperviseur (Proxmox : **Hardware > Processors > Type**), redémarrez la VM et relancez SetupVibe.
+
+SetupVibe avertit aussi quand la RAM plus le swap restent sous 5 Go, car le noyau peut arrêter l'installation des CLI par manque de mémoire. Ajoutez du swap avant la prochaine exécution :
+
+```bash
+sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
+```
 
 ## Installation
 
@@ -154,6 +166,8 @@ Installe **Node.js 24** depuis le dépôt APT NodeSource, installe les paquets n
 | Herdr              | Binaire du manifeste officiel    |
 
 Le [CLI Skills de Vercel Labs](https://github.com/vercel-labs/skills), [Herdr](https://github.com/herdrdev/herdr) et chaque commande CLI d'IA sont validés après l'installation. Herdr est installé dans `~/.local/bin` selon l'architecture détectée ; consultez le [guide Herdr](../../fr/HERDR.md) pour les sessions, les raccourcis, les mises à jour et le dépannage. Le paquet obsolète `@githubnext/github-copilot-cli` est supprimé. Les paquets globaux npm sont installés dans `~/.npm-global` chaque fois que l'utilisateur cible n'est pas root, y compris lorsque l'installateur est exécuté avec `sudo`.
+
+Quand une CLI échoue à l'installation ou à l'exécution, les autres outils de cette étape sont quand même installés et les échecs sont listés à la fin. L'étape se termine alors en erreur, sauf quand le CPU n'expose pas les instructions décrites dans [Machines virtuelles](#machines-virtuelles) : dans ce cas, elle liste les CLI ignorées avec la correction et se termine en OK.
 
 ### Étape 8 — Finalisation & Nettoyage
 

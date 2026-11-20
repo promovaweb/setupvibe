@@ -4,6 +4,22 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.42.4] - 2026-11-20
+
+### Added
+
+- Hardware check at the start of the Desktop and Server editions on Linux amd64. The installers warn when the CPU lacks instructions that prebuilt CLI binaries need (`ssse3`, `sse4_1`, `sse4_2` and `popcnt`, plus `pclmulqdq` in the Desktop edition for Antigravity CLI) and explain the fix: set the VM CPU type to `host`. Generic VM CPU types such as `kvm64` and `qemu64` hide these instructions ([#51](https://github.com/promovaweb/setupvibe/issues/51), [#60](https://github.com/promovaweb/setupvibe/issues/60)).
+- Warning when RAM plus swap is below 5 GB, with the command that adds a 2 GB swap file, because the kernel can stop the AI CLI installs for lack of memory (#51).
+- `Virtual Machines` section in the Desktop and Server guides, in the four languages.
+
+### Fixed
+
+- Server edition: one AI CLI that failed to install stopped the whole installation, and Herdr and the final cleanup did not run. Each CLI is now installed on its own and the failures are listed at the end of the step (#51).
+- Desktop edition: an Antigravity CLI that could not run on the CPU stopped the AI CLI step before Hermes Agent and Spec-Kit. The step now continues and reports it (#60).
+- When the CPU lacks the required instructions, the AI CLI step lists the skipped CLIs with the fix and passes. With a complete CPU a failing CLI still fails the step.
+
+---
+
 ## [v0.42.3] - 2026-11-20
 
 ### Security

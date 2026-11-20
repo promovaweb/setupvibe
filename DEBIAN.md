@@ -419,3 +419,57 @@ efetivo do serviço ficou sem caminhos duplicados. Também passaram as
 validações de versões dos ecossistemas, CLIs de IA, `tldr` via `tlrc`, checksum
 e propriedade do `ctop`, binding SQLite do Agentlytics e saída antecipada do
 Desktop sem TTY.
+
+## Aprendizados da investigação de novembro de 2026
+
+### CPU genérica de VM e binários prontos das CLIs
+
+As issues #51 e #60 mostraram que tipos genéricos de CPU de VM escondem
+instruções exigidas por binários prontos:
+
+- o `kvm64` não expõe SSSE3, SSE4.1, SSE4.2 nem POPCNT, e a instalação do
+  `opencode-ai` falha nele;
+- CPUs sem PCLMUL derrubam o Antigravity CLI com
+  `This binary was compiled with pclmul enabled` e saída 132 (`SIGILL`).
+
+O segundo caso foi reproduzido numa VM QEMU com SSE4.2 e AES, sem PCLMUL e sem
+AVX: `agy --version` falha, enquanto Claude Code, Codex, Copilot, OpenCode,
+Kimi, Herdr e Bun rodam. AVX e AVX2 não entram na checagem por esse motivo.
+
+Os dois instaladores leem as flags de `/proc/cpuinfo` uma vez, fora das
+etapas, porque cada etapa roda num subshell. O Server confere `ssse3`,
+`sse4_1`, `sse4_2` e `popcnt`; o Desktop confere também `pclmulqdq`, porque
+só ele instala o Antigravity. O aviso aparece no início e orienta a mudar o
+tipo de CPU da VM para `host`.
+
+Na etapa de CLIs, uma falha não interrompe as demais instalações. Quando a CPU
+não tem as instruções, a etapa lista as CLIs puladas e termina em `OK`; com a
+CPU completa, a mesma falha continua terminando a etapa em erro.
+
+Uma função chamada com `||` roda com o `errexit` desligado por dentro. O
+`install_antigravity` confere `agy install` e `agy --version` de forma
+explícita por isso; sem a conferência, a função imprimiria sucesso depois de
+uma falha.
+
+### Memória e swap
+
+O `postinstall` do `opencode-ai` foi encerrado pelo OOM killer numa VM de 4 GB
+sem swap. Os instaladores avisam quando RAM mais swap ficam abaixo de 5120 MB
+e mostram o comando que cria um swap de 2 GB. O aviso não cria o swap.
+
+### Teste com CPU e memória simuladas
+
+O Docker usa a CPU real do host, então a falha de instrução não se reproduz
+num contêiner. Para exercitar o aviso, monte arquivos falsos sobre o `/proc`:
+
+```bash
+docker run -d --name setupvibe-debian-server --privileged \
+    --security-opt label=disable --tmpfs /run --tmpfs /run/lock \
+    -v "$PWD:/workspace:ro" \
+    -v "$PWD/cpuinfo-kvm64:/proc/cpuinfo:ro" \
+    -v "$PWD/meminfo-4g:/proc/meminfo:ro" \
+    setupvibe/debian-systemd:13
+```
+
+Esse teste cobre a detecção e o caminho sem falha. A instalação real numa VM
+`kvm64` não foi executada.

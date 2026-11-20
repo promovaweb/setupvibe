@@ -1,6 +1,6 @@
 # SetupVibe — Server Edition
 
-> Linux server setup — v0.42.3
+> Linux server setup — v0.42.4
 
 A lean, focused setup script for Linux servers. No Homebrew, no language ecosystems, no desktop tools. Installs only what a production server needs: Docker, Ansible, networking, shell, tmux, and AI CLI tools.
 
@@ -14,6 +14,18 @@ A lean, focused setup script for Linux servers. No Homebrew, no language ecosyst
 | **Architectures** | x86_64 (amd64), ARM64 (aarch64) |
 
 > Linux only. Exits immediately if run on macOS.
+
+### Virtual Machines
+
+Generic VM CPU types, such as `kvm64` and `qemu64`, hide instructions that prebuilt CLI binaries need. OpenCode and other Bun or Go programs need SSSE3, SSE4.1, SSE4.2 and POPCNT.
+
+SetupVibe warns at the start when the CPU lacks them. A CLI that cannot run is skipped with a warning, and the other tools are installed. To fix it, set the VM CPU type to `host` in the hypervisor (Proxmox: **Hardware > Processors > Type**), restart the VM and run SetupVibe again.
+
+SetupVibe also warns when RAM plus swap is below 5 GB, because the CLI installs can be stopped by the kernel for lack of memory. Add swap before the next run:
+
+```bash
+sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
+```
 
 ## Installation
 
@@ -154,6 +166,8 @@ Installs **Node.js 24** from the NodeSource APT repository, installs the npm pac
 | Herdr              | Official release manifest binary |
 
 The [Vercel Labs Skills CLI](https://github.com/vercel-labs/skills), [Herdr](https://github.com/herdrdev/herdr), and every AI CLI command are validated after installation. Herdr is installed in `~/.local/bin` for the detected architecture; see the [Herdr guide](../../en/HERDR.md) for sessions, shortcuts, updates, and troubleshooting. The deprecated `@githubnext/github-copilot-cli` package is removed. npm global packages are installed to `~/.npm-global` whenever the target user is non-root, including when the installer itself runs through `sudo`.
+
+When a CLI fails to install or to run, the remaining tools in this step are still installed and the failures are listed at the end. The step then ends in error, unless the CPU lacks the instructions described in [Virtual Machines](#virtual-machines): in that case it lists the skipped CLIs with the fix and passes.
 
 ### Step 8 — Finalization & Cleanup
 

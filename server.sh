@@ -33,7 +33,7 @@ readonly APT_KEY_FPR_NODESOURCE="6F71F525282841EEDAF851B42F59B5F99B1BE0B4"
 readonly APT_KEY_FPR_DOCKER="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
 readonly APT_KEY_FPR_GHCLI_1="2C6106201985B60E6C7AC87323F3D4EA75716059"
 readonly APT_KEY_FPR_GHCLI_2="7F38BBB59D064DBCB3D84D725612B36462313325"
-readonly VERSION="0.42.3"
+readonly VERSION="0.42.4"
 readonly CTOP_VERSION="0.7.7"
 readonly CTOP_SHA256_AMD64="b78374734ebe3d14b6edee3d5512c911c250d7fa7f3f964cb00acd3bc5a02a09"
 readonly CTOP_SHA256_ARM64="d8d91e0fea53a8c78fa81192f078272e5a92f0ea6c4f0e38ec7c944d76e6f02f"
@@ -59,6 +59,71 @@ die() {
 
 warn() {
     echo -e "${YELLOW}Warning: $*${NC}" >&2
+}
+
+# --- HARDWARE PREFLIGHT (#51) ---
+# Prebuilt CLI binaries need CPU instructions that generic VM CPU types such
+# as kvm64 or qemu64 do not expose, and their npm install can exhaust a small
+# VM that has no swap.
+# OpenCode and other Bun or Go programs need the x86-64-v2 set below (#51).
+
+# Print the instructions from the list that a cpuinfo file lacks, space separated.
+cpu_missing_flags() {
+    local cpuinfo=$1
+    shift
+    local flags
+    local flag
+    local missing=""
+
+    [[ -r "$cpuinfo" ]] || return 0
+    flags=$(awk -F: '/^flags/ {print $2; exit}' "$cpuinfo")
+    [[ -n "$flags" ]] || return 0
+    for flag in "$@"; do
+        [[ " $flags " == *" $flag "* ]] || missing="${missing:+$missing }$flag"
+    done
+    echo "$missing"
+}
+
+# Print RAM plus swap from a meminfo file, in MB.
+memory_total_mb() {
+    local meminfo=$1
+
+    [[ -r "$meminfo" ]] || return 0
+    awk '/^(MemTotal|SwapTotal):/ {sum += $2} END {printf "%d\n", sum / 1024}' "$meminfo"
+}
+
+# Explain how to fix a VM whose CPU type hides the instructions.
+cpu_flags_hint() {
+    echo -e "${YELLOW}⚠ This CPU does not expose: $CPU_MISSING_FLAGS.${NC}" >&2
+    echo -e "${YELLOW}  Prebuilt CLI binaries may stop with 'Illegal instruction'. On a VM, set the CPU type to 'host'${NC}" >&2
+    echo -e "${YELLOW}  (Proxmox: Hardware > Processors > Type), restart the VM and run SetupVibe again.${NC}" >&2
+}
+
+hardware_preflight() {
+    local memory_mb
+
+    if [[ -n "$CPU_MISSING_FLAGS" ]]; then
+        cpu_flags_hint
+    fi
+
+    memory_mb=$(memory_total_mb /proc/meminfo)
+    if [[ -n "$memory_mb" ]] && (( memory_mb < MIN_MEMORY_MB )); then
+        echo -e "${YELLOW}⚠ RAM plus swap is ${memory_mb} MB. The AI CLI installs can be stopped by the kernel for lack of memory.${NC}" >&2
+        echo -e "${YELLOW}  Add swap before the next run:${NC}" >&2
+        echo -e "${YELLOW}  sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile${NC}" >&2
+    fi
+}
+
+# End the AI CLI step when some CLIs failed. A CPU without the required
+# instructions is a limit of the machine, so the step warns and still passes.
+ai_cli_failures() {
+    echo -e "${RED}✘ AI CLI tools with failures: $*${NC}" >&2
+    if [[ -n "$CPU_MISSING_FLAGS" ]]; then
+        cpu_flags_hint
+        echo -e "${YELLOW}  The tools above were skipped. Everything else was installed.${NC}" >&2
+        return 0
+    fi
+    return 1
 }
 
 os_release_value() {
@@ -358,6 +423,13 @@ case "$ARCH_RAW" in
         die "Architecture $ARCH_RAW is not supported."
         ;;
 esac
+
+# Steps run in subshells, so the CPU check happens once here.
+readonly MIN_MEMORY_MB=5120
+CPU_MISSING_FLAGS=""
+[[ "$ARCH_RAW" == "amd64" ]] &&
+    CPU_MISSING_FLAGS=$(cpu_missing_flags /proc/cpuinfo ssse3 sse4_1 sse4_2 popcnt)
+readonly CPU_MISSING_FLAGS
 
 # --- STEPS CONFIGURATION ---
 STEPS=(
@@ -707,6 +779,7 @@ step_0() {
     echo "Repository base: $DISTRO_ID $DISTRO_CODENAME"
     echo "Real user: $REAL_USER"
     echo "Home directory: $REAL_HOME"
+    hardware_preflight
     return 0
 }
 
@@ -1003,6 +1076,7 @@ step_7() {
     local package
     local command_name
     local index
+    local -a failed=()
     local -a cli_packages=(
         "@anthropic-ai/claude-code"
         "@openai/codex"
@@ -1072,12 +1146,21 @@ step_7() {
         package=${cli_packages[$index]}
         command_name=${cli_commands[$index]}
         echo "Installing $package..."
-        user_do env PATH="$npm_path" "$node_bin" "$npm_bin" install --global "$package"
-        user_do env PATH="$npm_path" "$command_name" --version >/dev/null
+        # One CLI that fails must not stop the others or Herdr (#51).
+        if ! user_do env PATH="$npm_path" "$node_bin" "$npm_bin" install --global "$package"; then
+            failed+=("$command_name (install)")
+            continue
+        fi
+        user_do env PATH="$npm_path" "$command_name" --version >/dev/null ||
+            failed+=("$command_name (validation)")
     done
 
     echo "Installing Herdr..."
     install_herdr
+
+    if (( ${#failed[@]} > 0 )); then
+        ai_cli_failures "${failed[@]}"
+    fi
 }
 
 

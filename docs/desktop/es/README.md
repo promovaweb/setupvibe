@@ -1,6 +1,6 @@
 # SetupVibe — Edición Escritorio
 
-> Configuración de entorno de desarrollo multiplataforma — v0.42.3
+> Configuración de entorno de desarrollo multiplataforma — v0.42.4
 
 Instala y configura un stack de desarrollo completo en un solo comando. Soporta macOS y las principales distribuciones de Linux.
 
@@ -16,6 +16,18 @@ Instala y configura un stack de desarrollo completo en un solo comando. Soporta 
 | **Arquitecturas**  | x86_64 (amd64), ARM64 (aarch64) |
 
 > **No** ejecutar con `sudo` en macOS — Homebrew rechazará la instalación como root. Ejecuta normalmente y el script solicitará tu contraseña cuando sea necesario.
+
+### Máquinas virtuales
+
+Los tipos genéricos de CPU de VM, como `kvm64` y `qemu64`, ocultan instrucciones que los binarios precompilados de las CLI necesitan. OpenCode y otros programas en Bun o Go necesitan SSSE3, SSE4.1, SSE4.2 y POPCNT, y Antigravity CLI también necesita PCLMUL.
+
+SetupVibe avisa al inicio cuando la CPU no tiene esas instrucciones. La CLI que no puede ejecutarse se omite con un aviso, y las demás herramientas se instalan. Para corregirlo, cambia el tipo de CPU de la VM a `host` en el hipervisor (Proxmox: **Hardware > Processors > Type**), reinicia la VM y ejecuta SetupVibe otra vez.
+
+SetupVibe también avisa cuando la RAM más el swap quedan por debajo de 5 GB, porque el kernel puede detener la instalación de las CLI por falta de memoria. Crea swap antes de la próxima ejecución:
+
+```bash
+sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
+```
 
 ## Instalación
 
@@ -172,6 +184,8 @@ manifiestos oficiales de releases:
 | Hermes Agent       | Instalador oficial, sin setup    |
 
 Cada CLI de la lista se valida después de la instalación. [Herdr](https://github.com/herdrdev/herdr) se instala en `~/.local/bin` según el sistema operativo y la arquitectura detectados; consulta la [guía de Herdr](../../es/HERDR.md) para conocer las sesiones, los atajos, las actualizaciones y el diagnóstico. Antigravity CLI se instala en `~/.local/bin` como `agy`: se resuelve y verifica directamente el manifiesto versionado y el checksum SHA-512 del propio feed de releases de Google (el bootstrapper oficial de Unix no reenvía `--skip-aliases`/`--skip-path` a su paso interno `agy install`), y luego se ejecuta `agy install --skip-aliases --skip-path` explícitamente para no modificar los perfiles de shell. [Hermes Agent](https://github.com/NousResearch/hermes-agent) se instala con el instalador oficial de Nous Research en `~/.hermes`, con el comando `hermes` en `~/.local/bin`, usando `--skip-setup`: SetupVibe no ejecuta `hermes setup` ni `hermes gateway install`, así que elige el proveedor, el modelo, las claves y el gateway con `hermes setup`. Si `hermes` ya existe, solo se valida; actualízalo con `hermes update`. **Spec-Kit** se instala a través de `uv tool install specify-cli`. Consulte [SPECKIT.md](SPECKIT.md) para obtener la guía completa de Spec-Driven Development y los aliases.
+
+Cuando una CLI falla en la instalación o en la ejecución, las demás herramientas de este paso se siguen instalando y los fallos se listan al final. El paso termina en error, salvo cuando la CPU no tiene las instrucciones descritas en [Máquinas virtuales](#máquinas-virtuales): en ese caso lista las CLI omitidas con la corrección y termina en OK.
 
 ### Paso 14 — Finalización y Limpieza
 
