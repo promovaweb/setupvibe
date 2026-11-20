@@ -4,6 +4,14 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.42.2] - 2026-11-20
+
+### Added
+
+- Optional guide for running [Orca](https://www.onorca.dev) on a server prepared by the Server edition, in English, Portuguese, Spanish and French (`docs/<lang>/ORCA.md`). It covers the `.deb` install with SHA-256 verification against the release digest, the systemd user service, port 6768 reachable only through Tailscale with `ufw` installed and active, and pairing the desktop and mobile apps. SetupVibe does not install Orca, and the installers are unchanged (#61).
+
+---
+
 ## [v0.42.1] - 2026-11-13
 
 ### Changed
