@@ -117,6 +117,13 @@ installation and never executes package-removal commands.
 - [French](fr/HERDR.md)
 - [Spanish](es/HERDR.md)
 
+### Orca (optional)
+
+- [English](en/ORCA.md)
+- [Portuguese](pt-br/ORCA.md)
+- [French](fr/ORCA.md)
+- [Spanish](es/ORCA.md)
+
 ### Executables
 
 - [English](en/EXECUTABLES.md)
