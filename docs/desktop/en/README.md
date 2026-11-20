@@ -1,6 +1,6 @@
 # SetupVibe — Desktop Edition
 
-> Cross-platform development environment setup — v0.42.2
+> Cross-platform development environment setup — v0.42.3
 
 Installs and configures a complete developer stack in one command. Supports macOS and major Linux distributions.
 
@@ -63,7 +63,7 @@ The script shows an interactive roadmap and asks for confirmation before startin
 | --------------- | --------------------------- | --------------------------------------- |
 | rbenv           | via Homebrew                | cloned from GitHub to `~/.rbenv`        |
 | ruby-build      | via Homebrew                | cloned to `~/.rbenv/plugins/ruby-build` |
-| Ruby            | 3.4.12 compiled via rbenv   | same                                    |
+| Ruby            | 3.4.13 compiled via rbenv   | same                                    |
 | Bundler + Rails | `gem install bundler rails` | same                                    |
 
 ### Step 5 — Languages

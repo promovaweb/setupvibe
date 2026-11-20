@@ -27,9 +27,9 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.42.2"
+VERSION="0.42.3"
 PHP_VERSION="8.5"
-RUBY_VERSION="3.4.12"
+RUBY_VERSION="3.4.13"
 PYTHON_VERSION="3.14"
 GO_VERSION="1.26.11"
 # Primary fingerprints of the APT signing keys. GitHub CLI and Docker publish

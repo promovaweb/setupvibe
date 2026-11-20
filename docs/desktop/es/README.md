@@ -1,6 +1,6 @@
 # SetupVibe — Edición Escritorio
 
-> Configuración de entorno de desarrollo multiplataforma — v0.42.2
+> Configuración de entorno de desarrollo multiplataforma — v0.42.3
 
 Instala y configura un stack de desarrollo completo en un solo comando. Soporta macOS y las principales distribuciones de Linux.
 
@@ -63,7 +63,7 @@ El script muestra una hoja de ruta interactiva y solicita confirmación antes de
 | --------------- | --------------------------- | --------------------------------------- |
 | rbenv           | vía Homebrew                | clonado de GitHub en `~/.rbenv`         |
 | ruby-build      | vía Homebrew                | clonado en `~/.rbenv/plugins/ruby-build` |
-| Ruby            | 3.4.12 compilado vía rbenv  | igual                                   |
+| Ruby            | 3.4.13 compilado vía rbenv  | igual                                   |
 | Bundler + Rails | `gem install bundler rails` | igual                                   |
 
 ### Paso 5 — Lenguajes

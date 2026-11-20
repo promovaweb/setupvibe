@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-**SetupVibe** is a cross-platform automated development environment setup script (v0.42.2). It installs and configures a complete developer toolkit in one command, supporting Windows 11 22H2+, macOS 12+, Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+) and Omarchy 4 on Arch Linux x86_64.
+**SetupVibe** is a cross-platform automated development environment setup script (v0.42.3). It installs and configures a complete developer toolkit in one command, supporting Windows 11 22H2+, macOS 12+, Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+) and Omarchy 4 on Arch Linux x86_64.
 
 There are four editions:
 
@@ -70,7 +70,7 @@ Windows-specific scripts download SetupVibe files from the release tag of the ru
 1. Base system & build tools
 2. Homebrew
 3. PHP 8.5 (Composer, Laravel)
-4. Ruby 3.4.12 (rbenv, Rails)
+4. Ruby 3.4.13 (rbenv, Rails)
 5. Go 1.26.11, Rust, Python (uv, user-global `qrcode` via pip; Python 3.14 on macOS)
 6. JavaScript (Node, Bun, PNPM)
 7. DevOps (Docker, Ansible, GitHub CLI)

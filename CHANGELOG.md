@@ -4,6 +4,15 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.42.3] - 2026-11-20
+
+### Security
+
+- Updated Ruby to 3.4.13 in the Desktop edition. Ruby 3.4.0 to 3.4.12 carry CVE-2026-132825 (Ruby2Shell), a heap overflow in string case conversion that can lead to remote code execution, plus six other regexp and case-conversion memory flaws fixed in the same release. Run the Desktop edition again to compile 3.4.13 and make it the global version. The previous Ruby stays in `~/.rbenv/versions`; move the projects that pin it and remove it with `rbenv uninstall 3.4.12`.
+- Rails needs no change in the installer: it installs the current release, which is 8.1.4.1 with the 21 fixes of the November 4 security release, including the critical Active Storage file write. Running the Desktop edition again updates the global `rails` gem. Applications keep the version in their own `Gemfile.lock` until `bundle update rails` runs.
+
+---
+
 ## [v0.42.2] - 2026-11-20
 
 ### Added
