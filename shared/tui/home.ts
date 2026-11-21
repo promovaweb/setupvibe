@@ -177,7 +177,8 @@ export function createHomeScreen(modules: () => readonly Screen[]): Screen {
       let snapshot: ReturnType<typeof gather> | undefined;
       let snapshotAt = 0;
 
-      refresh = (full = false) => {
+      const paint = (full = false) => {
+        if (renderer.isDestroyed) return;
         // A full refresh re-reads the state; two in a row (mount, then enter) read it once.
         if (!snapshot || (full && Date.now() - snapshotAt > 500)) {
           snapshot = gather();
@@ -299,21 +300,26 @@ export function createHomeScreen(modules: () => readonly Screen[]): Screen {
         }
       };
 
+      refresh = paint;
+      const isCurrent = () => refresh === paint && !renderer.isDestroyed;
+
       // Update status for the About card: cache first, a short network check otherwise.
       void checkForUpdate(manifest.version, "stable").then((u) => {
+        if (!isCurrent()) return;
         update = u;
-        refresh();
+        paint();
       });
 
       pollTailscale = () =>
         void collect().then((s) => {
+          if (!isCurrent()) return;
           tailscale = tailscaleSummary(s);
           tailnetLine = s.tailnet?.name ?? "";
           tailscaleIp = s.self?.ips[0] ?? "";
           tailscaleOnline = s.peers.filter((p) => p.online).map((p) => p.name);
-          refresh();
+          paint();
         });
-      refresh(true);
+      paint(true);
       pollTailscale();
       return root;
     },
