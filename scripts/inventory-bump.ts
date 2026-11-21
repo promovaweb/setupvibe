@@ -88,7 +88,7 @@ function latest(tool: string): string | undefined {
 if (import.meta.main) {
   const write = process.argv.includes("--write");
   const pr = process.argv.includes("--pr");
-  const files = ["desktop/inventory.json", "server/inventory.json"];
+  const files = ["desktop/inventory.json", "server/inventory.json", "omarchy/inventory.json"];
   const changes: { id: string; from: string; to: string }[] = [];
   const cache = new Map<string, string | undefined>();
   for (const file of files) {

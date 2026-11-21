@@ -1,48 +1,66 @@
 /**
- * Smoke test of the compiled TUI in a real pseudo-terminal (Linux and macOS).
- *
- * The OpenTUI test renderer used by `bun test` skips the native terminal
- * code; this script runs the built binary under `script(1)`, so the real
- * renderer draws. It opens every module, comes back to the Home, quits with
- * q and requires exit code 0, nothing on stderr and the header on screen.
- *
- *   bun run scripts/tui-smoke.ts [--bin dist/setupvibe]
- *
- * Exit codes: 0 passed, 1 failed.
+ * Runs the compiled TUI under script(1) to exercise edition selection and
+ * rendering with a real pseudoterminal.
  */
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const binIndex = process.argv.indexOf("--bin");
 const bin = binIndex > 0 ? process.argv[binIndex + 1]! : "dist/setupvibe";
 const home = mkdtempSync(join(tmpdir(), "sv-smoke-"));
-// util-linux script takes the command with -c; BSD script (macOS) takes it after the file.
-const argv = process.platform === "darwin" ? ["script", "-q", "/dev/null", bin] : ["script", "-qec", bin, "/dev/null"];
-const proc = Bun.spawn(argv, {
-  stdin: "pipe",
-  stdout: "pipe",
-  stderr: "pipe",
-  env: { ...process.env, SETUPVIBE_HOME: home, TERM: "xterm-256color", COLUMNS: "130", LINES: "40", SETUPVIBE_LANG: "en" },
-});
-const keys = ["1", "\x1b", "2", "\x1b", "3", "\x1b", "4", "\x1b", "5", "\x1b", "6", "\x1b", "7", "\x1b", "?", "?", "q"];
-await Bun.sleep(2500);
-for (const k of keys) {
-  proc.stdin.write(k);
-  await proc.stdin.flush();
-  await Bun.sleep(400);
+const linux = process.platform === "linux";
+const suggested = linux ? "server" : "desktop";
+const modules = ["1", "\x1b", "2", "\x1b", "3", "\x1b", "4", "\x1b", "5", "\x1b", "6", "\x1b", "7", "\x1b", "?", "?"];
+const state = () => JSON.parse(readFileSync(join(home, "edition.json"), "utf8")).edition;
+
+async function screen(keys: string[]): Promise<string> {
+  const quoted = "'" + bin.replaceAll("'", "'\\''") + "'";
+  const argv = linux ? ["script", "-qec", quoted, "/dev/null"] : ["script", "-q", "/dev/null", bin];
+  const proc = Bun.spawn(argv, {
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "pipe",
+    env: {
+      ...process.env,
+      SETUPVIBE_HOME: home, TERM: "xterm-256color", COLUMNS: "130", LINES: "40", SETUPVIBE_LANG: "en",
+      DISPLAY: "", WAYLAND_DISPLAY: "", XDG_SESSION_TYPE: "", SSH_CONNECTION: "", SSH_TTY: "",
+    },
+  });
+  const output = Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()]);
+  const timeout = setTimeout(() => proc.kill(), 25_000);
+  try {
+    await Bun.sleep(1600);
+    for (const key of keys) {
+      if (proc.exitCode !== null) break;
+      proc.stdin.write(key);
+      await proc.stdin.flush();
+      await Bun.sleep(320);
+    }
+    const [code, [out, err]] = await Promise.all([proc.exited, output]);
+    if (code !== 0 || err.trim()) throw new Error(`exit ${code}; stderr: ${err.slice(0, 400)}`);
+    const bad = ["[object Object]", "TypeError", "ReferenceError", "panic"].find((word) => out.includes(word));
+    if (bad) throw new Error(`unexpected terminal output: ${bad}`);
+    return out;
+  } finally {
+    clearTimeout(timeout);
+    if (proc.exitCode === null) proc.kill();
+  }
 }
-const timeout = setTimeout(() => proc.kill(), 15_000);
-const [code, out, err] = await Promise.all([proc.exited, new Response(proc.stdout).text(), new Response(proc.stderr).text()]);
-clearTimeout(timeout);
-rmSync(home, { recursive: true, force: true });
-const problems: string[] = [];
-if (code !== 0) problems.push(`exit code ${code}`);
-if (err.trim()) problems.push(`stderr: ${err.trim().slice(0, 400)}`);
-if (!out.includes("SetupVibe")) problems.push("the header never showed up");
-for (const bad of ["[object Object]", "TypeError", "ReferenceError", "panic"]) if (out.includes(bad)) problems.push(`output has ${bad}`);
-if (problems.length) {
-  console.error(`✗ TUI smoke test failed:\n- ${problems.join("\n- ")}`);
-  process.exit(1);
+
+try {
+  const first = await screen(["\r", ...modules, "q"]);
+  if (!first.includes("Choose edition") || !first.includes(suggested) || state() !== suggested) {
+    throw new Error(`first launch did not suggest and save ${suggested}`);
+  }
+  const second = await screen(linux ? ["E", "\x1b[A", "\r", "q"] : ["q"]);
+  if (!second.includes(`[${suggested}]`) || state() !== "desktop") throw new Error("saved edition or edition switch failed");
+  const third = await screen(["q"]);
+  if (!third.includes("[desktop]") || third.includes("Choose edition")) throw new Error("the TUI did not reopen in the saved Desktop edition");
+  console.log("✓ TUI smoke test: first launch, saved edition, modules, edition switch and reopen");
+} catch (error) {
+  console.error(`✗ TUI smoke test failed: ${(error as Error).message}`);
+  process.exitCode = 1;
+} finally {
+  rmSync(home, { recursive: true, force: true });
 }
-console.log(`✓ TUI smoke test: ${keys.length} keys, every module opened, exit 0`);

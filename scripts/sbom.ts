@@ -42,7 +42,7 @@ export function sbom(version: string, inventories: Inventory[], now = new Date()
 
 if (import.meta.main) {
   const pkg = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
-  const invs = ["desktop/inventory.json", "server/inventory.json"].map((f) => JSON.parse(readFileSync(f, "utf8")) as Inventory);
+  const invs = ["desktop/inventory.json", "server/inventory.json", "omarchy/inventory.json"].map((f) => JSON.parse(readFileSync(f, "utf8")) as Inventory);
   mkdirSync("dist", { recursive: true });
   const doc = sbom(pkg.version, invs);
   writeFileSync("dist/sbom.cdx.json", `${JSON.stringify(doc, null, 2)}\n`);

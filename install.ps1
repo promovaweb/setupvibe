@@ -1,7 +1,7 @@
 # SetupVibe 2 one-line installer for Windows.
 #
 #   irm https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.ps1 | iex
-#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.ps1))) auto
+#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.ps1))) desktop auto
 #
 # Reads the current version from version.json on the v2 branch, downloads
 # setupvibe-windows-x64.exe from the GitHub Release, verifies it against the

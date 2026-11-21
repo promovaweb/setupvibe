@@ -1,5 +1,5 @@
 #!/bin/sh
-# SetupVibe 2 one-line installer with the server edition chosen, for the
+# SetupVibe 2 one-line installer with the Server edition selected for forwarded commands and a compatibility link, for the
 # address that served the SetupVibe 1 server.sh (server.setupvibe.dev at the
 # launch). Same arguments as install.sh, which does the download and checks:
 #
@@ -8,4 +8,4 @@
 set -eu
 RAW_BASE="https://raw.githubusercontent.com/promovaweb/setupvibe/v2"
 installer=$(curl --proto '=https' --tlsv1.2 -fsSL "$RAW_BASE/install.sh")
-SETUPVIBE_EDITION=server sh -c "$installer" sh "$@"
+sh -c "$installer" sh --edition server "$@"

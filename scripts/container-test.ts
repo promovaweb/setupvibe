@@ -35,17 +35,22 @@ const edition = value("--edition", "desktop");
 const profile = value("--profile", "essencial");
 const asRoot = own.includes("--as-root");
 const keep = own.includes("--keep");
-const bin = edition === "server" ? "setupvibe-server" : "setupvibe";
+if (!["desktop", "server"].includes(edition) || (asRoot && edition !== "server") || system.startsWith("archlinux")) {
+  console.error("Use a Debian-family test image with desktop or server (only server allows --as-root).");
+  process.exit(2);
+}
+const bin = "setupvibe";
+const cli = [bin, edition];
 const binary = join("dist", bin);
-const arch = system.startsWith("archlinux");
-const tag = `setupvibe-test:${system.replace(/[:/]/g, "-")}`;
+
+const tag = `setupvibe-test:${system.replace(/[^a-z0-9_.-]/g, "-")}-${edition}-${process.pid}`;
 const name = `setupvibe-test-${system.replace(/[:/.]/g, "-")}-${edition}-${process.pid}`;
 
 async function sh(cmd: string[], opts: { quiet?: boolean; allowFail?: boolean } = {}): Promise<{ code: number; out: string }> {
   const proc = Bun.spawn(cmd, { stdout: "pipe", stderr: "pipe" });
   const [out, err] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()]);
   const code = await proc.exited;
-  if (!opts.quiet) process.stderr.write(out + err);
+  if (!opts.quiet || (code !== 0 && !opts.allowFail)) process.stderr.write(out + err);
   if (code !== 0 && !opts.allowFail) throw new Error(`${cmd.join(" ")} exited with ${code}`);
   return { code, out };
 }
@@ -62,16 +67,25 @@ if (!existsSync(binary)) {
 let failed = false;
 try {
   phase(`build image ${tag}`);
-  await sh(["docker", "build", "-q", "-t", tag, ...(arch ? ["-f", "tests/containers/Dockerfile.arch"] : ["-f", "tests/containers/Dockerfile.apt", "--build-arg", `BASE=${system}`]), "tests/containers"], { quiet: true });
+  await sh(["docker", "build", "-q", "-t", tag, "-f", "tests/containers/Dockerfile.apt", "--build-arg", `BASE=${system}`, "tests/containers"], { quiet: true });
 
   phase(`start ${name}`);
   await sh(["docker", "run", "-d", "--name", name, "--privileged", "--security-opt", "label=disable", "--tmpfs", "/run", "--tmpfs", "/run/lock", tag], { quiet: true });
   await sh(["docker", "exec", name, "sh", "-c", "for i in $(seq 1 30); do systemctl is-system-running 2>/dev/null | grep -qE 'running|degraded' && exit 0; sleep 1; done; exit 0"], { quiet: true });
   await sh(["docker", "cp", binary, `${name}:/usr/local/bin/${bin}`], { quiet: true });
 
+  if (edition === "server") {
+    phase("legacy Server link and root guard");
+    await sh(["docker", "exec", name, "ln", "-s", bin, "/usr/local/bin/setupvibe-server"]);
+    const legacy = await sh(["docker", "exec", name, "setupvibe-server", "system", "--no-update-check", "--json"], { quiet: true });
+    if (JSON.parse(legacy.out).data?.edition !== "server") throw new Error("setupvibe-server did not select Server");
+    const guarded = await sh(["docker", "exec", name, bin, "desktop", "check", "--json"], { quiet: true, allowFail: true });
+    if (guarded.code !== 12) throw new Error(`Desktop root guard returned ${guarded.code} instead of 12`);
+  }
+
   const autoArgs = ["auto", "--profile", profile, "--skip-network-check", ...extra];
   const user = asRoot ? [] : ["--user", "tester"];
-  const first = asRoot ? [bin, ...autoArgs, "--user", "deploy", "--git-name", "Test", "--git-email", "test@example.com"] : [bin, ...autoArgs];
+  const first = asRoot ? [...cli, ...autoArgs, "--user", "deploy", "--git-name", "Test", "--git-email", "test@example.com"] : [...cli, ...autoArgs];
 
   if (edition === "desktop" && !asRoot) {
     // A machine set up by SetupVibe 1: its .zshrc and .tmux.conf with a personal line,
@@ -96,7 +110,7 @@ try {
   phase("second run (idempotency)");
   // As root, automation repeats the same command: the root phase restores the
   // temporary sudo rule that the first run removed, then runs as the user.
-  const second = asRoot ? [...first, "--json"] : [bin, ...autoArgs, "--json"];
+  const second = asRoot ? [...first, "--json"] : [...cli, ...autoArgs, "--json"];
   const r2 = await sh(["docker", "exec", ...(asRoot ? [] : runAs), name, ...second], { quiet: true, allowFail: true });
   const events = r2.out
     .split("\n")
@@ -112,30 +126,30 @@ try {
     const steps: [string, string[]][] = [
       ["SetupVibe 1 .zshrc converted, personal line kept", ["sh", "-c", "grep -q '>>> setupvibe >>>' ~/.zshrc && ! grep -q 'PATH CONFIGURATION (Must come first' ~/.zshrc && grep -q 'alias mine=' ~/.zshrc.local && ls ~/.setupvibe/backups/.zshrc.first"]],
       ["the personal alias still works in zsh", ["zsh", "-ic", "mine | grep -q from-v1"]],
-      ["doctor and system report SetupVibe 1 leftovers", ["sh", "-c", `${bin} doctor --json | grep -q legacy-go && ${bin} system --no-update-check | grep -q 'SetupVibe 1'`]],
-      ["migrate --dry-run lists the shortcut", ["sh", "-c", `${bin} migrate --dry-run | grep -q 'ssh_copy_id'`]],
-      ["migrate --remove-legacy go", [bin, "migrate", "--remove-legacy", "go"]],
+      ["doctor and system report SetupVibe 1 leftovers", ["sh", "-c", `${cli.join(" ")} doctor --json | grep -q legacy-go && ${cli.join(" ")} system --no-update-check | grep -q 'SetupVibe 1'`]],
+      ["migrate --dry-run lists the shortcut", ["sh", "-c", `${cli.join(" ")} migrate --dry-run | grep -q 'ssh_copy_id'`]],
+      ["migrate --remove-legacy go", [...cli, "migrate", "--remove-legacy", "go"]],
       ["Go from SetupVibe 1 removed, ssh_copy_id is the shortcut", ["sh", "-c", "[ ! -e ~/.local/go ] && grep -q 'kept by SetupVibe 2' ~/.setupvibe/bin/ssh_copy_id"]],
-      ["install go", [bin, "install", "go"]],
-      ["check go", [bin, "check", "go"]],
-      ["update (nothing to do)", [bin, "update"]],
-      ["install --external hyperfine", [bin, "install", "--external", "hyperfine"]],
-      ["remove --external hyperfine", [bin, "remove", "--external", "hyperfine", "--yes"]],
-      ["remove go", [bin, "remove", "go", "--yes"]],
+      ["install go", [...cli, "install", "go"]],
+      ["check go", [...cli, "check", "go"]],
+      ["update (nothing to do)", [...cli, "update"]],
+      ["install --external hyperfine", [...cli, "install", "--external", "hyperfine"]],
+      ["remove --external hyperfine", [...cli, "remove", "--external", "hyperfine", "--yes"]],
+      ["remove go", [...cli, "remove", "go", "--yes"]],
       ["zsh loads the SetupVibe block", ["zsh", "-ic", "alias gstat >/dev/null && alias cco >/dev/null && command -v starship >/dev/null && command -v node >/dev/null"]],
       ["tmux loads the SetupVibe settings", ["sh", "-c", "tmux new-session -d -s sv && tmux show -gv base-index | grep -qx 1; r=$?; tmux kill-server; exit $r"]],
       ["login shell is zsh", ["sh", "-c", "getent passwd \"$(id -un)\" | cut -d: -f7 | grep -q zsh"]],
-      ["mcp install", [bin, "mcp", "install"]],
-      ["mcp install again (no changes)", [bin, "mcp", "install"]],
+      ["mcp install", [...cli, "mcp", "install"]],
+      ["mcp install again (no changes)", [...cli, "mcp", "install"]],
       ["claude sees the server", ["sh", "-lc", "PATH=$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH claude mcp get setupvibe"]],
-      ["doctor --fix", [bin, "doctor", "--fix"]],
-      ["report", ["sh", "-c", `${bin} report --output /tmp/report.md && grep -q '# SetupVibe report' /tmp/report.md`]],
-      ["config export", [bin, "config", "export", "/tmp/answers.json"]],
-      ["config import (nothing new)", [bin, "config", "import", "/tmp/answers.json"]],
-      ["install openssh-server", [bin, "install", "openssh-server"]],
-      ["ssh copy-id with a password", ["sh", "-c", `echo "$(id -un):sv-pass-1" | sudo chpasswd && sudo sed -i 's/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && { sudo systemctl restart ssh 2>/dev/null || sudo systemctl restart sshd; } && ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/id_ed25519 && printf %s sv-pass-1 | ${bin} ssh copy-id "$(id -un)@127.0.0.1" --password-stdin`]],
+      ["doctor --fix", [...cli, "doctor", "--fix"]],
+      ["report", ["sh", "-c", `${cli.join(" ")} report --output /tmp/report.md && grep -q '# SetupVibe report' /tmp/report.md`]],
+      ["config export", [...cli, "config", "export", "/tmp/answers.json"]],
+      ["config import (nothing new)", [...cli, "config", "import", "/tmp/answers.json"]],
+      ["install openssh-server", [...cli, "install", "openssh-server"]],
+      ["ssh copy-id with a password", ["sh", "-c", `echo "$(id -un):sv-pass-1" | sudo chpasswd && sudo sed -i 's/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && { sudo systemctl restart ssh 2>/dev/null || sudo systemctl restart sshd; } && ssh-keygen -q -t ed25519 -N '' -f ~/.ssh/id_ed25519 && printf %s sv-pass-1 | ${cli.join(" ")} ssh copy-id "$(id -un)@127.0.0.1" --password-stdin`]],
       ["ssh login with the key", ["sh", "-c", `ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new "$(id -un)@127.0.0.1" true`]],
-      ["ssh copy-id again keeps one key", ["sh", "-c", `printf %s sv-pass-1 | ${bin} ssh copy-id "$(id -un)@127.0.0.1" --password-stdin && [ "$(grep -c ssh-ed25519 ~/.ssh/authorized_keys)" = 1 ]`]],
+      ["ssh copy-id again keeps one key", ["sh", "-c", `printf %s sv-pass-1 | ${cli.join(" ")} ssh copy-id "$(id -un)@127.0.0.1" --password-stdin && [ "$(grep -c ssh-ed25519 ~/.ssh/authorized_keys)" = 1 ]`]],
     ];
     for (const [label, cmd] of steps) {
       const r = await sh(["docker", "exec", ...runAs, name, ...cmd], { quiet: true, allowFail: true });
@@ -162,22 +176,22 @@ try {
     const manager = extra.includes("--manager");
     const steps: [string, string[]][] = [
       ["security record written before the module", ["sh", "-c", "test -s ~/.setupvibe/state/security.json && grep -q ufwActive ~/.setupvibe/state/security.json"]],
-      ["security remove --dry-run lists the jail", ["sh", "-c", `${bin} security remove --dry-run | grep -q jail.d/setupvibe.local`]],
+      ["security remove --dry-run lists the jail", ["sh", "-c", `${cli.join(" ")} security remove --dry-run | grep -q jail.d/setupvibe.local`]],
       // auto removed the temporary NOPASSWD rule: without a terminal, the command stops before changing anything.
-      ["without passwordless sudo it stops with 13", ["sh", "-c", `${bin} security remove; [ $? = 13 ]`]],
+      ["without passwordless sudo it stops with 13", ["sh", "-c", `${cli.join(" ")} security remove; [ $? = 13 ]`]],
       ["root adds a temporary NOPASSWD rule", ["sh", "-c", `sudo -n true 2>/dev/null || exit 0`]],
-      ["security remove", [bin, "security", "remove"]],
+      ["security remove", [...cli, "security", "remove"]],
       ["jail and record gone", ["sh", "-c", "[ ! -e /etc/fail2ban/jail.d/setupvibe.local ] && [ ! -e ~/.setupvibe/state/security.json ]"]],
-      ["security apply again", [bin, "security", "apply"]],
+      ["security apply again", [...cli, "security", "apply"]],
       ["jail and record back", ["sh", "-c", "[ -e /etc/fail2ban/jail.d/setupvibe.local ] && [ -s ~/.setupvibe/state/security.json ]"]],
       manager
-        ? ["swarm token prints a worker token", ["sh", "-c", `${bin} swarm token | grep -q '^SWMTKN-'`]]
-        : ["swarm token refuses outside a manager", ["sh", "-c", `${bin} swarm token; [ $? = 3 ]`]],
+        ? ["swarm token prints a worker token", ["sh", "-c", `${cli.join(" ")} swarm token | grep -q '^SWMTKN-'`]]
+        : ["swarm token refuses outside a manager", ["sh", "-c", `${cli.join(" ")} swarm token; [ $? = 3 ]`]],
     ];
     for (const [label, cmd] of steps) {
       // The NOPASSWD rule is root's job, as an operator would do it.
       const asRootStep = label.startsWith("root ");
-      const command = asRootStep ? [bin, "user", "nopasswd", asRoot ? "deploy" : "tester"] : cmd;
+      const command = asRootStep ? [...cli, "user", "nopasswd", asRoot ? "deploy" : "tester"] : cmd;
       const r = await sh(["docker", "exec", ...(asRootStep ? [] : runAs), name, ...command], { quiet: true, allowFail: true });
       console.error(`${r.code === 0 ? "✓" : "✗"} ${label} (exit ${r.code})`);
       if (r.code !== 0) {
@@ -185,18 +199,18 @@ try {
         console.error(r.out.split("\n").slice(-5).join("\n"));
       }
     }
-    await sh(["docker", "exec", name, bin, "user", "nopasswd", asRoot ? "deploy" : "tester", "--remove"], { quiet: true, allowFail: true });
+    await sh(["docker", "exec", name, ...cli, "user", "nopasswd", asRoot ? "deploy" : "tester", "--remove"], { quiet: true, allowFail: true });
   }
 
   phase("check");
-  const r3 =await sh(["docker", "exec", ...runAs, name, bin, "check", ...(asRoot ? [] : [])], { allowFail: true });
+  const r3 =await sh(["docker", "exec", ...runAs, name, ...cli, "check", ...(asRoot ? [] : [])], { allowFail: true });
   if (r3.code !== 0) failed = true;
 
   if (edition === "desktop" && !asRoot) {
     phase("self uninstall");
     const steps: [string, string[]][] = [
       ["a personal line in .zshrc", ["sh", "-c", "echo 'export MINE=1' >> ~/.zshrc"]],
-      ["self uninstall --yes --keep-data", [bin, "self", "uninstall", "--yes", "--keep-data"]],
+      ["self uninstall --yes --keep-data", [...cli, "self", "uninstall", "--yes", "--keep-data"]],
       ["block gone, personal line kept", ["sh", "-c", "! grep -q '>>> setupvibe >>>' ~/.zshrc && grep -q 'export MINE=1' ~/.zshrc && [ -f ~/.setupvibe/config.json ] && [ ! -e ~/.setupvibe/shell ]"]],
     ];
     for (const [label, cmd] of steps) {
@@ -213,7 +227,10 @@ try {
   failed = true;
 } finally {
   if (keep) console.error(`\nContainer kept: ${name}`);
-  else await sh(["docker", "rm", "-f", name], { quiet: true, allowFail: true });
+  else {
+    await sh(["docker", "rm", "-f", name], { quiet: true, allowFail: true });
+    await sh(["docker", "image", "rm", tag], { quiet: true, allowFail: true });
+  }
 }
 
 console.error(failed ? "\n✗ container test failed" : "\n✓ container test passed");

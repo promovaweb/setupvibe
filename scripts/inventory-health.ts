@@ -42,7 +42,7 @@ async function get(url: string): Promise<Response | undefined> {
 if (import.meta.main) {
   const problems: Problem[] = [];
   const seen = new Set<string>();
-  for (const file of ["desktop/inventory.json", "server/inventory.json"]) {
+  for (const file of ["desktop/inventory.json", "server/inventory.json", "omarchy/inventory.json"]) {
     const inv = JSON.parse(readFileSync(file, "utf8")) as Inventory;
     for (const [name, repo] of Object.entries(inv.repositories)) {
       if (seen.has(`repo:${name}`)) continue;

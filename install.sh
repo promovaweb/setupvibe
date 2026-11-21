@@ -2,7 +2,7 @@
 # SetupVibe 2 one-line installer for macOS and Linux.
 #
 #   curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh | sh
-#   curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh | sh -s -- auto --user deploy
+#   curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh | sh -s -- server auto --user deploy
 #   curl -fsSL .../install.sh | sh -s -- --edition server auto --manager
 #
 # Reads the current version from version.json on the v2 branch, downloads the
@@ -10,7 +10,7 @@
 # release SHA256SUMS and installs it to ~/.local/bin (or /usr/local/bin as
 # root). Any remaining arguments are passed to the installed binary.
 #
-# Environment: SETUPVIBE_EDITION (desktop|server), SETUPVIBE_CHANNEL
+# Environment: SETUPVIBE_EDITION (desktop|server|omarchy), SETUPVIBE_CHANNEL
 # (stable|beta), SETUPVIBE_INSTALL_DIR, SETUPVIBE_INSTALL_DRY_RUN=1 (print the
 # URLs and exit).
 set -eu
@@ -18,18 +18,18 @@ set -eu
 RAW_BASE="https://raw.githubusercontent.com/promovaweb/setupvibe/v2"
 RELEASES_BASE="https://github.com/promovaweb/setupvibe/releases/download"
 
-edition="${SETUPVIBE_EDITION:-desktop}"
+edition="${SETUPVIBE_EDITION:-}"
 channel="${SETUPVIBE_CHANNEL:-stable}"
 
 if [ "${1:-}" = "--edition" ]; then
   edition="${2:-}"
-  shift 2 || { echo "setupvibe: --edition needs desktop or server" >&2; exit 2; }
+  shift 2 || { echo "setupvibe: --edition needs desktop, server or omarchy" >&2; exit 2; }
 fi
 
+bin="setupvibe"
 case "$edition" in
-  desktop) bin="setupvibe" ;;
-  server) bin="setupvibe-server" ;;
-  *) echo "setupvibe: unknown edition '$edition' (use desktop or server)" >&2; exit 2 ;;
+  "" | desktop | server | omarchy) ;;
+  *) echo "setupvibe: unknown edition '$edition' (use desktop, server or omarchy)" >&2; exit 2 ;;
 esac
 
 case "$(uname -s)" in
@@ -37,8 +37,8 @@ case "$(uname -s)" in
   Darwin) os="darwin" ;;
   *) echo "setupvibe: unsupported operating system $(uname -s); on Windows use install.ps1" >&2; exit 11 ;;
 esac
-if [ "$edition" = "server" ] && [ "$os" != "linux" ]; then
-  echo "setupvibe: the server edition runs on Linux only" >&2
+if { [ "$edition" = "server" ] || [ "$edition" = "omarchy" ]; } && [ "$os" != "linux" ]; then
+  echo "setupvibe: the $edition edition runs on Linux only" >&2
   exit 11
 fi
 
@@ -110,8 +110,16 @@ if [ "$actual" != "$expected" ]; then
 fi
 
 mkdir -p "$install_dir"
+chmod 0755 "$tmp/$asset"
 mv "$tmp/$asset" "$install_dir/$bin"
-chmod 0755 "$install_dir/$bin"
+if [ "$edition" = "server" ]; then
+  link="$install_dir/setupvibe-server"
+  if [ -d "$link" ]; then
+    echo "setupvibe: cannot create $link because it is a directory" >&2
+    exit 1
+  fi
+  ln -sfn "$bin" "$link"
+fi
 if [ "$os" = "darwin" ]; then
   xattr -d com.apple.quarantine "$install_dir/$bin" 2>/dev/null || true
 fi
@@ -123,5 +131,9 @@ case ":$PATH:" in
 esac
 
 if [ "$#" -gt 0 ]; then
+  case "$1" in
+    desktop | server | omarchy) ;;
+    *) if [ -n "$edition" ]; then set -- "$edition" "$@"; fi ;;
+  esac
   exec "$install_dir/$bin" "$@"
 fi

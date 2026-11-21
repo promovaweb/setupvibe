@@ -30,7 +30,7 @@ jobs:
         with:
           bun-version: 1.4.4
       - run: bun install --frozen-lockfile
-      - run: bun run build -- --edition desktop
+      - run: bun run build
       - name: auto, whole inventory, twice
         shell: bash
         env:
@@ -38,6 +38,6 @@ jobs:
         run: |
           bin=./dist/setupvibe
           [ -f ./dist/setupvibe.exe ] && bin=./dist/setupvibe.exe
-          "$bin" auto --skip-network-check
-          "$bin" auto --skip-network-check
-          "$bin" check
+          "$bin" desktop auto --skip-network-check
+          "$bin" desktop auto --skip-network-check
+          "$bin" desktop check

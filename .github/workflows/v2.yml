@@ -32,10 +32,8 @@ jobs:
       - run: bun run validate
       - name: Unit test coverage (fails below the minimum in scripts/coverage-check.ts)
         run: bun run coverage
-      - name: TUI smoke test in a real terminal (both binaries, built by validate)
-        run: |
-          bun run scripts/tui-smoke.ts --bin dist/setupvibe
-          bun run scripts/tui-smoke.ts --bin dist/setupvibe-server
+      - name: TUI smoke test in a real terminal (built by validate)
+        run: bun run scripts/tui-smoke.ts --bin dist/setupvibe
 
   containers:
     needs: validate
@@ -47,7 +45,6 @@ jobs:
           - { system: "debian:12", edition: desktop }
           - { system: "debian:13", edition: desktop }
           - { system: "ubuntu:24.04", edition: desktop }
-          - { system: "archlinux:latest", edition: desktop }
           - { system: "linuxmintd/mint22-amd64", edition: desktop }
           - { system: "ubuntu:24.04", edition: server, root: "--as-root" }
           - { system: "debian:12", edition: server, root: "--as-root" }
@@ -76,13 +73,13 @@ jobs:
           bun-version: 1.4.4
       - run: bun install --frozen-lockfile
       - run: bun run build
-      - run: ./dist/setupvibe system --no-update-check
-      - run: ./dist/setupvibe auto --profile essencial --dry-run
+      - run: ./dist/setupvibe desktop system --no-update-check
+      - run: ./dist/setupvibe desktop auto --profile essencial --dry-run
       - name: auto
         env:
           # mise reads it to avoid the anonymous GitHub API limit.
           GITHUB_TOKEN: ${{ github.token }}
-        run: ./dist/setupvibe auto --profile essencial --skip-network-check && ./dist/setupvibe check
+        run: ./dist/setupvibe desktop auto --profile essencial --skip-network-check && ./dist/setupvibe desktop check
 
   windows:
     needs: validate
@@ -93,28 +90,28 @@ jobs:
         with:
           bun-version: 1.4.4
       - run: bun install --frozen-lockfile
-      - run: bun run build -- --edition desktop
-      - run: .\dist\setupvibe.exe system --no-update-check
-      - run: .\dist\setupvibe.exe auto --profile essencial --dry-run
+      - run: bun run build
+      - run: .\dist\setupvibe.exe desktop system --no-update-check
+      - run: .\dist\setupvibe.exe desktop auto --profile essencial --dry-run
       - name: PowerShell completion
         run: |
           $env:PATH = "$PWD\dist;$env:PATH"
-          setupvibe completion powershell | Out-String | Invoke-Expression
-          $words = (TabExpansion2 -inputScript "setupvibe ins" -cursorColumn 13).CompletionMatches.CompletionText
+          setupvibe desktop completion powershell | Out-String | Invoke-Expression
+          $words = (TabExpansion2 -inputScript "setupvibe desktop ins" -cursorColumn 21).CompletionMatches.CompletionText
           if ($words -notcontains "install") { Write-Error "completion did not offer install: $words"; exit 1 }
-          $topics = (TabExpansion2 -inputScript "setupvibe docs inv" -cursorColumn 18).CompletionMatches.CompletionText
+          $topics = (TabExpansion2 -inputScript "setupvibe desktop docs inv" -cursorColumn 26).CompletionMatches.CompletionText
           if ($topics -notcontains "inventory") { Write-Error "completion did not offer inventory: $topics"; exit 1 }
       - name: auto
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          .\dist\setupvibe.exe auto --profile essencial --skip-network-check
+          .\dist\setupvibe.exe desktop auto --profile essencial --skip-network-check
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          .\dist\setupvibe.exe check
+          .\dist\setupvibe.exe desktop check
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: doctor reports the Windows component store
         run: |
-          $out = .\dist\setupvibe.exe doctor --json | Out-String
+          $out = .\dist\setupvibe.exe desktop doctor --json | Out-String
           if ($out -notmatch '"id": "windows-health"') { Write-Error "doctor did not report windows-health: $out"; exit 1 }
           # doctor exits 3 when something else needs attention; this step only checks the finding.
           $global:LASTEXITCODE = 0
