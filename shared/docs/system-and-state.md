@@ -1,6 +1,6 @@
 # System detection and state
 
-Modules shared by `setupvibe` and `setupvibe-server` to detect the machine
+Modules used by the `setupvibe` executable to detect the machine
 and keep SetupVibe state. They implement sections 2, 4, 11 and 18 of the
 specification.
 
@@ -23,16 +23,21 @@ applied on `remote-exposed`.
 Linux systems come from `ID` in `/etc/os-release`. Omarchy is recognized by
 `/usr/share/omarchy`, WSL by the flag above. Minimum versions and supported
 architectures are in `MINIMUM_VERSIONS` and `SUPPORTED_ARCHES`. An
-unsupported system makes `setupvibe system` exit with `UNSUPPORTED_SYSTEM`
+unsupported system makes `setupvibe desktop system` exit with `UNSUPPORTED_SYSTEM`
 (11).
+
+Plain Arch is unsupported. Startup checks the edition’s supported systems.
+For a new TUI session, the suggestion comes from the Omarchy marker and
+the graphical session status.
 
 ## State files (`shared/state/store.ts`)
 
-Both binaries keep their state in `~/.setupvibe/` (`SETUPVIBE_HOME`
+The three editions keep their state in `~/.setupvibe/` (`SETUPVIBE_HOME`
 overrides it):
 
 | Path | Content |
 | --- | --- |
+| `edition.json` | default edition selected for the current user |
 | `config.json` | user, detected system, init state, Git identity, channel, shell and network preferences |
 | `selection.json` | selected inventory items and installed versions |
 | `external.json` | apps installed through mise outside the inventory |
@@ -45,10 +50,10 @@ migrations registered through `registerMigration`, keeps the previous file in
 `backups/` and refuses files newer than the binary. Writes are atomic.
 
 The formats are published as JSON Schema in `shared/schemas/`
-(`config.schema.json`, `selection.schema.json`, `external.schema.json`),
+(`config.schema.json`, `selection.schema.json`, `external.schema.json`, `edition.schema.json`),
 generated from the zod source in `shared/state/schemas.ts` with
 `bun run state:schemas`. A test fails when the published files are stale. At
-start, every command checks the three files against them and names the field
+startup, every command checks the state files against them and names the field
 of any problem on stderr. Unknown keys are kept, so an older binary accepts a
 file written by a newer one. `state/security.json` holds the state before the
 security module, read by `security remove`.
@@ -57,7 +62,7 @@ security module, read by `security remove`.
 
 `openRunLog(command)` writes NDJSON events to
 `logs/<timestamp>-<command>.log`. With `json: true` the same events go to
-stdout, which is the output of `setupvibe auto --json`. Values of
+stdout, which is the output of `setupvibe desktop auto --json`. Values of
 `TAILSCALE_AUTHKEY`, `GH_TOKEN`, `GITHUB_TOKEN`, `SETUPVIBE_SWARM_TOKEN` and
 `SETUPVIBE_MASTER_KEY` are masked.
 

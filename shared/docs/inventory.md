@@ -1,15 +1,20 @@
 # SetupVibe 2 inventory
 
 The inventory is the official list of everything a SetupVibe 2 edition
-installs and manages. It is embedded in each binary and drives the TUI, the
+installs and manages. It is embedded in the binary and drives the TUI, the
 CLI, `auto`, `check`, `update` and the MCP server.
 
 | File | Edition | Systems |
 | --- | --- | --- |
-| `desktop/inventory.json` | `setupvibe` | Ubuntu, Debian, Mint, Zorin, Arch, Omarchy, macOS, Windows, WSL |
-| `server/inventory.json` | `setupvibe-server` | Ubuntu, Debian |
-| `shared/inventory.schema.json` | JSON Schema for both files | |
+| `desktop/inventory.json` | Desktop | Ubuntu, Debian, Mint, Zorin, macOS, Windows, WSL |
+| `server/inventory.json` | Server | Ubuntu, Debian |
+| `omarchy/inventory.json` | Omarchy | Omarchy |
+| `shared/inventory.schema.json` | JSON Schema for all inventories | |
 | `shared/inventory.ts` | Types and install resolution | |
+
+Omarchy uses `omarchy pkg add` for native packages. PHP 8.6.0 is installed
+by mise in `~/.setupvibe/omarchy/mise`. Packages and runtimes provided by
+Omarchy are marked `preinstalled` and removed from the installation plan.
 
 The inventory files are edited by hand. Validate every change with:
 
@@ -54,7 +59,7 @@ key present in this order:
 
 1. the system itself (`ubuntu`, `wsl`, `omarchy`, ...);
 2. its family: `debian-family` (Ubuntu, Debian, Mint, Zorin, WSL) or
-   `arch-family` (Arch, Omarchy);
+   `arch-family` (Omarchy);
 3. `linux` (every system except macOS and Windows);
 4. `unix` (every system except Windows);
 5. `all`.

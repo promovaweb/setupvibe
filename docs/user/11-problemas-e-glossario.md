@@ -8,7 +8,7 @@ identificados por essas verificações e os termos usados no guia.
 ## Comece pelo `doctor`
 
 ```bash
-setupvibe doctor
+setupvibe desktop doctor
 ```
 
 Um `✗` é problema e um `!` é aviso. Cada linha que exige ação traz o comando
@@ -19,22 +19,22 @@ que resolve. Quando o achado é de nível `fail`, o comando termina com 3,
 
 | Sintoma | Causa provável | Comando |
 | --- | --- | --- |
-| `sudo asks for a password` | o passo privilegiado usa `sudo -n` e não há senha em cache | `setupvibe user nopasswd <user>` ou `sudo -v` antes |
+| `sudo asks for a password` | o passo privilegiado usa `sudo -n` e não há senha em cache | `setupvibe desktop user nopasswd <user>` ou `sudo -v` antes |
 | `Another SetupVibe run is in progress` | outra execução segura `run.lock` | `cat ~/.setupvibe/run.lock` e esperar |
 | erro de TLS ou certificado em download | proxy ou CA corporativa | `--ca-file` e `HTTPS_PROXY`, se necessário |
-| `github.com unreachable` | rede ou DNS | `setupvibe system` e `--cache-dir` |
+| `github.com unreachable` | rede ou DNS | `setupvibe desktop system` e `--cache-dir` |
 | relógio mais de cinco minutos fora | NTP desligado | `sudo timedatectl set-ntp true` |
 | `3.2 GB free, 10 GB needed` | pouco espaço na pasta pessoal | liberar espaço ou mover o cache |
-| item com status `other` | outra cópia instalada por APT, Homebrew ou npm | `setupvibe install <item>` e conferir o `PATH` |
+| item com status `other` | outra cópia instalada por APT, Homebrew ou npm | `setupvibe desktop install <item>` e conferir o `PATH` |
 | `3 of 42 steps failed` | falha parcial; o resto ficou aplicado | ler o log e repetir só o que faltou |
-| `SetupVibe 1 found` | máquina preparada pela versão 1 | `setupvibe migrate --dry-run` |
+| `SetupVibe 1 found` | máquina preparada pela versão 1 | `setupvibe desktop migrate --dry-run` |
 | `! Restart needed` | `/var/run/reboot-required` existe | reiniciar ou `auto --reboot` |
 | container publicando em `0.0.0.0` | Docker não passa pelo UFW | publicar em `127.0.0.1` |
 | alias não definido | já existe comando com o mesmo nome | conferir com `type <nome>` |
-| `settings.json` inválido | valor fora do schema | `setupvibe config list` e corrigir |
-| `Run: setupvibe upgrade` | arquivo de estado de versão mais nova | `setupvibe upgrade` |
+| `settings.json` inválido | valor fora do schema | `setupvibe desktop config list` e corrigir |
+| `Run: setupvibe desktop upgrade` | arquivo de estado de versão mais nova | `setupvibe desktop upgrade` |
 | comando em pipe imprime a ajuda e sai com 2 | sem TTY | rodar no terminal ou usar o CLI |
-| duas edições na mesma máquina | desktop e server são exclusivas | `setupvibe self uninstall` antes da troca |
+| edição ausente, código 15 | a conta ainda não salvou uma edição | passe a edição no comando ou use `setupvibe edition set` |
 
 ## Sudo sem senha
 
@@ -43,8 +43,8 @@ O `auto` exige `sudo` sem senha porque não abre prompt. `init`, `migrate` e
 cache. Sem terminal, os comandos param antes de alterar a máquina.
 
 ```bash
-setupvibe user nopasswd deploy
-sudo -v && setupvibe auto --user deploy
+setupvibe desktop user nopasswd deploy
+sudo -v && setupvibe desktop auto --user deploy
 ```
 
 O exit code é 13, `SUDO_PASSWORD`. Com `--keep-nopasswd`, o `auto` mantém a
@@ -57,9 +57,9 @@ Um passo com falha não interrompe os seguintes. O resultado fica no log e no
 Corrija a causa e repita só o que faltou:
 
 ```bash
-setupvibe doctor
-setupvibe install node python --force
-setupvibe check
+setupvibe desktop doctor
+setupvibe desktop install node python --force
+setupvibe desktop check
 ```
 
 Não é preciso recomeçar do zero: o que passou continua aplicado.
@@ -71,9 +71,9 @@ Não é preciso recomeçar do zero: o que passou continua aplicado.
 dele ao lado. Para conferir qual responde primeiro:
 
 ```bash
-setupvibe list --check
+setupvibe desktop list --check
 command -v node
-setupvibe install node
+setupvibe desktop install node
 ```
 
 Se a versão ativa continuar sendo a outra, ajuste o `PATH` ou remova a cópia
@@ -81,12 +81,12 @@ antiga. O `doctor` mostra o caminho da cópia que ganhou a disputa.
 
 ## Onde ler mais
 
-- `setupvibe --skill troubleshooting` imprime a mesma matéria com o detalhe de
+- `setupvibe desktop --skill troubleshooting` imprime a mesma matéria com o detalhe de
   cada caso, dentro do binário.
 - O apêndice de códigos de saída, no fim do livro, lista a classe de cada
   número.
 - O apêndice de configuração explica cada arquivo de `~/.setupvibe/`.
-- `setupvibe report` gera o Markdown para anexar numa issue e encaminhar a
+- `setupvibe desktop report` gera o Markdown para anexar numa issue e encaminhar a
   investigação ao suporte.
 
 ## Glossário

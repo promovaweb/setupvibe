@@ -1,5 +1,8 @@
 # Vindo do SetupVibe 1
 
+No Omarchy, use `setupvibe omarchy list` para conferir os itens e
+`setupvibe omarchy shell apply` para aplicar a integração do Bash.
+
 Numa máquina preparada pelo SetupVibe 1, o shell e as ferramentas já funcionam
 com as suas chaves e configurações. Aquele preparo, porém, foi
 escrito por scripts que não deixam versão em disco. O SetupVibe 2 não apaga o que
@@ -23,13 +26,13 @@ Um arquivo é identificado como SetupVibe 1 quando carrega a assinatura da vers�
 quando pelo menos 60% das linhas estão nos originais embutidos no binário. Isso
 cobre releases anteriores da mesma série.
 
-`setupvibe system` mostra o achado, `setupvibe doctor` repete com o comando que
+`setupvibe desktop system` mostra o achado, `setupvibe desktop doctor` repete com o comando que
 resolve e o Início da TUI sugere a migração até o `config.json` registrar
 `migratedFromV1`.
 
 ```bash
-setupvibe system
-setupvibe doctor
+setupvibe desktop system
+setupvibe desktop doctor
 ```
 
 ## O que acontece sem migrar
@@ -46,12 +49,12 @@ passa na verificação e marca cada item como `adopted`. Item adotado não sai n
 
 ## O plano do `migrate`
 
-`migrate` faz o mesmo e mais: converte o bloco do Omarchy, mantém o
+`migrate` no Desktop e no Server faz o mesmo e mais: mantém o
 `ssh_copy_id` como atalho e pergunta sobre cada duplicidade. Comece pelo
 `--dry-run`, que mostra o plano e as linhas que vão mudar, com segredo mascarado:
 
 ```bash
-setupvibe migrate --dry-run
+setupvibe desktop migrate --dry-run
 ```
 
 Trecho do plano desta máquina, com a pasta pessoal reduzida a `~`:
@@ -61,7 +64,7 @@ migrate (dry run)
 
 1. Move ~/.zshrc from SetupVibe 1 to the SetupVibe 2 block, keeping your lines in ~/.zshrc.local
 2. Move ~/.tmux.conf from SetupVibe 1 to the SetupVibe 2 block, keeping your lines in ~/.tmux.conf.local
-3. Keep ssh_copy_id as a shortcut to setupvibe ssh copy-id, with the same options
+3. Keep ssh_copy_id as a shortcut to setupvibe desktop ssh copy-id, with the same options
 4. Write the SetupVibe aliases and tmux settings to ~/.setupvibe/shell/
 5. Starship gruvbox-rainbow preset in ~/.config/starship.toml
    skipped when: test -s ~/.config/starship.toml
@@ -80,15 +83,15 @@ duplicidades que o comando encontrou. Leia antes de executar.
 ## Executar
 
 ```bash
-setupvibe migrate
+setupvibe desktop migrate
 ```
 
 Num terminal, o comando pergunta uma vez por duplicidade. Sem terminal, informe o
 que pode sair:
 
 ```bash
-setupvibe migrate --remove-legacy go,rbenv
-setupvibe migrate --remove-legacy all
+setupvibe desktop migrate --remove-legacy go,rbenv
+setupvibe desktop migrate --remove-legacy all
 ```
 
 As duplicidades são o Go em `~/.local/go`, o `rbenv`, o `~/.npm-global` e o
@@ -98,7 +101,7 @@ que a versão antiga acrescentou.
 O SetupVibe preserva o Linuxbrew, pois outras fórmulas podem depender dele.
 O comando imprime o desinstalador para você rodar
 quando quiser. O `ssh_copy_id` antigo continua funcionando como atalho de
-`setupvibe ssh copy-id`, com as mesmas options `--host`, `--user`, `--pass`,
+`setupvibe desktop ssh copy-id`, com as mesmas options `--host`, `--user`, `--pass`,
 `--key` e `--port`.
 
 No fim, o `config.json` registra `migratedFromV1` com a data e a edição de
@@ -107,7 +110,7 @@ origem. Os itens encontrados entram como adotados.
 ## O que conferir depois
 
 1. **Abra um shell novo.** O bloco novo carrega o mise, o Starship e os aliases.
-2. **Rode `setupvibe check`.** O comando confere os itens adotados contra a
+2. **Rode `setupvibe desktop check`.** O comando confere os itens adotados contra a
    versão fixada e marca as divergências com `✗`.
 3. **Leia o `doctor`.** Os avisos de restos do SetupVibe 1 devem desaparecer
    depois da migração. Confira os comandos indicados ao lado dos avisos restantes.
@@ -123,7 +126,7 @@ origem. Os itens encontrados entram como adotados.
 | sudo pede senha sem terminal | 13 `SUDO_PASSWORD` | rode no terminal ou crie a regra com `user nopasswd` |
 | id desconhecido em `--remove-legacy` | 2 `USAGE` | use `go`, `rbenv`, `npm-global`, `nodesource` ou `all` |
 | parte dos passos falhou | 10 `PARTIAL` | leia o log; o que ficou está no plano |
-| sistema sem suporte | 11 `UNSUPPORTED_SYSTEM` | confira `setupvibe system` |
+| sistema sem suporte | 11 `UNSUPPORTED_SYSTEM` | confira `setupvibe desktop system` |
 
 Se a conversão não resolver, o arquivo original está em
 `~/.setupvibe/backups/` e pode ser copiado de volta. Nada do SetupVibe 1 é

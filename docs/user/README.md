@@ -6,7 +6,7 @@ máquina com outro ambiente exige conferir as versões instaladas e descobrir a
 origem de cada alteração no shell.
 
 O SetupVibe 2 trata esse preparo como parte do projeto. Um binário único lê uma
-lista de itens com versões fixadas, instala o que você marcar, registra o que
+lista de itens da edição escolhida com versões fixadas, instala o que você marcar, registra o que
 fez em `~/.setupvibe/` e confere depois se a máquina continua com o que foi
 combinado. A lista vem embutida no binário e pode ser usada tanto num notebook
 quanto num servidor.
@@ -18,7 +18,7 @@ O mesmo executável atende três públicos, sem três bases de código.
 | Modo | Como entrar | Uso |
 | --- | --- | --- |
 | TUI | `setupvibe` sem argumentos em um terminal interativo | consultar o estado e agir pelo teclado |
-| CLI | `setupvibe <command> [options]`, com saída em texto ou `--json` | executar comandos diretamente ou por scripts e agentes |
+| CLI | `setupvibe <edition> <command> [options]`, com saída em texto ou `--json` | executar comandos diretamente ou por scripts e agentes |
 | MCP | `setupvibe mcp`, servidor Model Context Protocol via stdio | agentes de IA que operam a máquina |
 
 Os três leem a mesma identidade, a mesma configuração, o mesmo cofre de
@@ -26,23 +26,25 @@ credenciais e a mesma tabela de exit codes. Um comando novo entra no mesmo
 registro e chega ao `--help`, ao `--json`, à descrição OpenCLI e à referência
 gerada, sem uma segunda implementação.
 
-## Duas edições, dois binários
+## Edições
 
-| Binário | Edição | Sistemas |
+| Edição | Comando | Sistemas |
 | --- | --- | --- |
-| `setupvibe` | desktop: ambiente de desenvolvimento, local ou remoto | macOS, Ubuntu, Debian, Mint, Zorin, Arch, Omarchy, Windows e WSL |
-| `setupvibe-server` | server: infraestrutura com Docker Swarm | Ubuntu e Debian |
+| Desktop | `setupvibe desktop` | macOS, Ubuntu, Debian, Mint, Zorin, Windows e WSL |
+| Server | `setupvibe server` | Ubuntu e Debian, com Docker Swarm |
+| Omarchy | `setupvibe omarchy` | Omarchy, com instalação complementar |
 
-As duas edições usam a mesma pasta `~/.setupvibe/` e o mesmo prefixo
-`SETUPVIBE_` nas variáveis. Elas são exclusivas: o `init` recusa uma máquina
-que já tem a outra edição preparada, porque só um binário fica instalado por
-máquina.
+O menu da TUI sugere uma edição no primeiro uso. A escolha fica salva em
+`~/.setupvibe/edition.json` para a conta atual. Para ver ou trocar a preferência,
+use `setupvibe edition` e `setupvibe edition set <edition>`. Comandos com
+edição explícita usam o inventário dela naquela execução. Sem edição no
+comando, o CLI usa a preferência salva e informa a escolha em stderr.
 
 ## Versões fixadas, não versões do dia
 
 Cada item da lista carrega a versão, ou a política de versão, que o SetupVibe
-instala. `setupvibe check` compara o que está na máquina com essa versão e
-devolve o exit code correspondente. `setupvibe update` troca só os itens cuja
+instala. `setupvibe desktop check` compara o que está na máquina com essa versão e
+devolve o exit code correspondente. `setupvibe desktop update` troca só os itens cuja
 versão fixada mudou desde o binário que você tem. Ferramentas fora da lista
 entram pelo mise com `install --external`, também com versão fixada.
 
@@ -75,7 +77,7 @@ o procedimento ao servidor, ao Windows e à migração da versão anterior.
 | [A TUI](04-a-tui.md) | os sete módulos, as teclas, o mouse, o idioma e o tema |
 | [Shell e terminal](05-shell-e-terminal.md) | o que muda no `.zshrc`, no Starship e no tmux, e onde ficam as suas linhas |
 | [Manutenção](06-manutencao.md) | `doctor`, `upgrade`, `report`, `config export` e os logs |
-| [Servidor e segurança](07-servidor-e-seguranca.md) | `setupvibe-server`, usuário de trabalho, UFW, fail2ban e Swarm |
+| [Servidor e segurança](07-servidor-e-seguranca.md) | `setupvibe server`, usuário de trabalho, UFW, fail2ban e Swarm |
 | [Agentes de IA e MCP](08-agentes-e-mcp.md) | como um agente lê o estado e executa o SetupVibe por MCP |
 | [Windows e WSL](09-windows-e-wsl.md) | o installer do Windows, o WSL 2 e o que o binário preserva |
 | [Vindo do SetupVibe 1](10-vindo-do-setupvibe-1.md) | o que o `migrate` converte, o que ele pergunta e o que conferir |
@@ -119,8 +121,8 @@ especificação ficam no repositório e orientam a manutenção do SetupVibe.
 
 ## Documentação relacionada
 
-- `setupvibe --skill` imprime a documentação embutida no binário, escrita para
-  agentes lerem sem o repositório. `setupvibe docs` aceita os mesmos tópicos e
+- `setupvibe desktop --skill` imprime a documentação embutida no binário, escrita para
+  agentes lerem sem o repositório. `setupvibe desktop docs` aceita os mesmos tópicos e
   mais `inventory`, gerado da lista embutida.
 - [Repositório](https://github.com/promovaweb/setupvibe): código, releases,
   changelog e os installers.

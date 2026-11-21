@@ -14,8 +14,8 @@ o bloco novo, preservando as suas personalizações num arquivo separado.
 
 | Caminho | Conteúdo |
 | --- | --- |
-| `~/.zshrc` (Debian, Ubuntu, Mint, Zorin, Arch, macOS e server) | `PATH`, `mise activate`, Oh My Zsh com plugins, zoxide, Starship, aliases e `~/.zshrc.local` |
-| `~/.bashrc` (Omarchy) | `PATH`, `STARSHIP_CONFIG` para `~/.config/setupvibe/starship.toml`, aliases e `~/.bashrc.local`; os arquivos do Omarchy ficam intactos |
+| `~/.zshrc` (Debian, Ubuntu, Mint, Zorin, macOS e server) | `PATH`, `mise activate`, Oh My Zsh com plugins, zoxide, Starship, aliases e `~/.zshrc.local` |
+| `~/.bashrc` (Omarchy) | `PATH`, aliases e `~/.bashrc.local` |
 | `~/.tmux.conf` (menos Omarchy) | carrega `~/.setupvibe/shell/tmux.conf`, que carrega `~/.tmux.conf.local` antes do TPM |
 | `~/.setupvibe/shell/aliases.sh` | aliases válidos em ZSH e Bash |
 | `~/.setupvibe/shell/aliases-agents.sh` | aliases que abrem agentes sem confirmação |
@@ -28,8 +28,8 @@ Antes da primeira alteração, o arquivo original vai para
 precisa.
 
 ```bash
-setupvibe shell apply --dry-run
-setupvibe shell apply
+setupvibe desktop shell apply --dry-run
+setupvibe desktop shell apply
 ```
 
 Use o primeiro comando para consultar os arquivos e os blocos previstos e o
@@ -69,7 +69,7 @@ Nomes que escondiam programas comuns foram renomeados: `gs` virou `gstat`
 (Ghostscript), `ci` virou `cin` (RCS), `ts` virou `tsv` (moreutils), `dc` virou
 `dco` (a calculadora `dc`) e `gofmt` virou `gofmtw`. `pn` e `pnx` são pulados em
 silêncio quando o pnpm já instala comandos com esses nomes, porque fazem a mesma
-coisa. O `setupvibe doctor` lista os aliases pulados na máquina.
+coisa. O `setupvibe desktop doctor` lista os aliases pulados na máquina.
 
 Os aliases de agente ficam em arquivo separado e desativam as confirmações
 da ferramenta: `cco` para Claude Code, `cxo` para `codex --yolo` e `oco` para
@@ -77,8 +77,8 @@ da ferramenta: `cco` para Claude Code, `cxo` para `codex --yolo` e `oco` para
 Para deixar os três de fora e voltar a abrir os agentes pelo comando completo:
 
 ```bash
-setupvibe config set shell.agentAliases false
-setupvibe shell apply
+setupvibe desktop config set shell.agentAliases false
+setupvibe desktop shell apply
 ```
 
 A troca vale na próxima aplicação do shell. O `doctor` mostra o estado dos
@@ -90,8 +90,8 @@ O comando `shell` sem subcommand imprime a ajuda. Para conferir o estado, use o
 `doctor`, que aponta o bloco ausente, o `PATH` incompleto e cada alias pulado:
 
 ```bash
-setupvibe doctor
-setupvibe config get shell.agentAliases
+setupvibe desktop doctor
+setupvibe desktop config get shell.agentAliases
 ```
 
 ## Remover sem perder o resto
@@ -100,7 +100,7 @@ setupvibe config get shell.agentAliases
 os backups, os itens instalados e a pasta `~/.setupvibe/` ficam.
 
 ```bash
-setupvibe shell remove
+setupvibe desktop shell remove
 ```
 
 O comando não desinstala pacote, não apaga o estado e não desfaz a troca do
@@ -110,16 +110,21 @@ manutenção.
 Para restaurar o ambiente depois de remover o bloco, aplique outra vez:
 
 ```bash
-setupvibe shell apply
+setupvibe desktop shell apply
 ```
 
 ## Omarchy
 
-O Omarchy já tem shell, prompt, tmux e aliases próprios. Nessa máquina, o
-SetupVibe escreve no `~/.bashrc` um bloco que aponta para o Starship do
-SetupVibe e para os aliases, sem substituir `.bashrc`, `starship.toml` nem a
-configuração de tmux do sistema. Os acréscimos do SetupVibe ficam dentro do
-bloco e preservam a configuração mantida pelo Omarchy.
+O Omarchy administra Bash, Starship, Tmux, Docker e mise. A edição
+`setupvibe omarchy` acrescenta o bloco de integração do Bash e instala
+pacotes com `omarchy pkg add`. O PHP usa a versão 8.6.0 num diretório de
+dados do mise dedicado ao SetupVibe.
+
+```bash
+setupvibe omarchy install php
+setupvibe omarchy check php
+MISE_DATA_DIR="$HOME/.setupvibe/omarchy/mise" mise exec php@8.6.0 -- php --version
+```
 
 ## Próximo passo
 

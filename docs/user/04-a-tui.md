@@ -1,5 +1,11 @@
 # A TUI
 
+Na primeira abertura, o menu sugere Omarchy quando encontra
+`/usr/share/omarchy`, Desktop numa sessão gráfica e Server em Linux sem
+interface gráfica. Use as setas e pressione Enter para salvar. Nas próximas
+aberturas, a TUI entra na edição salva e mostra o nome no cabeçalho. Para
+trocar, pressione `E` ou clique no nome da edição.
+
 A interface de terminal mostra o estado da máquina e os itens que faltam, além
 do progresso da instalação. Cada ação executa um comando do CLI em outro
 processo e grava o resultado em `~/.setupvibe/`, a mesma pasta consultada pelo CLI.
@@ -11,7 +17,7 @@ setupvibe
 ```
 
 Fora de um terminal, o binário imprime a ajuda e sai com 2. O comando explícito
-`setupvibe tui` sem TTY sai com 8, `NO_TTY`.
+`setupvibe desktop tui` sem TTY sai com 8, `NO_TTY`.
 
 ## Início
 
@@ -98,7 +104,7 @@ pressionar qualquer tecla para voltar aos detalhes.
 
 ## Doctor e Logs
 
-O módulo Doctor agrupa os mesmos achados do `setupvibe doctor`: problemas,
+O módulo Doctor agrupa os mesmos achados do `setupvibe desktop doctor`: problemas,
 avisos e itens aprovados, cada um com o comando que resolve. `f` aplica as
 correções seguras (pastas, modo da pasta de estado e bloco do shell) e deixa as
 demais para você decidir. Um `[f]` ao lado do comando indica que a correção é
@@ -133,7 +139,7 @@ cores têm nome de papel (`accent`, `textDim`, `border`), então a troca de pale
 não muda as telas. A escolha fica em `tui.theme`.
 
 Os ícones vêm da Nerd Font, instalada pelo SetupVibe. Num terminal sem a fonte,
-desligue com `setupvibe config set tui.icons false` ou `SETUPVIBE_ICONS=0`: a
+desligue com `setupvibe desktop config set tui.icons false` ou `SETUPVIBE_ICONS=0`: a
 interface usa símbolos que dispensam a Nerd Font.
 
 Com `tui.mouse` ligado, que é o padrão, você pode clicar nos controles para
@@ -148,7 +154,7 @@ prioridade:
 
 ```bash
 setupvibe --tab inventory
-setupvibe config set tui.initialTab logs
+setupvibe desktop config set tui.initialTab logs
 ```
 
 Os valores são `overview`, `inventory`, `user`, `doctor`, `logs`, `tailscale`,

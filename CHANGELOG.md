@@ -4,6 +4,24 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.30] - 2026-11-21
+
+### Added
+
+- The TUI suggests an edition on first launch and shows the active edition in its header. Press `E` or use `setupvibe edition set <edition>` to change the saved preference.
+- Omarchy has its own additive inventory. PHP 8.6.0 is installed by mise in a SetupVibe directory, with build dependencies installed through Omarchy’s package manager.
+- Server asks for confirmation before changing UFW, fail2ban and SSH on machines with a graphical session. Scripted runs can pass `--confirm-security` after reviewing the plan.
+
+### Changed
+
+- One `setupvibe` binary ships Desktop, Server and Omarchy. Use `setupvibe <edition> <command>` or save a default. Edition commands return code 15 when the edition is missing. MCP tools accept an optional `edition` field.
+- The Server installer creates a `setupvibe-server` compatibility link. Linux release assets keep the legacy names so existing Server binaries can upgrade.
+- The embedded manuals and the user guide cover edition selection and invocation. The portable guide is available as PDF and EPUB.
+
+### Removed
+
+- Support and container coverage for plain Arch Linux. CI validates the Omarchy inventory and additive plan through fixtures.
+
 ## [v2.0.0-dev.29] - 2026-11-21
 
 ### Fixed

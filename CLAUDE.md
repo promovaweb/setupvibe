@@ -242,12 +242,12 @@ No third AI agent context is maintained for this repository. Do not add extra ag
 
 ## SetupVibe 2 (`v2` branch)
 
-On the `v2` branch, SetupVibe 2 is developed next to the SetupVibe 1 scripts.
-Read [`V2.md`](V2.md) before changing anything under `shared/`, `desktop/`,
-`server/` or `scripts/`. SetupVibe 2 is a pair of Bun binaries
-(`setupvibe` and `setupvibe-server`) built on the Termfy framework, validated
-with `bun run validate`. Every SetupVibe file URL in the v2 code points at the
-`v2` branch through `shared/repo.ts`. On the `v2` branch, the SetupVibe 1
-scripts (`desktop.sh`, `desktop.ps1`, `server.sh`, `omarchy.sh`) and their
-`conf/`, `bin/`, `utils/` and `docs/` live in `legacy/`; the paths in the
-SetupVibe 1 sections above refer to `main`.
+On the `v2` branch, read [V2.md](V2.md) before changing anything in
+`shared/`, `desktop/`, `server/`, `omarchy/` or `scripts/`. SetupVibe 2
+uses Termfy and compiles to one Bun executable, `setupvibe`, with Desktop,
+Server and Omarchy inventories. Run `bun run validate` to check, test and
+build it. Commands use `setupvibe <edition> <command>`, and the user saves
+a default with `setupvibe edition set`. Every SetupVibe file URL in the v2
+code points at the `v2` branch through `shared/repo.ts`. On this branch,
+SetupVibe 1 and its `conf/`, `bin/`, `utils/` and `docs/` live in `legacy/`.
+The SetupVibe 1 paths above refer to `main`.

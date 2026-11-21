@@ -3,7 +3,7 @@
  *
  * Fonte: `docs/user/`, na ordem de `docs/user/reading-order.txt`. Os quatro
  * apêndices são gerados da documentação embutida em `desktop/docs/`, com
- * `{{bin}}` trocado por `setupvibe`.
+ * `{{bin}}` trocado por `setupvibe desktop`.
  * Saída: `ebook/SetupVibe-Guia-v<versão>.{pdf,epub}` e o manifesto
  * `ebook/build.json`.
  * A versão vem de `package.json` e `ebook/VERSION` repete o mesmo valor; o
@@ -113,7 +113,7 @@ function appendixPage(name, body) { return `# ${name}\n\n${body.trim()}\n`; }
  */
 function prepare(text) {
   return text
-    .replace(/\{\{bin\}\}/g, "setupvibe")
+    .replace(/\{\{bin\}\}/g, "setupvibe desktop")
     .replace(/\{\{BIN\}\}/g, "SETUPVIBE")
     .replace(/(?<!!)\[([^\]]+)\]\((?!https?:|mailto:|tel:|#)[^)]+\)/g, "$1")
     .replace(/em exit-codes\.md/g, "no Apêndice C")

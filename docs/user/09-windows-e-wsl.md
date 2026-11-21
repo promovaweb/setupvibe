@@ -102,12 +102,12 @@ Desktop do Windows já o fornece. O `auto` respeita essa condição.
 
 ## Diagnóstico no Windows
 
-`setupvibe doctor` confere o runtime, o estado, os itens e a saúde do component
+`setupvibe desktop doctor` confere o runtime, o estado, os itens e a saúde do component
 store com `DISM /Online /Cleanup-Image /CheckHealth`. A reparação lenta é
 explícita e demora:
 
 ```powershell
-setupvibe doctor --repair-windows
+setupvibe desktop doctor --repair-windows
 ```
 
 Ela roda `DISM /RestoreHealth` e depois `sfc /scannow`, exige PowerShell elevado

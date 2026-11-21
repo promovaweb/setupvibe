@@ -6,7 +6,7 @@ registrar os comandos e as versões escolhidas para reproduzir o ambiente depois
 
 O SetupVibe 2 separa o preparo em duas etapas que você pode repetir. A
 primeira instala o binário: um arquivo com versão do release e checksum
-conferido. A segunda, `setupvibe init`, prepara a máquina com as dependências
+conferido. A segunda, `setupvibe desktop init`, prepara a máquina com as dependências
 de compilação e o mise. Só depois disso os itens entram, um a um ou pelo
 `auto`.
 
@@ -27,7 +27,6 @@ mexe na máquina.
 | Debian | 12 | x64, arm64 |
 | Mint | 22 | x64 |
 | Zorin | 18 | x64 |
-| Arch | rolling | x64 |
 | Omarchy | 4 | x64 |
 | macOS | 12 | x64, arm64 |
 | Windows | build 22621 | x64 |
@@ -39,14 +38,22 @@ Além do sistema, o `init` confere cinco coisas e explica cada uma quando falha:
   O número cobre as cadeias de ferramentas que o mise mantém e os caches de
   download.
 - **memória**: abaixo de 2 GB o `init` avisa que a compilação pode ficar sem
-  memória e sugere `setupvibe install swap`.
+  memória e sugere `setupvibe desktop install swap`.
 - **locale UTF-8**: sem ele, ferramentas que tratam nomes de arquivo com acento,
   como `git` e `mise`, podem gravar o nome errado.
 - **rede e relógio**: o `init` compara o relógio com o de um servidor HTTPS.
   Mais de cinco minutos de diferença derrubam a validação de TLS e de
   checksum.
-- **usuário**: o `init` não roda como root. Numa máquina remota, crie o usuário
+- **usuário**: o `init` do Desktop e do Omarchy recusa root. Numa máquina remota, crie o usuário
   de trabalho antes, como o capítulo de servidor mostra.
+
+## Escolha da edição
+
+Abra `setupvibe` em um terminal para escolher no menu. Se preferir registrar
+a edição pelo CLI, rode `setupvibe edition set desktop`. Para uma execução
+específica, passe a edição no comando, como `setupvibe desktop init`. A edição
+Omarchy exige a pasta `/usr/share/omarchy`. Arch sem Omarchy saiu da lista de
+sistemas compatíveis.
 
 ## 1. Instale o binário
 
@@ -82,8 +89,8 @@ setupvibe --version
 setupvibe 2.0.0-dev.25
 ```
 
-Para instalar a edição server, escolha a edição na linha de comando. As duas
-são exclusivas por máquina.
+Para instalar o mesmo binário com o link de compatibilidade
+`setupvibe-server`, passe `--edition server` ao instalador.
 
 ```bash
 curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh | sh -s -- --edition server
@@ -119,7 +126,7 @@ As teclas que bastam na primeira sessão:
 | `q` | sai |
 
 Num pipe, sem terminal interativo, o binário imprime a ajuda e sai com exit
-code 2. O comando explícito `setupvibe tui` sem TTY sai com 8, `NO_TTY`. Isso
+code 2. O comando explícito `setupvibe desktop tui` sem TTY sai com 8, `NO_TTY`. Isso
 evita que um agente ou um script aguarde entrada numa tela sem terminal.
 
 O resto do capítulo segue pelo CLI. Cada passo fica registrado num comando que
@@ -128,7 +135,7 @@ processo.
 
 ## 3. Veja o que a lista mostra
 
-`setupvibe list` imprime os itens por categoria, com a versão fixada e o estado
+`setupvibe desktop list` imprime os itens por categoria, com a versão fixada e o estado
 na máquina. Este é o começo da saída desta máquina, que já tinha ferramentas
 instaladas por Homebrew, `rbenv` e `npm` global:
 
@@ -181,8 +188,8 @@ Para ver só uma categoria, filtre pelo id. Para rodar a verificação de cada
 item selecionado junto com a lista, use `--check`:
 
 ```bash
-setupvibe list --category languages
-setupvibe list --check
+setupvibe desktop list --category languages
+setupvibe desktop list --check
 ```
 
 ## 4. Prepare a máquina
@@ -191,7 +198,7 @@ O `init` altera pacotes do sistema e grava o primeiro estado. Rode com
 `--dry-run` e leia o plano antes:
 
 ```bash
-setupvibe init --dry-run
+setupvibe desktop init --dry-run
 ```
 
 As primeiras linhas desta máquina, com a lista de pacotes do passo 2 abreviada:
@@ -228,14 +235,14 @@ devolve o exit code da classe:
 | Falha | Exit code | O que fazer |
 | --- | --- | --- |
 | sistema ou versão fora da lista | 11 `UNSUPPORTED_SYSTEM` | confira a tabela do começo do capítulo |
-| execução como root | 12 `ROOT` | rode como o seu usuário; no servidor, crie o usuário antes |
+| execução como root | 12 `ROOT` | rode como o seu usuário; a edição Server aceita root |
 | menos espaço que o mínimo | 14 `DISK_SPACE` | libere espaço na pasta pessoal |
 | rede ou relógio | 5 `NETWORK_OR_API` | confira a conexão e ative o NTP |
 
 Com o plano conferido, execute sem `--dry-run`:
 
 ```bash
-setupvibe init
+setupvibe desktop init
 ```
 
 O `init` instala as dependências de compilação e o mise, grava o registro em
@@ -257,7 +264,7 @@ Comece pelo ambiente do terminal, que é onde o resto do trabalho acontece:
 e a ordem:
 
 ```bash
-setupvibe install zsh starship tmux --dry-run
+setupvibe desktop install zsh starship tmux --dry-run
 ```
 
 O plano inclui os requisitos de cada item e a configuração do shell quando a
@@ -266,7 +273,7 @@ prontos aparecem como pulados. Sem `--dry-run`, a execução instala e confere
 cada item antes de gravar a seleção:
 
 ```bash
-setupvibe install zsh starship tmux
+setupvibe desktop install zsh starship tmux
 ```
 
 O `install` grava em `~/.setupvibe/selection.json` o item e a versão instalada.
@@ -278,7 +285,7 @@ que fica em pasta própria e não substitui a outra.
 Sem o `init` concluído, o comando recusa a instalação e aponta o que falta:
 
 ```text
-✗ init has not been completed. Run: setupvibe init
+✗ init has not been completed. Run: setupvibe desktop init
 ```
 
 Essa recusa sai com exit code 3, `CONFIG`. É o mesmo código que um
@@ -288,7 +295,7 @@ Para instalar uma ferramenta que não está na lista, use `--external`. A versã
 fica fixada no registro em `~/.setupvibe/external.json`:
 
 ```bash
-setupvibe install --external terraform@1.13.4
+setupvibe desktop install --external terraform@1.13.4
 ```
 
 ## 6. Ou deixe o `auto` fazer tudo
@@ -299,7 +306,7 @@ respostas de opções, variáveis `SETUPVIBE_*` ou de um arquivo `--config`,
 instala os itens, configura o shell e aplica o módulo de segurança quando cabe.
 
 ```bash
-setupvibe auto --dry-run
+setupvibe desktop auto --dry-run
 ```
 
 Para revisar o plano completo, use `--dry-run` para imprimi-lo ou
@@ -315,18 +322,18 @@ de respostas, a retomada depois de uma falha e o uso em provisionamento.
 
 ## 7. Confira o resultado
 
-`setupvibe check` roda a verificação de cada item selecionado e compara com a
+`setupvibe desktop check` roda a verificação de cada item selecionado e compara com a
 versão fixada. Sem itens na seleção, ele confere o perfil `essencial`. O comando
 não altera nada e responde com exit code 0 quando tudo confere e 10 quando
 algum item falha. Com `--json`, a mesma informação chega no envelope que um
 script lê.
 
 ```bash
-setupvibe check
-setupvibe check zsh tmux --json
+setupvibe desktop check
+setupvibe desktop check zsh tmux --json
 ```
 
-`setupvibe doctor` olha a máquina inteira: runtime, estado do SetupVibe,
+`setupvibe desktop doctor` olha a máquina inteira: runtime, estado do SetupVibe,
 pré-requisitos pendentes, itens e restos do SetupVibe 1. Trecho da saída desta
 máquina, que veio do SetupVibe 1 com a pasta de estado em modo 775:
 
@@ -373,11 +380,11 @@ original em `~/.setupvibe/backups/` antes da primeira alteração.
 | Sintoma | Causa provável | O que fazer |
 | --- | --- | --- |
 | `setupvibe: command not found` | `~/.local/bin` fora do `PATH` | abra um terminal novo ou acrescente a pasta ao `PATH` |
-| exit code 3 com `init has not been completed` | comando de item antes do `init` | rode `setupvibe init` |
-| exit code 12 `ROOT` | execução como root | rode como o seu usuário; no servidor, use `setupvibe user create` |
+| exit code 3 com `init has not been completed` | comando de item antes do `init` | rode `setupvibe desktop init` |
+| exit code 12 `ROOT` | execução como root | rode como o seu usuário; a edição Server aceita root |
 | exit code 14 `DISK_SPACE` | menos de 10 GB livres na desktop | libere espaço e repita |
 | exit code 20 `REBOOT_PENDING` | o sistema pede reinício | reinicie ou use `auto --reboot` |
-| exit code 10 `PARTIAL` | um passo falhou e os outros seguiram | leia `~/.setupvibe/logs/` e rode `setupvibe doctor` |
+| exit code 10 `PARTIAL` | um passo falhou e os outros seguiram | leia `~/.setupvibe/logs/` e rode `setupvibe desktop doctor` |
 | installer recusa a assinatura | `SHA256SUMS` não corresponde ao workflow | não use o arquivo baixado; baixe de novo e confira o release |
 
 ## Próximo passo

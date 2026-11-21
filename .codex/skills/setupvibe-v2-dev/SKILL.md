@@ -1,11 +1,11 @@
 ---
 name: setupvibe-v2-dev
-description: Develop SetupVibe 2 on the v2 branch (Bun binaries setupvibe and setupvibe-server built on Termfy), with tests, container runs, docs and pre-releases.
+description: Develop SetupVibe 2 on the v2 branch (one Bun binary with Desktop, Server and Omarchy, built on Termfy), with tests, container runs, docs and pre-releases.
 ---
 
 # Develop SetupVibe 2
 
-Use this skill for any change under `shared/`, `desktop/`, `server/`,
+Use this skill for any change under `shared/`, `desktop/`, `server/`, `omarchy/`,
 `scripts/`, `tests/containers/`, `install.sh`, `install.ps1`, `version.json`
 or the `v2*.yml` workflows on the `v2` branch.
 
@@ -15,7 +15,7 @@ or the `v2*.yml` workflows on the `v2` branch.
    `v2` only.
 2. Read `V2.md` and the matching file in `shared/docs/`.
 3. Code, identifiers, comments and CLI text are in English. The embedded docs
-   in `desktop/docs` and `server/docs` have a Portuguese file and an `en/`
+   in `desktop/docs`, `server/docs` and `omarchy/docs` have a Portuguese file and an `en/`
    copy; change both.
 
 ## Rules

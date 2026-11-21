@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "version": "2.0.0-dev.26",
-  "edition": "v2.0.0-dev.26",
+  "version": "2.0.0-dev.30",
+  "edition": "v2.0.0-dev.30",
   "design_system": "1.0.0",
-  "generated_at": "2026-11-14T13:53:25Z",
-  "source_sha256": "79565485032bc77b0e8e154667520d2a8ce03c866f5455b68d84283feb973f86",
+  "generated_at": "2026-11-21T11:20:24Z",
+  "source_sha256": "b36ce518093420363909e351c5d08eb86b1d402d9894848f94fd65c9bfe411e7",
   "sources": [
     ".ebook/assets/logo.png",
     ".ebook/build-ebook.mjs",
@@ -37,12 +37,12 @@
   ],
   "artifacts": {
     "pdf": {
-      "file": "SetupVibe-Guia-v2.0.0-dev.26.pdf",
-      "sha256": "438d1d1bdd7c4085dfdb3304d3bddc3d09f6bc85788f707541ac3bfe179b8860"
+      "file": "SetupVibe-Guia-v2.0.0-dev.30.pdf",
+      "sha256": "a56469f11e2ca58b7f3502543874df6ac357ce3a9f42c45f8a42461432c6d1dc"
     },
     "epub": {
-      "file": "SetupVibe-Guia-v2.0.0-dev.26.epub",
-      "sha256": "faa288f96692b8ac94e6fb8a093277d3cab813fab8b8368fd8687709c998c490"
+      "file": "SetupVibe-Guia-v2.0.0-dev.30.epub",
+      "sha256": "36d1bcf33c41c0bf39850c8f7a097021562d7683f9cb44fa7a4564760fc928bf"
     }
   }
 }

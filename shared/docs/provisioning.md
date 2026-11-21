@@ -1,6 +1,6 @@
 # Provisioning examples
 
-`setupvibe auto` needs no answers at run time, so it fits any provisioning
+`setupvibe desktop auto` needs no answers at run time, so it fits any provisioning
 tool. Every example below downloads the binary with the one-line installer,
 which checks the release `SHA256SUMS` (and its Sigstore signature when
 `cosign` is installed), then runs `auto`. Secrets go in environment variables,
@@ -16,7 +16,7 @@ key and continues as that user; the temporary sudo rule is removed at the end.
 runcmd:
   - >-
     curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh
-    | sh -s -- auto --user deploy
+    | sh -s -- server auto --user deploy
     --ssh-key "ssh-ed25519 AAAA... deploy@laptop"
     --timezone America/Sao_Paulo --profile remoto
 ```
@@ -33,10 +33,10 @@ after it.
   environment:
     TAILSCALE_AUTHKEY: "{{ vault_tailscale_authkey }}"
   tasks:
-    - name: Install and run setupvibe auto
+    - name: Install and run setupvibe desktop auto
       ansible.builtin.shell: >-
         curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh
-        | sh -s -- auto --profile remoto --git-name "{{ git_name }}" --git-email "{{ git_email }}"
+        | sh -s -- desktop auto --profile remoto --git-name "{{ git_name }}" --git-email "{{ git_email }}"
       args:
         creates: "{{ ansible_env.HOME }}/.setupvibe/last-run.json"
 ```
@@ -54,7 +54,7 @@ ENV LANG=en_US.UTF-8
 RUN useradd -m -s /bin/bash dev && echo 'dev ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/dev
 USER dev
 RUN curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh \
-    | sh -s -- auto --profile essencial --exclude docker --skip-network-check
+    | sh -s -- desktop auto --profile essencial --exclude docker --skip-network-check
 ```
 
 Services that need systemd (Docker, the SSH server, the security module) do
@@ -73,7 +73,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh \
-            | sh -s -- auto --only node,python,uv,gh --profile essencial --json
+            | sh -s -- desktop auto --only node,python,uv,gh --profile essencial --json
 ```
 
 `GITHUB_TOKEN` keeps mise below the anonymous GitHub API limit. `--json` turns
@@ -86,7 +86,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "bento/ubuntu-24.04"
   config.vm.provision "shell", privileged: true, inline: <<~SHELL
     curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh \
-      | sh -s -- auto --user vagrant --profile remoto
+      | sh -s -- desktop auto --user vagrant --profile remoto
   SHELL
 end
 ```
@@ -97,9 +97,9 @@ sudo rule, which `auto` removes at the end unless `--keep-nopasswd` is given.
 ## Reusing a machine's selection
 
 ```bash
-setupvibe config export setupvibe.json          # on the reference machine
-setupvibe auto --config setupvibe.json          # on the new one
-setupvibe config import setupvibe.json          # or apply the selection in place
+setupvibe desktop config export setupvibe.json          # on the reference machine
+setupvibe desktop auto --config setupvibe.json          # on the new one
+setupvibe desktop config import setupvibe.json          # or apply the selection in place
 ```
 
 The answers file carries the items and the Git identity, never secrets.

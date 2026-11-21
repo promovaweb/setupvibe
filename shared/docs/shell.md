@@ -33,8 +33,8 @@
 
 | System | File | Content |
 | --- | --- | --- |
-| Debian, Ubuntu, Mint, Zorin, Arch, macOS, server | `~/.zshrc` | PATH, `mise activate`, Oh My Zsh with plugins, zoxide, Starship, aliases, `~/.zshrc.local` |
-| Omarchy | `~/.bashrc` | PATH, `STARSHIP_CONFIG` pointing at `~/.config/setupvibe/starship.toml`, aliases, `~/.bashrc.local`; Omarchy's own files stay untouched |
+| Debian, Ubuntu, Mint, Zorin, macOS, server | `~/.zshrc` | PATH, `mise activate`, Oh My Zsh with plugins, zoxide, Starship, aliases, `~/.zshrc.local` |
+| Omarchy | `~/.bashrc` | PATH, SetupVibe aliases and completion, `~/.bashrc.local` |
 | All with tmux (not Omarchy) | `~/.tmux.conf` | loads `~/.setupvibe/shell/tmux.conf` (plugins, theme, keys), which loads `~/.tmux.conf.local` before TPM |
 
 Starship gets the gruvbox-rainbow preset when no config exists. On Linux, ZSH

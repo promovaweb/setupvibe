@@ -1,10 +1,10 @@
 # MCP tools
 
-The MCP server is assembled from the Termfy core in `shared/core/mcp/` and the
-SetupVibe operations in `shared/mcp/tools.ts`. `setupvibe mcp` and
-`setupvibe-server mcp` share the same tools, resources and prompt; the resource
-URIs use the binary name, such as `setupvibe://inventory` or
-`setupvibe-server://inventory`.
+Start the shared server with `setupvibe mcp`. Every tool accepts an optional
+`edition` field with `desktop`, `server` or `omarchy`. When omitted, it uses
+the edition passed on launch (`setupvibe server mcp`) or the saved default.
+Edition-dependent tools require one of these choices. Resource URIs use the
+`setupvibe://` scheme, for example `setupvibe://inventory`.
 
 The interface published to agents is documented in `desktop/docs/mcp.md` and
 `server/docs/mcp.md`, with input, output, effects, refusals and five examples

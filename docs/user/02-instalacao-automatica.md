@@ -25,13 +25,13 @@ quando uma delas falha.
 | conferência | roda a verificação de cada item selecionado e grava o resultado em `~/.setupvibe/last-run.json` |
 | reinício | com reinício pendente, sai com 20 ou agenda a retomada com `--reboot` |
 
-Como root, `--user` é obrigatório: o `auto` cria o usuário, copia o binário
+O Server aceita root. Com `--user`, o `auto` cria o usuário, copia o binário
 compilado para `/usr/local/bin` e se executa de novo com `runuser`. A regra de
 sudo sem senha que ele cria no começo é removida no fim, salvo
 `--keep-nopasswd`.
 
 ```bash
-setupvibe auto --user deploy --ssh-key ~/.ssh/id_ed25519.pub
+setupvibe server auto --user deploy --ssh-key ~/.ssh/id_ed25519.pub
 ```
 
 ## Perfis, itens e dependências
@@ -46,8 +46,8 @@ Na edição desktop, o perfil `essencial` repete a seleção padrão da TUI. O p
 `time-sync`. Na edição server existe o `essencial`, voltado à operação.
 
 ```bash
-setupvibe auto --profile essencial --dry-run
-setupvibe auto --profile remoto --exclude docker
+setupvibe desktop auto --profile essencial --dry-run
+setupvibe desktop auto --profile remoto --exclude docker
 ```
 
 `--only` acrescenta itens e `--exclude` tira. Nenhum dos dois substitui
@@ -56,7 +56,7 @@ mesmo assim. Para ver os perfis e os itens de cada categoria antes de escolher,
 use a documentação gerada da lista:
 
 ```bash
-setupvibe docs inventory
+setupvibe desktop docs inventory
 ```
 
 O tópico `inventory` imprime cada perfil e uma tabela por categoria, com
@@ -89,8 +89,8 @@ Para consultar o plano sem alterar a máquina, use `--dry-run` para imprimir
 em texto ou `--plan` para gravar JSON e comparar duas máquinas.
 
 ```bash
-setupvibe auto --dry-run
-setupvibe auto --plan /tmp/plano.json
+setupvibe desktop auto --dry-run
+setupvibe desktop auto --plan /tmp/plano.json
 ```
 
 O plano nomeia cada item, a versão fixada, os passos de sistema e o que foi
@@ -127,8 +127,8 @@ Com `--reboot`, o Linux instala uma unit systemd de execução única que roda o
 aceita em `--config`.
 
 ```bash
-setupvibe config export selecao.json
-setupvibe config import selecao.json
+setupvibe desktop config export selecao.json
+setupvibe desktop config import selecao.json
 ```
 
 O arquivo exportado grava `profile: "none"`, para não inventar um perfil que não
@@ -148,7 +148,7 @@ Os exemplos abaixo baixam o binário com o installer e entregam o resto ao
 runcmd:
   - >-
     curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh
-    | sh -s -- auto --user deploy
+    | sh -s -- server auto --user deploy
     --ssh-key "ssh-ed25519 AAAA... deploy@laptop"
     --timezone America/Sao_Paulo --profile remoto
 ```
@@ -165,7 +165,7 @@ runcmd:
     - name: Instalar e executar o auto
       ansible.builtin.shell: >-
         curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh
-        | sh -s -- auto --profile remoto
+        | sh -s -- desktop auto --profile remoto
       args:
         creates: "{{ ansible_env.HOME }}/.setupvibe/last-run.json"
 ```
@@ -183,7 +183,7 @@ ENV LANG=en_US.UTF-8
 RUN useradd -m -s /bin/bash dev && echo 'dev ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/dev
 USER dev
 RUN curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh \
-    | sh -s -- auto --profile essencial --exclude docker --skip-network-check
+    | sh -s -- desktop auto --profile essencial --exclude docker --skip-network-check
 ```
 
 Serviços que dependem de systemd, como Docker, servidor SSH e o módulo de

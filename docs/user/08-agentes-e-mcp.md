@@ -1,7 +1,15 @@
 # Agentes de IA e MCP
 
+As ferramentas recebem `edition` com o valor `desktop`, `server` ou
+`omarchy`. Se omitir, a conexão usa a preferência salva pelo usuário, ou a
+edição indicada ao iniciar o MCP, como em `setupvibe server mcp`.
+
+```json
+{ "name": "check", "arguments": { "edition": "desktop", "items": ["php"] } }
+```
+
 Um agente de código consegue ler um terminal, mas não consegue adivinhar o
-estado de uma máquina. Se ele chama `setupvibe doctor` e interpreta texto, cada
+estado de uma máquina. Se ele chama `setupvibe desktop doctor` e interpreta texto, cada
 versão do binário pode quebrar a leitura. O servidor MCP existe para isso: o
 agente pergunta em protocolo, recebe um objeto com o mesmo envelope do `--json` e
 decide pelo exit code.
@@ -140,7 +148,7 @@ Além do protocolo, existe uma skill que ensina o agente a operar o SetupVibe
 pelo CLI, com dry run, envelopes e exit codes. Ela é instalada pelo skills CLI:
 
 ```bash
-setupvibe skill -- add https://github.com/promovaweb/setupvibe/tree/v2/desktop/skills/setupvibe
+setupvibe desktop skill -- add https://github.com/promovaweb/setupvibe/tree/v2/desktop/skills/setupvibe
 ```
 
 Na edição server, o caminho termina em `server/skills/setupvibe-server`. A skill

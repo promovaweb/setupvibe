@@ -1,15 +1,15 @@
-# setupvibe auto
+# Automatic installation
 
-`auto` installs everything without asking. It is meant for headless machines,
+`auto` installs the chosen inventory. It is meant for headless machines,
 provisioning (cloud-init, Ansible, Dockerfile, CI) and AI agents. It
 implements section 9 of the specification.
 
 ## Flow
 
-1. **Root phase.** As root, `--user <name>` is required. auto creates the user
-   with the sudo group, the `--ssh-key` and a temporary NOPASSWD rule, copies a
-   compiled binary to `/usr/local/bin` and runs itself again as that user
-   through `runuser`. Without `--user`, it exits with `ROOT` (12).
+1. **Root phase.** Server can run as root on Linux. With `--user <name>`,
+   it creates the user with the sudo group, the `--ssh-key` and a temporary
+   NOPASSWD rule, copies the executable to `/usr/local/bin` and runs as that
+   user through `runuser`. Desktop and Omarchy require a regular user.
 2. **User phase.** sudo must work without a password (`sudo -n true`),
    otherwise `SUDO_PASSWORD` (13). Disk, memory, locale, network and clock are
    checked.
@@ -44,6 +44,7 @@ Each answer comes from an option, then an environment variable, then the
 
 | Answer | Option | Variable |
 | --- | --- | --- |
+| Server security confirmation with an active graphical session | `--confirm-security` | |
 | Working user | `--user` | `SETUPVIBE_USER` |
 | SSH public key | `--ssh-key` | `SETUPVIBE_SSH_KEY` |
 | Git name and e-mail | `--git-name`, `--git-email` | `SETUPVIBE_GIT_NAME`, `SETUPVIBE_GIT_EMAIL` |
@@ -77,12 +78,12 @@ from the GitHub Release, verify it against the release `SHA256SUMS` and pass
 the remaining arguments to it:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh | sh -s -- auto --user deploy --ssh-key "ssh-ed25519 AAAA..."
+curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh | sh -s -- desktop auto --profile essencial
 curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh | sh -s -- --edition server auto --user deploy --manager
 ```
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.ps1))) auto
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.ps1))) desktop auto
 ```
 
 `bun run release:assets` builds every binary and writes `dist/SHA256SUMS`;
@@ -93,12 +94,16 @@ both go to the GitHub Release.
 `auto --dry-run` prints the plan; `auto --plan plan.json` writes it as JSON
 for review. Neither changes the machine.
 
-After the items, `auto` rebuilds `~/.config/mise/mise.lock` with `mise lock
+After the items, Desktop and Server rebuild `~/.config/mise/mise.lock` with `mise lock
 --global --platform <this machine>`, such as `linux-x64`. The lockfile lists
 only this platform: with more, every later `mise use` resolves each tool for
 all of them, and PHP, compiled from source, has no Windows build. The item
 installs run with `MISE_LOCKFILE=false`, so a lockfile written by an older
 version does not stop them.
+
+On graphical Linux, Server asks before applying UFW, fail2ban and the SSH
+changes. In automation or JSON mode, pass `--confirm-security` after reviewing
+the plan.
 
 When Docker comes from the system packages, `auto` also merges log rotation
 into `/etc/docker/daemon.json` (plus `live-restore` on the desktop;

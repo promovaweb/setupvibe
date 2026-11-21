@@ -5,7 +5,7 @@ instalar pacotes do sistema, escolher versões de runtime, configurar o shell e
 registrar o que foi feito. Quando cada trabalho fica num script separado, o
 resultado depende da última execução e da versão disponível naquele dia.
 
-O SetupVibe 2 junta os quatro num binário com uma lista única. A lista diz o
+O SetupVibe 2 junta os quatro num binário com três inventários, um por edição. Cada inventário diz o
 que entra e em qual versão. O binário executa a instalação e grava o resultado
 para permitir a conferência das versões e a consulta ao histórico de alterações.
 
@@ -14,7 +14,7 @@ para permitir a conferência das versões e a consulta ao histórico de alteraç
 | Peça | Onde vive | O que faz |
 | --- | --- | --- |
 | binário | `~/.local/bin/setupvibe` ou `/usr/local/bin/setupvibe` | executa os commands, abre a TUI e serve o MCP |
-| lista de itens | `desktop/inventory.json` e `server/inventory.json`, embutidos no binário | define cada item, a versão fixada, as dependências, o método de instalação e a verificação |
+| lista de itens | `desktop/inventory.json`, `server/inventory.json` e `omarchy/inventory.json`, embutidos no binário | define cada item, a versão fixada, as dependências, o método de instalação e a verificação |
 | installers | `install.sh`, `install-server.sh` e `install.ps1` | baixam o binário do release e conferem o checksum |
 | estado | `~/.setupvibe/` | guarda a seleção, o resultado das execuções, as preferências e o cofre |
 | documentação embutida | dentro do binário | responde `--skill` e `docs` sem o repositório |
@@ -30,18 +30,18 @@ conhece.
 Os seis passos seguem a ordem abaixo e podem ser repetidos sem desfazer o
 trabalho anterior.
 
-1. **detectar**: `setupvibe system` mostra o sistema, a variação da máquina
+1. **detectar**: `setupvibe desktop system` mostra o sistema, a variação da máquina
    (local, remota ou sem interface), o suporte e o estado da versão.
-2. **preparar**: `setupvibe init` confere os requisitos e instala as
+2. **preparar**: `setupvibe desktop init` confere os requisitos e instala as
    dependências de compilação e o mise.
-3. **escolher**: `setupvibe list` mostra os itens e o estado de cada um. A TUI
+3. **escolher**: `setupvibe desktop list` mostra os itens e o estado de cada um. A TUI
    permite marcar e instalar pelo teclado.
-4. **instalar**: `setupvibe install <itens>` instala a seleção explícita.
-   `setupvibe auto` instala sem perguntas.
-5. **conferir**: `setupvibe check` compara a máquina com a versão fixada.
-   `setupvibe doctor` olha o conjunto.
-6. **manter**: `setupvibe update` troca versões, `setupvibe upgrade` atualiza o
-   binário e `setupvibe remove` tira o que você não quer manter.
+4. **instalar**: `setupvibe desktop install <itens>` instala a seleção explícita.
+   `setupvibe desktop auto` instala sem perguntas.
+5. **conferir**: `setupvibe desktop check` compara a máquina com a versão fixada.
+   `setupvibe desktop doctor` olha o conjunto.
+6. **manter**: `setupvibe desktop update` troca versões, `setupvibe desktop upgrade` atualiza o
+   binário e `setupvibe desktop remove` tira o que você não quer manter.
 
 Nada nesse ciclo depende de um serviço do SetupVibe estar no ar. O binário
 consulta a versão nova uma vez e avisa. A instalação e a conferência são
@@ -51,31 +51,33 @@ locais, com downloads dos fornecedores de cada ferramenta.
 
 Cada item carrega uma política de versão. Uma linguagem instalada pelo mise
 fica na versão exata (`php@8.6.0`, `node@24.22.3`), uma CLI que se atualiza
-sozinha fica com versão mínima e um pacote do sistema segue a distribuição. O `setupvibe check` aplica a
-mesma política na conferência. Já o `setupvibe update` troca só o item cuja
+sozinha fica com versão mínima e um pacote do sistema segue a distribuição. O `setupvibe desktop check` aplica a
+mesma política na conferência. Já o `setupvibe desktop update` troca só o item cuja
 versão fixada mudou entre o binário que você tem e o novo.
 
 O SetupVibe cuida das ferramentas da máquina, preservando o controle de
 dependências do projeto pelo `composer.lock`, pelo `package-lock.json` e pelo
 `mise.toml` local.
 
-## Duas edições
+## Edições
 
-| Edição | Binário | Escopo |
+| Edição | Comando | Escopo |
 | --- | --- | --- |
-| desktop | `setupvibe` | ambiente de desenvolvimento em macOS, Linux, Windows e WSL, local ou por acesso remoto |
-| server | `setupvibe-server` | máquina Linux de operação, com Docker, Swarm, usuário de trabalho e módulo de segurança |
+| Desktop | `setupvibe desktop` | ambiente de desenvolvimento local ou remoto |
+| Server | `setupvibe server` | operação em Ubuntu e Debian, com Docker Swarm e módulo de segurança |
+| Omarchy | `setupvibe omarchy` | ferramentas adicionais para Omarchy, com as configurações da distribuição preservadas |
 
-As duas compartilham a pasta `~/.setupvibe/`, o prefixo `SETUPVIBE_` das
-variáveis e a tabela de exit codes. São exclusivas por máquina: o `init` recusa
-uma máquina com a outra edição preparada. Para trocar de edição, remova a
-instalação com `self uninstall`.
+Use `setupvibe edition set desktop` para salvar Desktop ou troque a edição
+pelo menu da TUI com `E`. O binário usa essa escolha quando o comando não
+traz a edição. Sem preferência salva, um comando de edição sem prefixo sai
+com 15 (`EDITION_REQUIRED`).
 
 ## O que o binário guarda
 
-Três arquivos explicam quase todo comportamento que surpreende numa primeira
+Quatro arquivos explicam quase todo comportamento que surpreende numa primeira
 sessão:
 
+- `edition.json` guarda a edição escolhida pela conta atual.
 - `config.json` guarda a edição, o sistema detectado, o registro do `init`, a
   identidade do Git e o canal de release como registro da preparação da máquina.
 - `selection.json` guarda os itens escolhidos, a versão instalada e o status do

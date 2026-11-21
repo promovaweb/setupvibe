@@ -1,5 +1,11 @@
 # Servidor e segurança
 
+O Server aceita root em Linux. O instalador `install-server.sh` instala
+`setupvibe` e cria o link `setupvibe-server` para automações existentes. Em
+uma máquina com sessão gráfica, a edição Server pede confirmação antes de
+alterar UFW, fail2ban e o acesso SSH. Em script, revise o plano com
+`--dry-run` e passe `--confirm-security` para aplicar.
+
 Um VPS novo começa como root, sem usuário de trabalho, sem firewall e com SSH
 aceitando senha. Antes de clonar o primeiro projeto, essa máquina precisa de
 quatro coisas na ordem certa: um usuário que não seja root, a chave dele no
@@ -31,19 +37,19 @@ release, `SHA256SUMS` e assinatura Sigstore quando o `cosign` existe. A edição
 server roda em Ubuntu e Debian. Em macOS, o installer recusa com
 11, `UNSUPPORTED_SYSTEM`.
 
-As edições são exclusivas por máquina. Se a máquina já tiver a desktop
-preparada, o `init` da server sai com 2 e orienta executar `self uninstall` antes da
-troca.
+Para preparar o Server e manter o Desktop como edição padrão, use o
+prefixo `setupvibe server` nos comandos. Para mudar o padrão da conta, use
+`setupvibe edition set server`.
 
 ## Usuário de trabalho
 
 Como root, crie o usuário antes de qualquer outra etapa. O `user create` cria o
-usuário, o home, a entrada no grupo de sudo (`wheel` no Arch e no Omarchy),
+usuário, o home, a entrada no grupo de sudo (`sudo` no Ubuntu e no Debian),
 instala a chave pública em `authorized_keys` e, com `--nopasswd`, a regra de
 sudo sem senha validada por `visudo -cf` antes de entrar no lugar.
 
 ```bash
-setupvibe user create deploy --ssh-key ~/.ssh/id_ed25519.pub
+setupvibe server user create deploy --ssh-key ~/.ssh/id_ed25519.pub
 ```
 
 A saída termina com o próximo passo: entrar como o usuário novo e rodar o `init`.
@@ -51,7 +57,7 @@ A permissão de sudo sem senha criada pelo `auto` é temporária. Com
 `user create --nopasswd`, ela fica até você removê-la:
 
 ```bash
-setupvibe user nopasswd deploy --remove
+setupvibe server user nopasswd deploy --remove
 ```
 
 A regra fica em `/etc/sudoers.d/90-setupvibe-deploy`. Outras regras em
@@ -71,8 +77,8 @@ apenas quando o usuário atual já tem uma chave autorizada. O arquivo passa por
 `PasswordAuthentication no` para desativar o acesso por senha.
 
 ```bash
-setupvibe security apply --dry-run
-setupvibe security apply --timezone America/Sao_Paulo
+setupvibe server security apply --dry-run
+setupvibe server security apply --timezone America/Sao_Paulo
 ```
 
 Antes da primeira mudança, o módulo registra em
@@ -80,7 +86,7 @@ Antes da primeira mudança, o módulo registra em
 arquivos dele já existiam. Esse registro é o que permite desfazer sem adivinhar:
 
 ```bash
-setupvibe security remove
+setupvibe server security remove
 ```
 
 O `remove` apaga os arquivos que o SetupVibe criou, desliga o fail2ban e o UFW
@@ -107,7 +113,7 @@ entra automaticamente na edição server e na desktop exposta.
 Para juntar um worker, peça o token no manager e passe para a máquina nova:
 
 ```bash
-TOKEN=$(ssh deploy@10.0.0.1 setupvibe-server swarm token)
+TOKEN=$(ssh deploy@10.0.0.1 setupvibe server swarm token)
 curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install-server.sh \
   | sh -s -- auto --user deploy --ssh-key ~/.ssh/id_ed25519.pub \
     --join "$TOKEN" --advertise-addr 10.0.0.2:2377
@@ -137,7 +143,7 @@ Três itens resolvem o acesso de trabalho: `openssh-server`, `tailscale` e
 Depois da entrada na tailnet, `--tailscale-ssh` ativa o SSH do Tailscale.
 
 ```bash
-setupvibe auto --profile remoto --tailscale-authkey "$TAILSCALE_AUTHKEY" --tailscale-ssh
+setupvibe server auto --profile remoto --tailscale-authkey "$TAILSCALE_AUTHKEY" --tailscale-ssh
 ```
 
 Com o SSH só por chave, a primeira conexão precisa acontecer depois de a chave
@@ -145,7 +151,7 @@ estar no `authorized_keys`. O `ssh copy-id` faz isso antes de o módulo de
 segurança entrar:
 
 ```bash
-setupvibe ssh copy-id deploy@203.0.113.10
+setupvibe server ssh copy-id deploy@203.0.113.10
 ```
 
 ## Conferir o servidor
@@ -154,8 +160,8 @@ Depois da instalação, a conferência é a mesma da desktop, com o binário da
 edição server:
 
 ```bash
-setupvibe-server check
-setupvibe-server doctor
+setupvibe server check
+setupvibe server doctor
 ```
 
 O `doctor` mostra o estado do Swarm, das portas publicadas, do firewall e dos
@@ -166,7 +172,7 @@ investigação pelo suporte.
 
 | Sintoma | Exit code | O que fazer |
 | --- | --- | --- |
-| execução como root sem `--user` | 12 `ROOT` | passe `--user` ou crie o usuário com `user create` |
+| sessão gráfica sem confirmação | 2 `USAGE` em automação | revise o plano e passe `--confirm-security` |
 | sudo pede senha sem terminal | 13 `SUDO_PASSWORD` | crie a regra com `user nopasswd` ou rode no terminal |
 | `security remove` sem registro | 3 `CONFIG` | o módulo não foi aplicado por este binário; confira o estado à mão |
 | parte dos passos falhou | 10 `PARTIAL` | leia o log e rode `doctor` |

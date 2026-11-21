@@ -32,19 +32,19 @@ com a máquina, use `check`.
 
 ## Instalar
 
-`setupvibe install <itens>` instala os itens citados e as dependências deles, na
+`setupvibe desktop install <itens>` instala os itens citados e as dependências deles, na
 ordem que a lista define. Um item que já passa na verificação é pulado e o
 motivo aparece na saída.
 
 ```bash
-setupvibe install docker
+setupvibe desktop install docker
 ```
 
 Numa máquina que vai receber dois runtimes e as ferramentas de terminal, o
 `--dry-run` mostra as dependências que entram junto e o que já está pronto:
 
 ```bash
-setupvibe install node php bat eza jq --dry-run
+setupvibe desktop install node php bat eza jq --dry-run
 ```
 
 O plano mostra o método de cada item. Em Debian e Ubuntu, um pacote nativo passa
@@ -63,7 +63,7 @@ remova a outra cópia depois de conferir a versão que ficou ativa.
 reparar uma instalação quebrada sem mexer no resto da seleção:
 
 ```bash
-setupvibe install node --force
+setupvibe desktop install node --force
 ```
 
 ## Remover
@@ -73,8 +73,8 @@ Para incluir pacotes do sistema, informe `--include-native`. A remoção de
 itens adotados pelo `init` exige `--force`.
 
 ```bash
-setupvibe remove go
-setupvibe remove docker --include-native --dry-run
+setupvibe desktop remove go
+setupvibe desktop remove docker --include-native --dry-run
 ```
 
 Antes de remover, o comando verifica as dependências dos itens selecionados e
@@ -94,16 +94,16 @@ que está rodando e reinstala só os itens cuja versão fixada mudou. Isso amarr
 atualização à versão do binário: binário antigo conhece versões antigas.
 
 ```bash
-setupvibe update --dry-run
+setupvibe desktop update --dry-run
 ```
 
 O plano lista cada item com a versão de origem e a de destino. Depois de
-`setupvibe upgrade`, o `update` seguinte aplica o que a versão nova do binário
+`setupvibe desktop upgrade`, o `update` seguinte aplica o que a versão nova do binário
 trouxe:
 
 ```bash
-setupvibe upgrade
-setupvibe update
+setupvibe desktop upgrade
+setupvibe desktop update
 ```
 
 Item instalado com `--external` não entra no `update`. Ele é atualizado pela
@@ -115,8 +115,8 @@ própria ferramenta ou por um novo `install --external`.
 linha por item, com `✓` ou `✗`, a saída do comando e a versão esperada.
 
 ```bash
-setupvibe check
-setupvibe check node php --json
+setupvibe desktop check
+setupvibe desktop check node php --json
 ```
 
 Sem argumentos, ele verifica a seleção ou, se ela estiver vazia, o perfil
@@ -126,8 +126,8 @@ entram na verificação. O exit code é 0 quando tudo confere e 10 quando algum
 item falha, o que permite usar o comando num pipeline sem interpretar texto:
 
 ```bash
-setupvibe check --json | jq '.data.results[] | select(.status=="fail")'
-setupvibe check node || echo "rode: setupvibe install node"
+setupvibe desktop check --json | jq '.data.results[] | select(.status=="fail")'
+setupvibe desktop check node || echo "rode: setupvibe desktop install node"
 ```
 
 `list --check` junta as duas leituras: a lista completa, com o resultado da
@@ -141,15 +141,15 @@ hora e gravada em `~/.setupvibe/external.json`. Sem versão no argumento, o
 binário pergunta ao mise a última e fixa o que ele devolveu.
 
 ```bash
-setupvibe install --external terraform
-setupvibe install --external terraform@1.13.4
+setupvibe desktop install --external terraform
+setupvibe desktop install --external terraform@1.13.4
 ```
 
 Uma ferramenta que o mise não conhece termina com 6, `NOT_FOUND`. Para remover,
 use o mesmo caminho:
 
 ```bash
-setupvibe remove --external terraform
+setupvibe desktop remove --external terraform
 ```
 
 ## Flags que mudam o comportamento por máquina
