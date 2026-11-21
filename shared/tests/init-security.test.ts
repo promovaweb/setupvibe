@@ -5,7 +5,7 @@ import { join } from "node:path";
 import desktopJson from "../../desktop/inventory.json";
 import serverJson from "../../server/inventory.json";
 import type { Inventory, Item } from "../inventory";
-import { describeCmd, dryRunner, finalArgv, runSteps, type Step } from "../exec/runner";
+import { describeCmd, dryRunner, failureOutput, finalArgv, runSteps, type Step } from "../exec/runner";
 import { itemSteps, miseAsset, misePlatform, nativeInstallCmd, verifyOutputMatches } from "../install/methods";
 import { initPlan, missingPrerequisites } from "../init/plan";
 import { checkClock, checkDisk, checkEdition, checkLocale, checkMemory, checkRoot, exitCodeOf } from "../init/requirements";
@@ -23,6 +23,21 @@ const HOME = "/home/test";
 const debianDistro = { distro: "debian", codename: "trixie" };
 
 describe("runner", () => {
+  test("a failure keeps the real error line ahead of a generic footer", () => {
+    const mise = [
+      "checking for libcurl >= 7.61.0... no",
+      "configure: error: Package requirements (libcurl >= 7.61.0) were not met:",
+      "\x1b[31mmise\x1b[0m \x1b[31mERROR\x1b[0m Failed to install tools",
+      "\x1b[31mmise\x1b[0m \x1b[31mERROR\x1b[0m Version: 2026.11.6 linux-x64",
+      "\x1b[31mmise\x1b[0m \x1b[31mERROR\x1b[0m Run with --verbose or MISE_VERBOSE=1 for more information",
+    ].join("\n");
+    const text = failureOutput(mise);
+    expect(text.startsWith("configure: error: Package requirements (libcurl >= 7.61.0) were not met:")).toBe(true);
+    expect(text).toContain("Run with --verbose");
+    expect(text).not.toContain("\x1b[");
+    expect(failureOutput("one\ntwo\nthree")).toBe("one two three");
+  });
+
   test("adds sudo -n with a non-interactive environment when not root", () => {
     expect(finalArgv({ argv: ["apt-get", "update"], sudo: true }, false).slice(0, 3)).toEqual(["sudo", "-n", "env"]);
     expect(finalArgv({ argv: ["apt-get", "update"], sudo: true }, false)).toContain("DEBIAN_FRONTEND=noninteractive");

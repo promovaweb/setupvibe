@@ -187,6 +187,20 @@ export async function execWithRetries(cmd: Cmd, runner: Runner, sleep: (ms: numb
  * Runs steps in order. A failed step does not stop the next ones; the caller
  * decides the exit code from the results.
  */
+/**
+ * Short text of a failed command for the log and the summary: the last three
+ * lines, preceded by the first line that names the real error when it comes
+ * earlier. Build tools such as mise end with a generic footer ("Version:",
+ * "Run with --verbose"), and the cause, a `configure: error` for example,
+ * sits further up.
+ */
+export function failureOutput(text: string): string {
+  const lines = text.replace(/\x1b\[[0-9;]*m/g, "").trim().split("\n").map((l) => l.trim()).filter(Boolean);
+  const tail = lines.slice(-3);
+  const cause = lines.find((l) => /(configure: error|fatal error|error:|not met|not found)/i.test(l) && !/(Version: |Run with --verbose)/.test(l));
+  return [...(cause && !tail.includes(cause) ? [cause, "…"] : []), ...tail].join(" ");
+}
+
 export async function runSteps(steps: Step[], runner: Runner, onStep?: (r: StepResult) => void): Promise<StepResult[]> {
   const results: StepResult[] = [];
   for (const step of steps) {
@@ -199,7 +213,7 @@ export async function runSteps(steps: Step[], runner: Runner, onStep?: (r: StepR
       for (const cmd of step.commands) {
         const r = await execWithRetries(cmd, runner);
         if (r.code !== 0 && !cmd.optional) {
-          failure = `${describeCmd(cmd)} exited with ${r.code}: ${(r.stderr || r.stdout).trim().split("\n").slice(-3).join(" ")}`;
+          failure = `${describeCmd(cmd)} exited with ${r.code}: ${failureOutput(r.stderr || r.stdout)}`;
           break;
         }
       }

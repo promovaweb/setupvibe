@@ -4,6 +4,13 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.29] - 2026-11-21
+
+### Fixed
+
+- PHP did not build on macOS: `php-build-deps` missed Homebrew formulas the mise PHP plugin looks for, such as `curl` (macOS ships libcurl without a pkg-config file), `krb5`, `libedit`, `sqlite`, `libiconv`, `gettext`, `jpeg-turbo` and `gd`. The macOS jobs of v2.0.0-dev.28 failed on PHP and Composer for this reason; the release of v2.0.0-dev.28 is published, and Linux was not affected.
+- A failed command keeps the line that names the real error in the log and the summary. Build tools such as mise end with a generic footer, and only the last three lines were kept, so the `configure: error` of a PHP build never showed.
+
 ## [v2.0.0-dev.28] - 2026-11-21
 
 ### Changed
