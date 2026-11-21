@@ -14,7 +14,7 @@ import { join } from "node:path";
 import type { Inventory, Item, System } from "../inventory.ts";
 import { resolveInstall } from "../inventory.ts";
 import type { Step } from "../exec/runner.ts";
-import { itemSteps, miseCmd, nativeRefreshCmd, type DistroInfo } from "../install/methods.ts";
+import { itemSteps, miseCmd, misePlatform, nativeRefreshCmd, type DistroInfo } from "../install/methods.ts";
 import { initPlan } from "../init/plan.ts";
 import { securityPlan } from "../security/plan.ts";
 import { removeNopasswdStep } from "../users/create.ts";
@@ -232,8 +232,13 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
   if (ctx.selection.items.some((i) => resolveInstall(i, ctx.system)?.method === "mise")) {
     steps.push({
       id: "mise-lock",
-      description: "Record the checksums of the mise tools in ~/.config/mise/mise.lock",
-      commands: [{ argv: [miseCmd(home, ctx.system), "lock", "--global"], retries: 2, optional: true }],
+      description: `Record the checksums of the mise tools for ${misePlatform(ctx.system, ctx.arch)} in ~/.config/mise/mise.lock`,
+      // The lockfile is rebuilt for this platform only, which also repairs one
+      // that older versions wrote for seven platforms.
+      commands: [
+        { argv: ["rm", "-f", join(home, ".config", "mise", "mise.lock")], optional: true },
+        { argv: [miseCmd(home, ctx.system), "lock", "--global", "--platform", misePlatform(ctx.system, ctx.arch)], retries: 2, optional: true },
+      ],
     });
   }
 

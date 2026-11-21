@@ -19,7 +19,7 @@ A política de versão decide como o item é instalado e conferido.
 | Política | Como funciona | Exemplo |
 | --- | --- | --- |
 | `exact` | versão fixada, instalada e conferida exatamente | Node 24.22.3 |
-| `series` | pacote nativo preso em `major.minor` | PHP 8.5 |
+| `series` | pacote nativo preso em `major.minor` | nenhum item usa hoje |
 | `minimum` | ferramenta que se atualiza sozinha; a verificação exige o piso | Claude Code |
 | `commit` | fonte Git presa a um commit | ferramenta instalada por clone |
 | `repository` | última estável de um repositório preso por impressão digital da chave | pacote de repositório APT |

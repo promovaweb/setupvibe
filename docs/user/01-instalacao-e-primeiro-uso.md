@@ -145,7 +145,7 @@ Languages
   ◐ node                   24.22.3       other (/home/linuxbrew/.linuxbrew/bin/node)
   ◐ python                 3.14.10       other (/usr/bin/python)
   ○ uv                     0.13.7        available
-  ◐ php                    8.5           other (/usr/bin/php)
+  ◐ php                    8.6.0         other (/usr/bin/php)
   ◐ bun                    1.4.4         other (~/.bun/bin/bun)
   …
 ```

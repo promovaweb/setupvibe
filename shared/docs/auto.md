@@ -93,9 +93,15 @@ both go to the GitHub Release.
 `auto --dry-run` prints the plan; `auto --plan plan.json` writes it as JSON
 for review. Neither changes the machine.
 
-After the items, `auto` writes `~/.config/mise/mise.lock` with `mise lock
---global`, and, when Docker comes from the system packages, merges log
-rotation into `/etc/docker/daemon.json` (plus `live-restore` on the desktop;
+After the items, `auto` rebuilds `~/.config/mise/mise.lock` with `mise lock
+--global --platform <this machine>`, such as `linux-x64`. The lockfile lists
+only this platform: with more, every later `mise use` resolves each tool for
+all of them, and PHP, compiled from source, has no Windows build. The item
+installs run with `MISE_LOCKFILE=false`, so a lockfile written by an older
+version does not stop them.
+
+When Docker comes from the system packages, `auto` also merges log rotation
+into `/etc/docker/daemon.json` (plus `live-restore` on the desktop;
 dockerd refuses it in Swarm mode). Examples for cloud-init, Ansible,
 Dockerfile, GitHub Actions and Vagrant are in `provisioning.md`.
 

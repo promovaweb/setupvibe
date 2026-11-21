@@ -6,7 +6,7 @@ import desktopJson from "../../desktop/inventory.json";
 import serverJson from "../../server/inventory.json";
 import type { Inventory, Item } from "../inventory";
 import { describeCmd, dryRunner, finalArgv, runSteps, type Step } from "../exec/runner";
-import { itemSteps, miseAsset, nativeInstallCmd, verifyOutputMatches } from "../install/methods";
+import { itemSteps, miseAsset, misePlatform, nativeInstallCmd, verifyOutputMatches } from "../install/methods";
 import { initPlan, missingPrerequisites } from "../init/plan";
 import { checkClock, checkDisk, checkEdition, checkLocale, checkMemory, checkRoot, exitCodeOf } from "../init/requirements";
 import { nopasswdStep, sudoersPath, userCreatePlan, validateUserOptions } from "../users/create";
@@ -74,9 +74,26 @@ describe("install methods", () => {
     expect(commands([steps[1]!]).join("\n")).toContain("apt-get remove -y docker.io");
   });
 
-  test("Mint uses the ondrej PPA with its Ubuntu base codename", () => {
-    const steps = itemSteps(item(desktop, "php"), "mint", { arch: "x64", inventory: desktop, distro: { distro: "ubuntu", codename: "noble", ubuntuCodename: "noble" }, home: HOME });
-    expect(steps[0]!.id).toBe("repository:ondrej");
+  test("Mint uses its Ubuntu base for the Docker repository", () => {
+    const steps = itemSteps(item(desktop, "docker"), "mint", { arch: "x64", inventory: desktop, distro: { distro: "ubuntu", codename: "noble", ubuntuCodename: "noble" }, home: HOME });
+    expect(steps[0]!.id).toBe("repository:docker");
+    expect(steps[0]!.commands.map(describeCmd)[0]).toContain("https://download.docker.com/linux/ubuntu/gpg");
+  });
+
+  test("PHP comes from mise, with its build libraries as a separate item", () => {
+    const php = item(desktop, "php");
+    expect(php.requires).toEqual(["build-deps", "php-build-deps"]);
+    const steps = itemSteps(php, "debian", { arch: "x64", inventory: desktop, distro: debianDistro, home: HOME });
+    expect(steps.map((s) => s.id)).toEqual(["php"]);
+    expect(steps[0]!.commands[0]!.argv.slice(-1)).toEqual([`php@${php.version}`]);
+    // An older lockfile listing other platforms must not break the build.
+    expect(steps[0]!.commands[0]!.env).toEqual({ MISE_LOCKFILE: "false" });
+    expect(misePlatform("debian", "x64")).toBe("linux-x64");
+    expect(misePlatform("omarchy", "x64")).toBe("linux-x64");
+    expect(misePlatform("macos", "arm64")).toBe("macos-arm64");
+    expect(misePlatform("windows", "x64")).toBe("windows-x64");
+    expect(Object.keys(desktop.repositories)).not.toContain("sury");
+    expect(Object.keys(desktop.repositories)).not.toContain("ondrej");
   });
 
   test("Git items check out the pinned commit, including tmux plugins", () => {
@@ -106,7 +123,11 @@ describe("install methods", () => {
   test("verify expectations: substring, regex and minimum", () => {
     expect(verifyOutputMatches(item(desktop, "node"), "v24.22.3\n")).toBe(true);
     expect(verifyOutputMatches(item(desktop, "node"), "v24.22.2\n")).toBe(false);
-    expect(verifyOutputMatches(item(desktop, "php"), "PHP 8.5.3 (cli)")).toBe(true);
+    expect(verifyOutputMatches(item(desktop, "php"), `PHP ${item(desktop, "php").version} (cli)`)).toBe(true);
+    expect(verifyOutputMatches(item(desktop, "php"), "PHP 8.5.13 (cli)")).toBe(false);
+    const regex = { ...item(desktop, "node"), verify: { command: "php --version", expect: "^PHP 8\\.6\\." } };
+    expect(verifyOutputMatches(regex, "PHP 8.6.2 (cli)")).toBe(true);
+    expect(verifyOutputMatches(regex, "PHP 8.5.13 (cli)")).toBe(false);
     expect(verifyOutputMatches(item(desktop, "claude-code"), "2.1.400 (Claude Code)")).toBe(true);
     expect(verifyOutputMatches(item(desktop, "claude-code"), "2.0.9 (Claude Code)")).toBe(false);
   });

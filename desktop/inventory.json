@@ -99,39 +99,6 @@
         "wsl"
       ]
     },
-    "sury": {
-      "type": "apt",
-      "url": "https://packages.sury.org/php/",
-      "suite": "{codename}",
-      "components": [
-        "main"
-      ],
-      "key": "https://packages.sury.org/php/apt.gpg",
-      "fingerprints": [
-        "15058500A0235D97F5D10063B188E2B695BD4743"
-      ],
-      "systems": [
-        "debian"
-      ]
-    },
-    "ondrej": {
-      "type": "apt",
-      "url": "https://ppa.launchpadcontent.net/ondrej/php/ubuntu",
-      "suite": "{ubuntu_codename}",
-      "components": [
-        "main"
-      ],
-      "key": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x4F4EA0AAE5267A6C",
-      "fingerprints": [
-        "14AA40EC0831756756D7F66C4F4EA0AAE5267A6C"
-      ],
-      "systems": [
-        "ubuntu",
-        "mint",
-        "zorin",
-        "wsl"
-      ]
-    },
     "tailscale": {
       "type": "apt",
       "url": "https://pkgs.tailscale.com/stable/{distro}",
@@ -164,6 +131,7 @@
         "node",
         "python",
         "uv",
+        "php-build-deps",
         "php",
         "composer",
         "pnpm",
@@ -436,135 +404,124 @@
       }
     },
     {
-      "id": "php",
-      "name": "PHP",
-      "category": "languages",
+      "id": "php-build-deps",
+      "name": "PHP build dependencies",
+      "category": "system",
       "description": {
-        "en": "PHP from native packages, with the extensions Laravel needs.",
-        "pt-BR": "PHP pelos pacotes nativos, com as extensões de que o Laravel precisa."
+        "en": "Libraries that mise needs to compile PHP and its extensions.",
+        "pt-BR": "Bibliotecas de que o mise precisa para compilar o PHP e as extensões."
       },
-      "homepage": "https://www.php.net/",
-      "version": "8.5",
-      "versionPolicy": "series",
+      "homepage": "https://github.com/jdx/vfox-php",
+      "version": "distro",
+      "versionPolicy": "distro",
       "default": true,
+      "requires": [
+        "build-deps"
+      ],
       "install": {
-        "ubuntu": {
+        "debian-family": {
           "method": "native",
-          "repository": "ondrej",
           "packages": [
-            "php8.5",
-            "php8.5-cli",
-            "php8.5-common",
-            "php8.5-curl",
-            "php8.5-mbstring",
-            "php8.5-xml",
-            "php8.5-bcmath",
-            "php8.5-mysql",
-            "php8.5-pgsql",
-            "php8.5-sqlite3",
-            "php8.5-zip",
-            "php8.5-intl",
-            "php8.5-gd"
-          ],
-          "optional": [
-            "php8.5-dev",
-            "php8.5-imagick",
-            "php8.5-redis",
-            "php8.5-mongodb",
-            "php8.5-yaml",
-            "php8.5-xdebug"
-          ]
-        },
-        "mint": {
-          "method": "native",
-          "repository": "ondrej",
-          "packages": [
-            "php8.5",
-            "php8.5-cli",
-            "php8.5-common",
-            "php8.5-curl",
-            "php8.5-mbstring",
-            "php8.5-xml",
-            "php8.5-bcmath",
-            "php8.5-mysql",
-            "php8.5-pgsql",
-            "php8.5-sqlite3",
-            "php8.5-zip",
-            "php8.5-intl",
-            "php8.5-gd"
-          ]
-        },
-        "zorin": {
-          "method": "native",
-          "repository": "ondrej",
-          "packages": [
-            "php8.5",
-            "php8.5-cli",
-            "php8.5-common",
-            "php8.5-curl",
-            "php8.5-mbstring",
-            "php8.5-xml",
-            "php8.5-bcmath",
-            "php8.5-mysql",
-            "php8.5-pgsql",
-            "php8.5-sqlite3",
-            "php8.5-zip",
-            "php8.5-intl",
-            "php8.5-gd"
-          ]
-        },
-        "wsl": {
-          "method": "native",
-          "repository": "ondrej",
-          "packages": [
-            "php8.5",
-            "php8.5-cli",
-            "php8.5-common",
-            "php8.5-curl",
-            "php8.5-mbstring",
-            "php8.5-xml",
-            "php8.5-bcmath",
-            "php8.5-mysql",
-            "php8.5-pgsql",
-            "php8.5-sqlite3",
-            "php8.5-zip",
-            "php8.5-intl",
-            "php8.5-gd"
-          ]
-        },
-        "debian": {
-          "method": "native",
-          "repository": "sury",
-          "packages": [
-            "php8.5",
-            "php8.5-cli",
-            "php8.5-common",
-            "php8.5-curl",
-            "php8.5-mbstring",
-            "php8.5-xml",
-            "php8.5-bcmath",
-            "php8.5-mysql",
-            "php8.5-pgsql",
-            "php8.5-sqlite3",
-            "php8.5-zip",
-            "php8.5-intl",
-            "php8.5-gd"
+            "autoconf",
+            "bison",
+            "re2c",
+            "pkg-config",
+            "libxml2-dev",
+            "libssl-dev",
+            "libicu-dev",
+            "libzip-dev",
+            "libonig-dev",
+            "libcurl4-openssl-dev",
+            "libpng-dev",
+            "libjpeg-dev",
+            "libfreetype-dev",
+            "libwebp-dev",
+            "libgmp-dev",
+            "libsodium-dev",
+            "libreadline-dev",
+            "libbz2-dev",
+            "libsqlite3-dev",
+            "zlib1g-dev",
+            "libpq-dev"
           ]
         },
         "arch-family": {
           "method": "native",
           "packages": [
-            "php",
-            "php-gd",
-            "php-intl",
-            "php-pgsql",
-            "php-sqlite"
-          ],
-          "note": "Arch ships the current PHP release; the version follows the repository."
+            "base-devel",
+            "autoconf",
+            "bison",
+            "re2c",
+            "pkgconf",
+            "libxml2",
+            "openssl",
+            "icu",
+            "libzip",
+            "oniguruma",
+            "curl",
+            "libpng",
+            "libjpeg-turbo",
+            "freetype2",
+            "libwebp",
+            "gmp",
+            "libsodium",
+            "readline",
+            "bzip2",
+            "sqlite",
+            "zlib",
+            "postgresql-libs"
+          ]
         },
         "macos": {
           "method": "brew",
-          "formula": "php@8.5"
+          "formula": [
+            "autoconf",
+            "bison",
+            "re2c",
+            "pkg-config",
+            "libxml2",
+            "openssl@3",
+            "icu4c",
+            "zlib",
+            "libzip",
+            "oniguruma",
+            "freetype",
+            "jpeg",
+            "libpng",
+            "webp",
+            "gmp",
+            "libsodium",
+            "readline",
+            "bzip2",
+            "libpq"
+          ]
+        },
+        "windows": {
+          "method": "unsupported",
+          "reason": "PHP runs inside WSL on Windows."
+        }
+      },
+      "verify": {
+        "command": "command -v re2c >/dev/null && { [ \"$(uname)\" = Darwin ] || pkg-config --exists libcurl oniguruma libzip icu-i18n libsodium; } && echo ok",
+        "expect": "ok"
+      }
+    },
+    {
+      "id": "php",
+      "name": "PHP",
+      "category": "languages",
+      "description": {
+        "en": "PHP built by mise from the official source, with the extensions Laravel needs. Composer is a separate item.",
+        "pt-BR": "PHP compilado pelo mise a partir do código oficial, com as extensões de que o Laravel precisa. O Composer é um item à parte."
+      },
+      "homepage": "https://www.php.net/",
+      "version": "8.6.0",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "unix": {
+          "method": "mise",
+          "tool": "php"
         },
         "windows": {
           "method": "unsupported",
@@ -573,8 +530,12 @@
       },
       "verify": {
         "command": "php --version",
-        "expect": "^PHP 8\\.5\\."
-      }
+        "expect": "8.6.0"
+      },
+      "requires": [
+        "build-deps",
+        "php-build-deps"
+      ]
     },
     {
       "id": "composer",

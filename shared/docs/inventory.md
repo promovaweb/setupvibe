@@ -39,7 +39,7 @@ bun test shared/tests
 | Policy | Use |
 | --- | --- |
 | `exact` | Pinned version, installed and checked exactly |
-| `series` | Native packages pinned to `major.minor`, such as PHP 8.5 |
+| `series` | Native packages pinned to `major.minor`; no item uses it today |
 | `minimum` | Self-updating tools, such as Claude Code; `check` enforces the floor |
 | `commit` | Git sources pinned to a commit |
 | `repository` | Latest stable from a repository pinned by key fingerprint |

@@ -44,7 +44,7 @@ describe("selection.json helpers", () => {
 describe("explicit selection", () => {
   test("install <items> pulls requirements in order", () => {
     const s = selectItems({ inventory: desktop, system: "ubuntu", headless: false, ids: ["laravel-installer"] });
-    expect(s.items.map((i) => i.id)).toEqual(["php", "composer", "laravel-installer"]);
+    expect(s.items.map((i) => i.id)).toEqual(["php-build-deps", "php", "composer", "laravel-installer"]);
   });
 });
 

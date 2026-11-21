@@ -205,6 +205,16 @@ export function miseCmd(home: string, system: System | "auto" = "auto"): string 
   return join(home, ".local", "bin", windows ? "mise.exe" : "mise");
 }
 
+/**
+ * mise platform name of this machine, such as linux-x64 or macos-arm64. The
+ * lockfile lists only this platform: with more, every later `mise use` resolves
+ * each tool for all of them, and PHP, compiled from source, has no Windows build.
+ */
+export function misePlatform(system: System, arch: string): string {
+  const os = system === "macos" ? "macos" : system === "windows" ? "windows" : "linux";
+  return `${os}-${arch === "arm64" ? "arm64" : "x64"}`;
+}
+
 /** Folder of the mise shims: ~/.local/share/mise/shims, or %LOCALAPPDATA%\mise\shims on Windows. */
 export function miseShims(home: string, windows = process.platform === "win32"): string {
   return windows ? join(process.env.LOCALAPPDATA ?? join(home, "AppData", "Local"), "mise", "shims") : join(home, ".local", "share", "mise", "shims");
@@ -279,7 +289,10 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
     case "mise": {
       const tool = withVersion(entry.tool ?? id, item);
       const spec = tool.includes("@v") || /@[\w.]+$/.test(tool.split(":").pop() ?? "") ? tool : `${tool}@${v}`;
-      return [{ id, description: `Install ${spec} with mise`, commands: [{ argv: [miseCmd(home, system), "use", "--global", "--yes", spec], retries: 3 }] }];
+      // MISE_LOCKFILE=false: an older lockfile that lists other platforms makes
+      // mise resolve every tool for each of them, and tools built from source
+      // (PHP) refuse Windows. The mise-lock step writes the lockfile at the end.
+      return [{ id, description: `Install ${spec} with mise`, commands: [{ argv: [miseCmd(home, system), "use", "--global", "--yes", spec], env: { MISE_LOCKFILE: "false" }, retries: 3 }] }];
     }
     case "git": {
       const path = expandHome(entry.path ?? "", home);
@@ -365,7 +378,11 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
           actionDescription: `download ${url} to ${tmp}${digestUrl ? `, verify it with ${digestUrl} (${entry.checksumAlgorithm ?? "sha256"})` : ""} and run it with ${interpreter} ${args.join(" ")}`.trimEnd(),
           action: async (runner) => {
             await downloadVerified(url, tmp, { digestUrl, algorithm: entry.checksumAlgorithm }, 0o755);
-            const r = await runner.exec({ argv: [interpreter, tmp, ...args] });
+            // The interpreter can be a mise tool installed in this same run
+            // (php for Composer), so ~/.local/bin and the mise shims come first.
+            const path = [join(home, ".local", "bin"), miseShims(home, false), process.env.PATH ?? ""].filter(Boolean).join(":");
+            const exe = Bun.which(interpreter, { PATH: path }) ?? interpreter;
+            const r = await runner.exec({ argv: [exe, tmp, ...args], env: { PATH: path } });
             if (r.code !== 0) throw new Error(`Installer for ${id} exited with ${r.code}: ${r.stderr.trim().split("\n").pop()}`);
           },
         },

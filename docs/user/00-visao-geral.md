@@ -49,9 +49,9 @@ locais, com downloads dos fornecedores de cada ferramenta.
 
 ## Versões fixadas
 
-Cada item carrega uma política de versão. Um pacote nativo costuma ficar numa
-linha (`php@8.5`), uma CLI que se atualiza sozinha fica com versão mínima e uma
-ferramenta de release fixo fica na versão exata. O `setupvibe check` aplica a
+Cada item carrega uma política de versão. Uma linguagem instalada pelo mise
+fica na versão exata (`php@8.6.0`, `node@24.22.3`), uma CLI que se atualiza
+sozinha fica com versão mínima e um pacote do sistema segue a distribuição. O `setupvibe check` aplica a
 mesma política na conferência. Já o `setupvibe update` troca só o item cuja
 versão fixada mudou entre o binário que você tem e o novo.
 

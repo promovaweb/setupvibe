@@ -4,6 +4,25 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.28] - 2026-11-21
+
+### Changed
+
+- PHP moves to mise and to PHP 8.6.0, released on November 19, 2026. mise compiles it from the official source with the extensions Laravel needs (mbstring, intl, gd, zip, curl, bcmath, openssl, sodium, pdo_mysql, pdo_pgsql, SQLite and XML) and the FPM, on Debian, Ubuntu, Mint, Zorin, WSL, Omarchy and macOS. The version is pinned with `exact` like the other runtimes, and `inventory:bump` now follows it.
+- New item `php-build-deps` with the libraries the PHP build needs, installed before PHP: APT packages on the Debian family, pacman packages on Omarchy and Homebrew formulas on macOS.
+- The first PHP install compiles from source and takes several minutes; package installs took seconds.
+- `~/.config/mise/mise.lock` lists only the platform of the machine (`mise lock --global --platform linux-x64`, for example) and is rebuilt on each run. With seven platforms, every later `mise use`, `mise install` or `mise lock` resolved each tool for all of them and failed on PHP, which has no Windows build. Lockfiles written by older versions are repaired on the next run, and the mise installs run with `MISE_LOCKFILE=false` so an old lockfile does not stop them first.
+
+### Removed
+
+- The Sury repository (Debian) and the Ondřej PPA (Ubuntu, Mint, Zorin and WSL), used only by PHP, with their keys.
+- The optional PHP packages `imagick`, `redis`, `mongodb`, `yaml` and `xdebug` on Ubuntu; install them with `pecl` when a project needs them.
+
+### Fixed
+
+- PHP failed on Debian 13: the Sury CDN answers 404 when APT 3 asks for the PHP 8.5 packages with `+` encoded as `%2b`. This also blocked the CI of v2.0.0-dev.27, which therefore has no GitHub Release; its fixes ship in this version.
+- Installers that run with an interpreter installed by mise in the same run (Composer with `php`) find it: the interpreter is resolved with `~/.local/bin` and the mise shims first in `PATH`.
+
 ## [v2.0.0-dev.27] - 2026-11-21
 
 ### Security

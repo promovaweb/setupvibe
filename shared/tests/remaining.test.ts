@@ -101,7 +101,9 @@ describe("swarm and pm2 options", () => {
     const ids = plan.steps.map((s) => s.id);
     expect(ids).toContain("mise-lock");
     expect(ids.indexOf("node")).toBeLessThan(ids.indexOf("mise-lock"));
-    expect(describeCmd(plan.steps.find((s) => s.id === "mise-lock")!.commands[0]!)).toEndWith("lock --global");
+    const lock = plan.steps.find((s) => s.id === "mise-lock")!.commands;
+    expect(describeCmd(lock[0]!)).toEndWith("/.config/mise/mise.lock");
+    expect(describeCmd(lock[1]!)).toMatch(/lock --global --platform (linux|macos|windows)-(x64|arm64)$/);
   });
 });
 
@@ -110,7 +112,7 @@ describe("inventory bump", () => {
     expect(bumpTool(item(desktop, "node"))).toBe("node@24");
     expect(bumpTool(item(desktop, "go"))).toBe("go");
     expect(bumpTool(item(desktop, "codex"))).toBe("npm:@openai/codex");
-    expect(bumpTool(item(desktop, "php"))).toBeUndefined();
+    expect(bumpTool(item(desktop, "php"))).toBe("php");
     expect(bumpTool(item(desktop, "spec-kit"))).toBeUndefined();
   });
 
