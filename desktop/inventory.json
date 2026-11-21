@@ -2,7 +2,7 @@
   "$schema": "../shared/inventory.schema.json",
   "schemaVersion": 1,
   "edition": "desktop",
-  "updated": "2026-11-12",
+  "updated": "2026-11-20",
   "systems": [
     "ubuntu",
     "debian",
@@ -653,7 +653,7 @@
         "pt-BR": "Ruby compilado pelo mise."
       },
       "homepage": "https://www.ruby-lang.org/",
-      "version": "3.4.12",
+      "version": "3.4.13",
       "versionPolicy": "exact",
       "default": false,
       "requires": [
@@ -674,7 +674,7 @@
       },
       "verify": {
         "command": "ruby --version",
-        "expect": "3.4.12"
+        "expect": "3.4.13"
       }
     },
     {
@@ -1829,7 +1829,8 @@
         }
       },
       "verify": {
-        "command": "docker inspect portainer"
+        "command": "docker inspect --format '{{.Config.Image}}|{{index .Config.Labels \"com.docker.compose.project\"}}' portainer",
+        "expect": "portainer/portainer-ce:2.45.3|portainer"
       }
     },
     {

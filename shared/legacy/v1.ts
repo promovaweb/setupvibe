@@ -19,7 +19,7 @@
  * below) move to the `.local` files, every file is backed up first, and the
  * duplicates are only removed when the person confirms each one.
  */
-import { existsSync, readFileSync, writeFileSync, mkdirSync, chmodSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, chmodSync, renameSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import zshrcLinux from "./v1/zshrc-linux.zsh" with { type: "text" };
 import zshrcMacos from "./v1/zshrc-macos.zsh" with { type: "text" };
@@ -28,7 +28,7 @@ import tmuxDesktop from "./v1/tmux-desktop.conf" with { type: "text" };
 import tmuxServer from "./v1/tmux-server.conf" with { type: "text" };
 import sshCopyIdShortcut from "./ssh_copy_id.sh" with { type: "text" };
 import type { Step } from "../exec/runner.ts";
-import { backupOnce, BLOCK_START } from "../shell/config.ts";
+import { backupOnce, BLOCK_START, tmuxBlock, upsertBlock, zshBlock } from "../shell/config.ts";
 
 /** First line of every SetupVibe 1 zshrc. */
 const ZSHRC_SIGNATURE = "# 1. PATH CONFIGURATION (Must come first!)";
@@ -172,20 +172,33 @@ export function withoutOmarchyBlock(text: string): string {
   return `${text.slice(0, start).replace(/\n+$/, "\n")}${end === -1 ? "" : text.slice(end + 1)}`;
 }
 
-/** Converts one SetupVibe 1 file: backup, personal lines to `.local`, file emptied for the new block. */
-function convertStep(id: string, description: string, file: string, local: string, originals: string[], home: string, now: () => string): Step {
+/** Replaces a file through a temporary file and a rename, so it is never left empty or half written. */
+function replaceFile(file: string, text: string, mode: number): void {
+  const tmp = `${file}.setupvibe-${process.pid}.tmp`;
+  writeFileSync(tmp, text, { mode });
+  renameSync(tmp, file);
+}
+
+/**
+ * Converts one SetupVibe 1 file: backup, personal lines to `.local` (0600,
+ * because they can hold tokens), then the SetupVibe 2 block in place of the
+ * old file, written in one rename. The shell step that runs next finds the
+ * block already there.
+ */
+function convertStep(id: string, description: string, file: string, local: string, originals: string[], home: string, now: () => string, block: string): Step {
   return {
     id,
     description,
     commands: [],
-    actionDescription: `back up ${file}, move the lines you added to ${local}, then let SetupVibe 2 write its block`,
+    actionDescription: `back up ${file}, move the lines you added to ${local}, then write the SetupVibe 2 block`,
     action: async () => {
       const current = existsSync(file) ? readFileSync(file, "utf8") : "";
       backupOnce(file, home);
       const moved = movedBlock(addedLines(current, originals), file.replace(home, "~"), now());
-      if (moved) writeFileSync(local, (existsSync(local) ? readFileSync(local, "utf8") : "") + moved);
-      else if (!existsSync(local)) writeFileSync(local, "");
-      writeFileSync(file, "");
+      if (moved) writeFileSync(local, (existsSync(local) ? readFileSync(local, "utf8") : "") + moved, { mode: 0o600 });
+      else if (!existsSync(local)) writeFileSync(local, "", { mode: 0o600 });
+      if (moved) chmodSync(local, 0o600);
+      replaceFile(file, upsertBlock("", block), existsSync(file) ? statSync(file).mode & 0o777 : 0o644);
     },
   };
 }
@@ -206,8 +219,8 @@ export function migrateSteps(o: MigrateOptions): Step[] {
   const steps: Step[] = [];
   const zshrc = join(o.home, ".zshrc");
   const tmux = join(o.home, ".tmux.conf");
-  if (o.detection.zshrc) steps.push(convertStep("migrate-zshrc", "Move ~/.zshrc from SetupVibe 1 to the SetupVibe 2 block, keeping your lines in ~/.zshrc.local", zshrc, join(o.home, ".zshrc.local"), V1_ZSHRC, o.home, now));
-  if (o.detection.tmux) steps.push(convertStep("migrate-tmux", "Move ~/.tmux.conf from SetupVibe 1 to the SetupVibe 2 block, keeping your lines in ~/.tmux.conf.local", tmux, join(o.home, ".tmux.conf.local"), V1_TMUX, o.home, now));
+  if (o.detection.zshrc) steps.push(convertStep("migrate-zshrc", "Move ~/.zshrc from SetupVibe 1 to the SetupVibe 2 block, keeping your lines in ~/.zshrc.local", zshrc, join(o.home, ".zshrc.local"), V1_ZSHRC, o.home, now, zshBlock(o.home)));
+  if (o.detection.tmux) steps.push(convertStep("migrate-tmux", "Move ~/.tmux.conf from SetupVibe 1 to the SetupVibe 2 block, keeping your lines in ~/.tmux.conf.local", tmux, join(o.home, ".tmux.conf.local"), V1_TMUX, o.home, now, tmuxBlock(o.home)));
   if (o.detection.omarchyBlock) {
     const bashrc = join(o.home, ".bashrc");
     steps.push({

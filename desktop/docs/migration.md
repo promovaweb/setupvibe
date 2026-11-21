@@ -47,9 +47,11 @@ O SetupVibe 1 não precisa ser desinstalado. Ele não tem desinstalador; o
    `~/.setupvibe/backups/`.
 2. Move as linhas que você acrescentou para `~/.zshrc.local` e
    `~/.tmux.conf.local`, com um comentário datado e a origem de cada bloco.
-   Linhas que já estão nos arquivos originais não são copiadas.
-3. Esvazia o arquivo convertido para o SetupVibe 2 escrever o bloco novo entre
-   `# >>> setupvibe >>>` e `# <<< setupvibe <<<`.
+   Linhas que já estão nos arquivos originais não são copiadas. Os arquivos
+   `.local` ficam com permissão 0600, porque podem guardar tokens.
+3. Troca o arquivo convertido pelo bloco do SetupVibe 2, entre
+   `# >>> setupvibe >>>` e `# <<< setupvibe <<<`, numa única troca de
+   arquivo: o `~/.zshrc` nunca fica vazio, nem se a migração for interrompida.
 4. Troca o bloco do SetupVibe Omarchy no `~/.bashrc` pelo bloco do SetupVibe 2,
    com backup antes.
 5. Reescreve `~/.setupvibe/bin/ssh_copy_id` como atalho de
@@ -66,6 +68,16 @@ O SetupVibe 1 não precisa ser desinstalado. Ele não tem desinstalador; o
 Os segredos que aparecem nas linhas movidas são mascarados no plano, com
 `TOKEN`, `KEY`, `SECRET` e `PASSWORD` trocados por `****`. Os arquivos
 guardam o valor real.
+
+## Portainer do SetupVibe 1
+
+O Portainer do SetupVibe 1 roda num container chamado `portainer`, com os
+dados em `~/.setupvibe/portainer_data`. Ao instalar o item `portainer`, o
+SetupVibe 2 confere a imagem e o projeto do Compose desse container: se ele
+não for a pilha do SetupVibe 2, o container é parado e removido, e os dados
+são copiados para `~/.setupvibe/portainer/data` quando essa pasta ainda está
+vazia. O usuário e as configurações do Portainer continuam. A pasta
+`portainer_data` não é apagada.
 
 ## Opções
 

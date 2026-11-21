@@ -47,9 +47,11 @@ takes care of the files it left.
    `~/.setupvibe/backups/`.
 2. Moves the lines you added to `~/.zshrc.local` and `~/.tmux.conf.local`, with
    a dated comment and the origin of each block. Lines already in the originals
-   are not copied.
-3. Empties the converted file so SetupVibe 2 writes the new block between
-   `# >>> setupvibe >>>` and `# <<< setupvibe <<<`.
+   are not copied. The `.local` files get mode 0600, because they can hold
+   tokens.
+3. Replaces the converted file with the SetupVibe 2 block, between
+   `# >>> setupvibe >>>` and `# <<< setupvibe <<<`, in a single file
+   rename: `~/.zshrc` is never left empty, even if the migration stops halfway.
 4. Replaces the SetupVibe Omarchy block in `~/.bashrc` with the SetupVibe 2
    block, after a backup.
 5. Rewrites `~/.setupvibe/bin/ssh_copy_id` as a shortcut to
@@ -66,6 +68,16 @@ takes care of the files it left.
 Secrets that appear in the moved lines are masked in the plan, with `TOKEN`,
 `KEY`, `SECRET` and `PASSWORD` replaced by `****`. The files keep the real
 value.
+
+## SetupVibe 1 Portainer
+
+The SetupVibe 1 Portainer runs in a container named `portainer`, with its
+data in `~/.setupvibe/portainer_data`. When it installs the `portainer` item,
+SetupVibe 2 checks that container's image and Compose project: if it is not
+the SetupVibe 2 stack, the container is stopped and removed, and the data is
+copied to `~/.setupvibe/portainer/data` while that folder is still empty. The
+Portainer user and settings carry over. The `portainer_data` folder is not
+deleted.
 
 ## Options
 

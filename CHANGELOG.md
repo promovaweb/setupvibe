@@ -4,6 +4,18 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.27] - 2026-11-21
+
+### Security
+
+- Ruby updated to 3.4.13 in the Desktop inventory. Ruby 3.4.0 to 3.4.12 carry CVE-2026-132825 (Ruby2Shell), a heap overflow in string case conversion that can lead to remote code execution, plus six other regexp and case-conversion memory flaws fixed in the same release. Ruby is not in the `essencial` profile, so it reached machines that installed the whole inventory or ran `install ruby` or `install rails`.
+- Lines moved from a SetupVibe 1 `~/.zshrc` or `~/.tmux.conf` go to the `.local` file with mode 0600, because they can hold tokens. They were written with mode 0644.
+
+### Fixed
+
+- Portainer from SetupVibe 1 counted as installed. The check ran `docker inspect portainer`, which also passed for the SetupVibe 1 container, so SetupVibe 2 wrote no stack, kept the old image and port, and the `portainer-*` aliases pointed at a missing file. The check now requires the pinned image and the SetupVibe 2 Compose project. Before starting its stack, SetupVibe 2 stops and removes a `portainer` container from another project and copies `~/.setupvibe/portainer_data` into the new data folder while that folder is empty, so the Portainer user and settings carry over. The old data folder is kept.
+- The SetupVibe 1 migration emptied `~/.zshrc` and `~/.tmux.conf` and wrote the new block in a later step, so a stop between the two left an empty shell file. The migration now writes the SetupVibe 2 block in place of the old file through a temporary file and a rename.
+
 ## [v2.0.0-dev.26] - 2026-11-14
 
 ### Corrigido

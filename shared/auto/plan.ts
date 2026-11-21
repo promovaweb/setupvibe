@@ -119,6 +119,7 @@ function configSteps(item: Item, ctx: AutoContext): Step[] {
   if (entry.method === "compose" && item.id === "portainer") {
     const bind = ctx.variant === "local" ? "" : "127.0.0.1:";
     const dir = join(ctx.home ?? homedir(), ".setupvibe", "portainer");
+    const legacyData = join(ctx.home ?? homedir(), ".setupvibe", "portainer_data");
     const image = (entry.image ?? "").replaceAll("{version}", item.version);
     const compose = `# Managed by SetupVibe\nservices:\n  portainer:\n    image: ${image}\n    container_name: portainer\n    restart: always\n    security_opt:\n      - no-new-privileges:true\n    ports:\n      - "${bind}${entry.port}:${entry.port}"\n    volumes:\n      - /etc/localtime:/etc/localtime:ro\n      - /var/run/docker.sock:/var/run/docker.sock\n      - ./data:/data\n`;
     return [
@@ -128,6 +129,7 @@ function configSteps(item: Item, ctx: AutoContext): Step[] {
         commands: [
           { argv: ["mkdir", "-p", join(dir, "data")] },
           { argv: ["tee", join(dir, "compose.yml")], input: compose },
+          { argv: ["sh", "-c", PORTAINER_TAKEOVER, "sh", legacyData, join(dir, "data")], sudo: true },
           { argv: ["docker", "compose", "-f", join(dir, "compose.yml"), "up", "-d"], sudo: true },
         ],
       },
@@ -135,6 +137,24 @@ function configSteps(item: Item, ctx: AutoContext): Step[] {
   }
   return [];
 }
+
+/**
+ * Frees the `portainer` container name for the SetupVibe 2 stack. A container
+ * with that name from another Compose project (the SetupVibe 1 stack in
+ * ~/.setupvibe, or one started by hand) would block `docker compose up`.
+ * Before removing it, the SetupVibe 1 data is copied into the new data folder,
+ * when that folder is still empty, so the Portainer user and settings survive.
+ * Bind-mounted data is never deleted. Arguments: $1 SetupVibe 1 data, $2 new data.
+ */
+export const PORTAINER_TAKEOVER = [
+  'project=$(docker inspect --format \'{{index .Config.Labels "com.docker.compose.project"}}\' portainer 2>/dev/null) || exit 0',
+  '[ "$project" = portainer ] && exit 0',
+  'if [ -d "$1" ] && [ -z "$(ls -A "$2" 2>/dev/null)" ]; then',
+  '  docker stop portainer >/dev/null',
+  '  cp -a "$1/." "$2/"',
+  'fi',
+  'docker rm -f portainer >/dev/null',
+].join("\n");
 
 /**
  * SetupVibe block of ~/.wslconfig (spec section 14.6). The Hyper-V firewall

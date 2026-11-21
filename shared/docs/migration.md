@@ -32,7 +32,9 @@ migration until `config.json` records `migratedFromV1`.
 on top of the old file. The conversion is lossless: the file
 goes to `~/.setupvibe/backups/`, the lines the person added (lines that are
 not in the originals) move to `~/.zshrc.local` or `~/.tmux.conf.local` under a
-dated comment, and the file is rewritten with the block. `init` builds the
+dated comment (the `.local` file gets mode 0600), and the file is replaced
+with the block through a temporary file and a rename, so it is never left
+empty. `init` builds the
 first selection from what already passes its check, marked `adopted`, and
 `remove` keeps adopted items unless `--force`.
 

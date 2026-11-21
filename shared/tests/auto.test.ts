@@ -1,7 +1,7 @@
 /** setupvibe auto: answers, selection, plan, lock and command (spec section 9). */
 import "../../desktop/src/edition.ts";
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import desktopJson from "../../desktop/inventory.json";
@@ -10,7 +10,7 @@ import type { Inventory } from "../inventory";
 import { describeCmd } from "../exec/runner";
 import { readAnswersFile, resolveAnswers } from "../auto/answers";
 import { orderByRequirements, selectItems } from "../auto/selection";
-import { autoPlan, securityApplies, swapSizeGb, swarmSteps, type AutoContext } from "../auto/plan";
+import { autoPlan, PORTAINER_TAKEOVER, securityApplies, swapSizeGb, swarmSteps, type AutoContext } from "../auto/plan";
 import { childArgs, selfArgv } from "../commands/auto";
 import { acquireLock, processAlive } from "../state/lock";
 import { HOME_VARIABLE } from "../core/config/paths";
@@ -168,6 +168,69 @@ describe("plan", () => {
     const local = autoPlan(ctx({ selection })).steps.find((s) => s.id === "portainer")!;
     expect(local.commands[1]!.input).toContain('"9443:9443"');
     expect(local.commands[1]!.input).toContain("portainer/portainer-ce:2.45.3");
+    // The name is freed before the stack starts, keeping the SetupVibe 1 data.
+    expect(local.commands[2]!.argv.slice(0, 3)).toEqual(["sh", "-c", PORTAINER_TAKEOVER]);
+    expect(local.commands[2]!.argv.at(-2)).toEndWith("/.setupvibe/portainer_data");
+    expect(local.commands[2]!.argv.at(-1)).toEndWith("/.setupvibe/portainer/data");
+    expect(local.commands[3]!.argv).toContain("up");
+  });
+
+  describe("Portainer takeover", () => {
+    // A fake docker that answers inspect with $PROJECT and logs every call.
+    const run = (project: string | null, legacy: boolean, dataFiles: string[]) => {
+      const dir = mkdtempSync(join(tmpdir(), "sv-portainer-"));
+      try {
+        const bin = join(dir, "bin");
+        mkdirSync(bin);
+        writeFileSync(join(bin, "docker"), `#!/bin/sh\necho "$*" >> "${dir}/calls"\nif [ "$1" = inspect ]; then [ -n "$PROJECT" ] || exit 1; echo "$PROJECT"; fi\n`);
+        chmodSync(join(bin, "docker"), 0o755);
+        const legacyDir = join(dir, "portainer_data");
+        const data = join(dir, "data");
+        mkdirSync(data);
+        for (const f of dataFiles) writeFileSync(join(data, f), "new");
+        if (legacy) {
+          mkdirSync(legacyDir);
+          writeFileSync(join(legacyDir, "portainer.db"), "v1");
+        }
+        const r = Bun.spawnSync(["sh", "-c", PORTAINER_TAKEOVER, "sh", legacyDir, data], {
+          env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, PROJECT: project ?? "" },
+        });
+        const calls = (() => { try { return readFileSync(join(dir, "calls"), "utf8"); } catch { return ""; } })();
+        const db = (() => { try { return readFileSync(join(data, "portainer.db"), "utf8"); } catch { return null; } })();
+        return { code: r.exitCode, calls, db };
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    };
+
+    test("without a portainer container, nothing is touched", () => {
+      const r = run(null, true, []);
+      expect(r.code).toBe(0);
+      expect(r.calls).not.toContain("rm -f");
+      expect(r.db).toBeNull();
+    });
+
+    test("the SetupVibe 2 container is kept", () => {
+      const r = run("portainer", true, []);
+      expect(r.code).toBe(0);
+      expect(r.calls).not.toContain("stop portainer");
+      expect(r.calls).not.toContain("rm -f");
+    });
+
+    test("the SetupVibe 1 container is replaced and its data copied", () => {
+      const r = run("setupvibe", true, []);
+      expect(r.code).toBe(0);
+      expect(r.calls).toContain("stop portainer");
+      expect(r.calls).toContain("rm -f portainer");
+      expect(r.db).toBe("v1");
+    });
+
+    test("data already in the new folder is never overwritten", () => {
+      const r = run("setupvibe", true, ["portainer.db"]);
+      expect(r.code).toBe(0);
+      expect(r.calls).toContain("rm -f portainer");
+      expect(r.db).toBe("new");
+    });
   });
 
   test("server: Swarm init or join, with the token kept out of the argv", () => {

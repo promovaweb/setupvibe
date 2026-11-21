@@ -1,9 +1,10 @@
 /** SetupVibe 1 detection and migration (task 15, spec section 16). */
 import "../../desktop/src/edition.ts";
 import { describe, expect, test } from "bun:test";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { BLOCK_START } from "../shell/config";
 import {
   addedLines,
   detectV1,
@@ -93,7 +94,15 @@ describe("migration", () => {
       expect(steps.map((s) => s.id)).toEqual(["migrate-zshrc", "migrate-tmux", "migrate-ssh-copy-id"]);
       const results = await runSteps(steps, { ...dryRunner(), dryRun: false });
       expect(results.every((r) => r.status === "ok")).toBe(true);
-      expect(readFileSync(join(home, ".zshrc"), "utf8")).toBe("");
+      // The SetupVibe 2 block replaces the old file in one rename, so ~/.zshrc is never left empty.
+      const zshrc = readFileSync(join(home, ".zshrc"), "utf8");
+      expect(zshrc).toContain(BLOCK_START);
+      expect(zshrc).toContain('[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"');
+      expect(zshrc).not.toContain("alias k=kubectl");
+      expect(readFileSync(join(home, ".tmux.conf"), "utf8")).toContain(BLOCK_START);
+      expect(readdirSync(home).some((f) => f.includes(".setupvibe-") && f.endsWith(".tmp"))).toBe(false);
+      // Moved lines can hold tokens, so the .local file is private.
+      expect(statSync(join(home, ".zshrc.local")).mode & 0o777).toBe(0o600);
       const local = readFileSync(join(home, ".zshrc.local"), "utf8");
       expect(local).toContain("export MINE=1");
       expect(local).toContain("alias k=kubectl");
