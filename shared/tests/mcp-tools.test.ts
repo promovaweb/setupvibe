@@ -1,7 +1,7 @@
 /** SetupVibe MCP tools and mcp install (spec section 13). */
 import "../../desktop/src/edition.ts";
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -105,6 +105,35 @@ describe("tools over stdio", () => {
   });
 });
 
+test("unified MCP reads the saved edition and keeps per-request overrides independent", async () => {
+  const home = mkdtempSync(join(tmpdir(), "sv-mcp-edition-"));
+  const client = new Client({ name: "test", version: "0.0.0" });
+  try {
+    await client.connect(new StdioClientTransport({
+      command: "bun",
+      args: [join(import.meta.dir, "../..", "main.ts"), "mcp"],
+      env: { ...(process.env as Record<string, string>), [HOME_VARIABLE]: home },
+      stderr: "pipe",
+    }));
+    const missing = await client.callTool({ name: "list", arguments: {} });
+    expect(missing).toMatchObject({ isError: true, structuredContent: { exitCode: 15 } });
+    writeFileSync(join(home, "edition.json"), '{"schemaVersion":1,"edition":"desktop"}\n');
+    const [saved, explicit] = await Promise.all([
+      client.callTool({ name: "about", arguments: {} }),
+      client.callTool({ name: "about", arguments: { edition: "omarchy" } }),
+    ]);
+    expect(saved.structuredContent).toMatchObject({ edition: "desktop" });
+    expect(explicit.structuredContent).toMatchObject({ edition: "omarchy" });
+    const invalid = await client.callTool({ name: "check", arguments: { edition: "omarchy" } });
+    if (process.platform !== "linux" || !existsSync("/usr/share/omarchy")) {
+      expect(invalid).toMatchObject({ isError: true, structuredContent: { exitCode: 11 } });
+    }
+  } finally {
+    await client.close();
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 describe("tool handlers (task 16)", () => {
   const { registerSetupVibeTools } = require("../mcp/tools") as typeof import("../mcp/tools");
   type Handler = (args: Record<string, unknown>) => Promise<{ structuredContent: Record<string, unknown>; isError?: boolean }>;
@@ -116,7 +145,7 @@ describe("tool handlers (task 16)", () => {
     registerResource: (name: string, _uri: string, _meta: unknown, read: (uri: URL) => Promise<{ contents: Array<{ text: string }> }>) => void (resources[name] = read),
   };
   const catalog = { tools: [] as Array<{ name: string; description: string }>, resources: [] as Array<{ uri: string; name: string; description: string }> };
-  registerSetupVibeTools({ server, catalog } as never, async (args) => {
+  registerSetupVibeTools({ server, catalog, defaultEdition: "desktop" } as never, async (args) => {
     calls.push(args);
     return { exitCode: 0, envelope: { ok: true, data: { args } } };
   });
@@ -129,7 +158,7 @@ describe("tool handlers (task 16)", () => {
 
   test("install with external passes the tool and its version", async () => {
     await handlers.install!({ items: ["terraform@1.13.4"], dry_run: true, force: false, external: true });
-    expect(calls.at(-1)).toEqual(["install", "--external", "terraform@1.13.4", "--dry-run"]);
+    expect(calls.at(-1)).toEqual(["desktop", "install", "--external", "terraform@1.13.4", "--dry-run"]);
   });
 
   test("doctor, report and init run the CLI; init and migrate default to a dry run", async () => {
@@ -137,14 +166,14 @@ describe("tool handlers (task 16)", () => {
     await handlers.report!({});
     await handlers.init!({ dry_run: true });
     await handlers.migrate!({ dry_run: true, confirm: false });
-    expect(calls.slice(-4)).toEqual([["doctor"], ["report"], ["init", "--dry-run"], ["migrate", "--dry-run"]]);
+    expect(calls.slice(-4)).toEqual([["desktop", "doctor"], ["desktop", "report"], ["desktop", "init", "--dry-run"], ["desktop", "migrate", "--dry-run"]]);
   });
 
   test("a real migrate needs confirm: true and passes the leftovers to remove", async () => {
     const refused = await handlers.migrate!({ dry_run: false, confirm: false });
     expect(refused.isError).toBe(true);
     await handlers.migrate!({ dry_run: false, confirm: true, remove_legacy: ["go", "rbenv"] });
-    expect(calls.at(-1)).toEqual(["migrate", "--remove-legacy", "go,rbenv"]);
+    expect(calls.at(-1)).toEqual(["desktop", "migrate", "--remove-legacy", "go,rbenv"]);
   });
 
   test("logs lists the runs and refuses an unknown one; the resources return JSON", async () => {
@@ -162,21 +191,21 @@ describe("tool handlers (task 16)", () => {
     await handlers.system!({});
     await handlers.list!({ category: "ai" });
     await handlers.check!({ items: ["node"] });
-    expect(calls.slice(-3)).toEqual([["system", "--no-update-check"], ["list", "--category", "ai"], ["check", "node"]]);
+    expect(calls.slice(-3)).toEqual([["desktop", "system", "--no-update-check"], ["desktop", "list", "--category", "ai"], ["desktop", "check", "node"]]);
   });
 
   test("install and update default to a dry run; force and dry_run false are passed", async () => {
     await handlers.install!({ items: ["go"], dry_run: true, force: false });
     await handlers.install!({ items: ["go"], dry_run: false, force: true });
     await handlers.update!({ dry_run: true });
-    expect(calls.slice(-3)).toEqual([["install", "go", "--dry-run"], ["install", "go", "--force"], ["update", "--dry-run"]]);
+    expect(calls.slice(-3)).toEqual([["desktop", "install", "go", "--dry-run"], ["desktop", "install", "go", "--force"], ["desktop", "update", "--dry-run"]]);
   });
 
   test("a real removal needs confirm; the dry run does not", async () => {
     const refused = await handlers.remove!({ items: ["go"], dry_run: false, confirm: false, include_native: false });
     expect(refused.isError).toBe(true);
     await handlers.remove!({ items: ["go"], dry_run: true, confirm: false, include_native: true });
-    expect(calls.at(-1)).toEqual(["remove", "go", "--yes", "--dry-run", "--include-native"]);
+    expect(calls.at(-1)).toEqual(["desktop", "remove", "go", "--yes", "--dry-run", "--include-native"]);
   });
 
   test("health returns the doctor findings without running the CLI", async () => {

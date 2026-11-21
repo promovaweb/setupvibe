@@ -6,7 +6,7 @@
  * options, subcommands, examples and the exit-code table. Because everything
  * comes from the registry, help never drifts from the parser.
  */
-import { manifest } from "../app/manifest.ts";
+import { manifest, commandPrefix, qualifyExample } from "../app/manifest.ts";
 import { exitCodeDescriptions, ExitCode } from "../app/exit-codes.ts";
 import { blocks, color, section, table } from "./format.ts";
 import { GLOBAL_OPTIONS, type Command, type ArgumentDefinition, type OptionDefinition } from "./registry.ts";
@@ -32,7 +32,7 @@ function optionDescription(o: OptionDefinition): string {
 
 /** Usage line of a command, e.g. `termfy config set <key> <value>`. */
 export function usageLine(path: string[], command: Command): string {
-  const parts = [manifest.bin, ...path];
+  const parts = path.length ? [commandPrefix(path), ...path] : [manifest.bin, "[desktop|server|omarchy]"];
   if (command.subcommands?.length) parts.push("<subcommand>");
   for (const a of command.arguments ?? []) parts.push(argumentUsage(a));
   if ((command.options?.length ?? 0) > 0 || GLOBAL_OPTIONS.length > 0) parts.push("[options]");
@@ -51,14 +51,15 @@ export function renderHelp(root: Command, path: string[], command: Command): str
   const isRoot = path.length === 0;
   const title = isRoot
     ? `${color.strong(manifest.title)} ${color.dim(`v${manifest.version}`)}\n${manifest.description}`
-    : `${color.strong([manifest.bin, ...path].join(" "))}\n${command.description}`;
+    : `${color.strong([commandPrefix(path), ...path].join(" "))}\n${command.description}`;
 
   const usage = blocks(
     section("Usage"),
     `  ${usageLine(path, command)}` +
       (isRoot
         ? `\n  ${manifest.bin}                      ${color.dim("opens the TUI (no arguments, interactive terminal)")}` +
-          `\n  ${manifest.bin} mcp                  ${color.dim("starts the MCP server over stdio")}`
+          `\n  ${manifest.bin} mcp                  ${color.dim("starts the MCP server over stdio")}
+  ${manifest.bin} edition set <edition> ${color.dim("saves the default edition for this user")}`
         : ""),
   );
 
@@ -97,7 +98,7 @@ export function renderHelp(root: Command, path: string[], command: Command): str
   );
 
   const examples = command.examples?.length
-    ? blocks(section("Examples"), command.examples.map((e) => `  ${color.code(e)}`).join("\n"))
+    ? blocks(section("Examples"), command.examples.map((e) => `  ${color.code(qualifyExample(e, path))}`).join("\n"))
     : undefined;
 
   const codes = blocks(section("Exit codes"), isRoot ? exitCodeTable() : exitCodeTable(command.exitCodes ?? []));
@@ -105,7 +106,7 @@ export function renderHelp(root: Command, path: string[], command: Command): str
   const footer = isRoot
     ? color.dim(
         `User data lives in ~/.${manifest.bin}/ (settings.json and credentials.json). ` +
-          `Use "${manifest.bin} --skill" for the full embedded documentation.`,
+          `Use "${manifest.bin} ${manifest.edition} --skill" for the full embedded documentation.`,
       )
     : color.dim(`See "${manifest.bin} --help" for the other commands.`);
 

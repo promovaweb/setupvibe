@@ -1,9 +1,7 @@
 # Configuration and credentials
 
 Everything `{{bin}}` persists lives in `~/.setupvibe/`. The folder is created
-with 0700, and the data files are written with 0600. `setupvibe` and
-`setupvibe-server` share the folder and the `SETUPVIBE_` prefix, because only
-one of them is installed on a machine.
+with 0700, and the data files are written with 0600. All editions share the data directory and the `SETUPVIBE_` prefix.
 
 ## Files in `~/.setupvibe/`
 
@@ -12,6 +10,7 @@ one of them is installed on a machine.
 | `settings.json` | preferences in plain text, keys in dot notation | `config set`, `config unset`, the TUI when you change language, theme, mouse or icons |
 | `credentials.json` | AES-256-GCM envelope with the secrets | `credentials set`, `credentials remove`, `credentials clear`, `credentials rotate-key` |
 | `master.key` | 32 bytes in hexadecimal, created on the first vault write | `credentials set` and `credentials rotate-key` |
+| `edition.json` | edition saved for this user | `setupvibe edition set`, TUI edition menu |
 | `config.json` | user, detected system, `init` record, Git identity, release channel, `network` and `migratedFromV1` | `init`, `auto`, `user create`, `migrate`; `self uninstall` deletes it |
 | `selection.json` | chosen items, installed version and the status of the last check | `install`, `remove`, `update`, `auto`, `init` |
 | `external.json` | apps installed through mise outside the inventory | `install --external`, `remove --external` |
@@ -282,7 +281,7 @@ environment and the log replaces the value with `***`.
 
 ### Server answers
 
-`setupvibe-server` reads the same variables plus four, described in its own
+Server reads the same variables plus four, described in its own
 documentation: `SETUPVIBE_SWARM_MANAGER`, `SETUPVIBE_SWARM_TOKEN`,
 `SETUPVIBE_SWARM_ADVERTISE_ADDR` and `SETUPVIBE_SWARM_ENCRYPTED`.
 

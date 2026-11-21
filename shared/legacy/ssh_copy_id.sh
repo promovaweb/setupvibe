@@ -19,6 +19,9 @@ done
 bin=$(command -v setupvibe || command -v setupvibe-server || true)
 [ -n "$bin" ] || { echo "ssh_copy_id: setupvibe is not installed" >&2; exit 127; }
 set -- ssh copy-id "$user@$host"
+if [ "${bin##*/}" = setupvibe ]; then
+  set -- @EDITION@ "$@"
+fi
 [ -n "$key" ] && set -- "$@" --key "$key"
 [ -n "$port" ] && set -- "$@" --port "$port"
 if [ -n "$pass" ]; then

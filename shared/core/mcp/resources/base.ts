@@ -4,6 +4,8 @@
  * same client.
  */
 import { ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { withEdition } from "../../app/edition.ts";
+import { mcpEdition } from "../../../mcp/tools.ts";
 import { manifest } from "../../app/manifest.ts";
 import { exitCodeDescriptions } from "../../app/exit-codes.ts";
 import { aboutData } from "../../cli/commands/about.ts";
@@ -11,7 +13,7 @@ import { root } from "../../cli/commands.ts";
 import { SKILL_TOPICS, skillText } from "../../skill/index.ts";
 import type { Registrar } from "../server.ts";
 
-export function registerResources({ server, catalog }: Registrar): void {
+export function registerResources({ server, catalog, defaultEdition }: Registrar): void {
   const scheme = manifest.bin;
 
   catalog.resources.push({ uri: `${scheme}://about`, name: "about", description: "Binary identity and runtime as JSON." });
@@ -19,7 +21,7 @@ export function registerResources({ server, catalog }: Registrar): void {
     "about",
     `${scheme}://about`,
     { title: "About the binary", description: "Identity and runtime as JSON.", mimeType: "application/json" },
-    async (uri) => ({ contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify(aboutData(), null, 2) }] }),
+    async (uri) => ({ contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify(withEdition(mcpEdition(undefined, defaultEdition), aboutData), null, 2) }] }),
   );
 
   catalog.resources.push({ uri: `${scheme}://exit-codes`, name: "exit-codes", description: "Exit-code table as JSON." });
@@ -37,7 +39,7 @@ export function registerResources({ server, catalog }: Registrar): void {
     "skill",
     `${scheme}://skill`,
     { title: "Full documentation", description: "All the embedded documentation in Markdown.", mimeType: "text/markdown" },
-    async (uri) => ({ contents: [{ uri: uri.href, mimeType: "text/markdown", text: skillText(root) }] }),
+    async (uri) => ({ contents: [{ uri: uri.href, mimeType: "text/markdown", text: withEdition(mcpEdition(undefined, defaultEdition), () => skillText(root)) }] }),
   );
 
   catalog.resources.push({
@@ -59,7 +61,7 @@ export function registerResources({ server, catalog }: Registrar): void {
     }),
     { title: "Documentation section", description: "One section of the embedded documentation.", mimeType: "text/markdown" },
     async (uri, { topic }) => ({
-      contents: [{ uri: uri.href, mimeType: "text/markdown", text: skillText(root, String(topic)) }],
+      contents: [{ uri: uri.href, mimeType: "text/markdown", text: withEdition(mcpEdition(undefined, defaultEdition), () => skillText(root, String(topic))) }],
     }),
   );
 }

@@ -20,6 +20,7 @@
  *   file so Omarchy's configuration stays untouched;
  * - tmux: the SetupVibe settings and TPM, then ~/.tmux.conf.local.
  */
+import type { EditionId } from "../core/app/edition.ts";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "../system/home.ts";
 import { dirname, join, basename } from "node:path";
@@ -82,7 +83,6 @@ export function bashBlock(home: string, bin = "setupvibe"): string {
   return [
     "# Managed by SetupVibe. Personal settings go in ~/.bashrc.local.",
     'export PATH="$HOME/.local/bin:$PATH"',
-    `export STARSHIP_CONFIG="${join(home, ".config", "setupvibe", "starship.toml")}"`,
     `command -v ${bin} >/dev/null && source <(${bin} completion bash)`,
     `[ -f "${join(home, ".setupvibe", "shell", "aliases.sh")}" ] && source "${join(home, ".setupvibe", "shell", "aliases.sh")}"`,
     `[ -f "${join(home, ".setupvibe", "shell", "aliases-agents.sh")}" ] && source "${join(home, ".setupvibe", "shell", "aliases-agents.sh")}"`,
@@ -100,7 +100,7 @@ export function tmuxBlock(home: string): string {
  * loads ~/.tmux.conf.local before TPM and restores the bindings plugins
  * override after it.
  */
-export function tmuxSettings(edition: "desktop" | "server"): string {
+export function tmuxSettings(edition: EditionId): string {
   return edition === "server" ? tmuxServer : tmuxDesktop;
 }
 
@@ -149,10 +149,10 @@ export function skippedAliases(which: (name: string) => string | null = (n) => B
 }
 
 /** Files SetupVibe owns and replaces on every apply. */
-export function managedFiles(home: string, edition: "desktop" | "server", agentAliasesOn: boolean): Record<string, string> {
+export function managedFiles(home: string, edition: EditionId, agentAliasesOn: boolean): Record<string, string> {
   const files: Record<string, string> = {
-    [join(home, ".setupvibe", "shell", "aliases.sh")]: aliases,
-    [join(home, ".setupvibe", "shell", "tmux.conf")]: tmuxSettings(edition),
+    [join(home, ".setupvibe", "shell", "aliases.sh")]: aliases.replace('setupvibe ssh copy-id', `setupvibe ${edition} ssh copy-id`),
+    ...(edition === "omarchy" ? {} : { [join(home, ".setupvibe", "shell", "tmux.conf")]: tmuxSettings(edition) }),
   };
   if (agentAliasesOn) files[join(home, ".setupvibe", "shell", "aliases-agents.sh")] = agentAliases;
   return files;
@@ -193,7 +193,7 @@ export function dropBlock(path: string): boolean {
 
 export interface ShellOptions {
   system: System;
-  edition: "desktop" | "server";
+  edition: EditionId;
   user: string;
   home?: string;
   /** Load the agent aliases (cco, cxo, oco, plus the old cx and oc). */
@@ -224,14 +224,14 @@ export function shellSteps(o: ShellOptions): Step[] {
       }
       const agents = join(home, ".setupvibe", "shell", "aliases-agents.sh");
       if (!(o.agentAliases ?? true) && existsSync(agents)) writeFileSync(agents, "");
-      for (const local of [omarchy ? ".bashrc.local" : ".zshrc.local", ...(o.tmux ? [".tmux.conf.local"] : [])]) {
+      for (const local of [omarchy ? ".bashrc.local" : ".zshrc.local", ...(o.tmux && !omarchy ? [".tmux.conf.local"] : [])]) {
         const p = join(home, local);
         if (!existsSync(p)) writeFileSync(p, `# Personal settings. SetupVibe never overwrites this file.\n`);
       }
     },
   });
-  if (o.starship) {
-    const target = omarchy ? join(home, ".config", "setupvibe", "starship.toml") : join(home, ".config", "starship.toml");
+  if (o.starship && !omarchy) {
+    const target = join(home, ".config", "starship.toml");
     steps.push({
       id: "starship-preset",
       description: `Starship gruvbox-rainbow preset in ${target}`,

@@ -129,7 +129,7 @@ function scrollBox(renderer: CliRenderer, theme: Theme): ScrollBoxRenderable {
 
 /** Runs the CLI in a subprocess and returns its exit code and stdout. */
 async function runCli(args: string[]): Promise<{ code: number; out: string }> {
-  const proc = Bun.spawn([...selfArgv(), ...args], { stdin: "ignore", stdout: "pipe", stderr: "pipe" });
+  const proc = Bun.spawn([...selfArgv(), manifest.edition, ...args], { stdin: "ignore", stdout: "pipe", stderr: "pipe" });
   const out = await new Response(proc.stdout).text();
   return { code: await proc.exited, out };
 }
@@ -310,7 +310,7 @@ export const inventoryScreen: Screen = (() => {
       marked.clear();
       load();
       if (code === 0) say(`✓ ${tr("inv.done", { verb: verbText, ids: ids.join(", ") })}`, "ok");
-      else if (code === 13) say(`✗ ${tr("inv.sudo", { cmd: `${manifest.bin} ${base.join(" ")}` })}`, "error");
+      else if (code === 13) say(`✗ ${tr("inv.sudo", { cmd: `${manifest.bin} ${manifest.edition} ${base.join(" ")}` })}`, "error");
       else say(`✗ ${tr("inv.failed", { verb: verbText, code })}`, "error");
     });
   };
@@ -662,7 +662,7 @@ export const userScreen: Screen = (() => {
         const strong = fg(theme.textStrong);
         const k = (key: TextKey) => dim(fit(tr(key), 11));
         whoText.content = t`${k("user.user")}${strong(userName(config))}\n${k("user.edition")}${strong(manifest.edition)}\n${k("user.system")}${strong(detected.name)}\n${k("user.variant")}${strong(variantText(detected.variant))}\n${k("user.data")}${strong("~/.setupvibe")}`;
-        createText.content = t`${dim(tr("user.create"))}\n${fg(theme.accent)(`${manifest.bin} user create <${tuiLanguage() === "pt-BR" ? "nome" : "name"}>`)}`;
+        createText.content = t`${dim(tr("user.create"))}\n${fg(theme.accent)(`${manifest.bin} ${manifest.edition} user create <${tuiLanguage() === "pt-BR" ? "nome" : "name"}>`)}`;
 
         clear(checksBody);
         const agentAliases = agentAliasesEnabled(config);

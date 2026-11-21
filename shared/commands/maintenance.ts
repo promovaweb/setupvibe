@@ -11,7 +11,7 @@
  * - `self uninstall --yes [--keep-data] [--items]`: removes SetupVibe;
  * - `ssh copy-id <user@host>`: installs a public key on a remote server.
  */
-import { chmodSync, existsSync, mkdtempSync, readFileSync, renameSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { homedir } from "../system/home.ts";
 import { currentUser } from "../system/user.ts";
@@ -39,6 +39,7 @@ import { findAgent } from "./mcp-install.ts";
 import { rebootRequired, selfArgv } from "./auto.ts";
 import { detectV1Here, migrateSteps } from "../legacy/v1.ts";
 import { windowsHealth, windowsHealthFinding, windowsRepairSteps } from "../ops/windows-health.ts";
+import { CONFIRM_SECURITY_OPTION } from "./security.ts";
 import { DRY_RUN_OPTION, executePlan } from "./execute.ts";
 import { installItemsFor } from "./inventory.ts";
 import { removePlan, type ExternalApp, type SelectedItem } from "../ops/inventory-ops.ts";
@@ -81,7 +82,6 @@ export function machineFindings(): Finding[] {
     selection: c.selection,
     rcHasBlock: existsSync(rc) && hasBlock(readFileSync(rc, "utf8")),
     variant: c.detected.variant,
-    otherEdition: Bun.which(manifest.edition === "desktop" ? "setupvibe-server" : "setupvibe") ?? undefined,
     // Only matters where the machine is reachable from outside; Docker publishes past UFW.
     exposedContainers: c.detected.variant === "local" ? [] : exposedContainers(),
     rebootPending: rebootRequired(),
@@ -148,7 +148,7 @@ export const doctorCommand: Command = {
       if (findings.some((f) => f.id === "shell" && f.level !== "ok") && c.detected.system) {
         // SetupVibe 1 files are converted first, so the new block does not pile on the old file.
         const legacy = detectV1Here(homedir());
-        if (legacy.found) steps.push(...migrateSteps({ home: homedir(), detection: { ...legacy, sshCopyId: false } }));
+        if (manifest.edition !== "omarchy" && legacy.found) steps.push(...migrateSteps({ home: homedir(), detection: { ...legacy, sshCopyId: false } }));
         steps.push(...shellSteps({ system: c.detected.system, edition: manifest.edition, bin: manifest.bin, user: currentUser().username, zsh: Boolean(Bun.which("zsh")), tmux: Boolean(Bun.which("tmux")), starship: Boolean(findAgent("starship")), agentAliases: agentAliasesEnabled(c.config) }));
       }
       const results = await runSteps(steps, realRunner());
@@ -209,7 +209,7 @@ const importCommand: Command = {
   name: "import",
   description: "Install the items and Git identity of an answers file exported from another machine.",
   arguments: [{ name: "file", description: "Answers file from config export.", required: true }],
-  options: [DRY_RUN_OPTION],
+  options: [DRY_RUN_OPTION, CONFIRM_SECURITY_OPTION],
   exitCodes: [ExitCode.PARTIAL, ExitCode.CONFIG],
   examples: [`${manifest.bin} config import setupvibe.json --dry-run`],
   run: async (ctx) => {
@@ -220,7 +220,7 @@ const importCommand: Command = {
       return { code: ExitCode.USAGE, data: { error: String(e) }, text: `✗ ${(e as Error).message}` };
     }
     const result = await installItemsFor(ctx, file.only ?? []);
-    if (!ctx.options["dry-run"] && (file.git?.name || file.git?.email)) {
+    if (!result.code && !ctx.options["dry-run"] && (file.git?.name || file.git?.email)) {
       const steps: Step[] = [{ id: "git-identity", description: "Set the Git name and e-mail", commands: [...(file.git?.name ? [{ argv: ["git", "config", "--global", "user.name", file.git.name] }] : []), ...(file.git?.email ? [{ argv: ["git", "config", "--global", "user.email", file.git.email] }] : [])] }];
       await runSteps(steps, realRunner());
     }
@@ -337,7 +337,15 @@ const uninstallCommand: Command = {
   run: async (ctx) => {
     const c = context();
     const user = currentUser().username;
-    const binaries = [join(homedir(), ".local", "bin", manifest.bin), `/usr/local/bin/${manifest.bin}`].filter((p) => existsSync(p));
+    const binaries = [join(homedir(), ".local", "bin", manifest.bin), `/usr/local/bin/${manifest.bin}`].filter((path) => existsSync(path));
+    for (const path of [...binaries]) {
+      const link = join(dirname(path), "setupvibe-server");
+      try {
+        if (realpathSync(link) === realpathSync(path)) binaries.unshift(link);
+      } catch {
+        // No compatibility link for this installation.
+      }
+    }
     const steps: Step[] = [];
     if (ctx.options.items && c.detected.system) steps.push(...removePlan(c.inventory.items.filter((i) => c.selection.some((s) => s.id === i.id)), c.detected.system).steps);
     steps.push(...shellRemoveSteps());

@@ -8,6 +8,7 @@
  *
  * Spec sections 9, 12 and 18.
  */
+import type { EditionId } from "../core/app/edition.ts";
 import { readFileSync } from "node:fs";
 import { homedir } from "../system/home.ts";
 import { join } from "node:path";
@@ -25,7 +26,7 @@ import type { Selection } from "./selection.ts";
 
 export interface AutoContext {
   inventory: Inventory;
-  edition: "desktop" | "server";
+  edition: EditionId;
   system: System;
   arch: string;
   distro?: DistroInfo;
@@ -56,7 +57,8 @@ export interface AutoPlan {
 }
 
 /** True when the security module applies (spec sections 12 and 18). */
-export function securityApplies(edition: "desktop" | "server", variant: AutoContext["variant"], selection: Selection): boolean {
+export function securityApplies(edition: EditionId, variant: AutoContext["variant"], selection: Selection): boolean {
+  if (edition === "omarchy") return false;
   if (edition === "server") return true;
   if (variant === "remote-exposed") return true;
   return selection.items.some((i) => i.securityModule);
@@ -229,7 +231,7 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
     });
   }
 
-  if (ctx.selection.items.some((i) => resolveInstall(i, ctx.system)?.method === "mise")) {
+  if (ctx.edition !== "omarchy" && ctx.selection.items.some((i) => resolveInstall(i, ctx.system)?.method === "mise")) {
     steps.push({
       id: "mise-lock",
       description: `Record the checksums of the mise tools for ${misePlatform(ctx.system, ctx.arch)} in ~/.config/mise/mise.lock`,
@@ -245,9 +247,9 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
   if (ctx.shell !== false && ctx.system !== "windows") {
     // A SetupVibe 1 .zshrc or .tmux.conf is converted first (backup, personal lines to .local),
     // so the new block never lands on top of the old file.
-    if (ctx.legacy?.found) steps.push(...migrateSteps({ home, detection: { ...ctx.legacy, sshCopyId: false } }));
+    if (ctx.edition !== "omarchy" && ctx.legacy?.found) steps.push(...migrateSteps({ home, detection: { ...ctx.legacy, sshCopyId: false } }));
     const has = (id: string) => ctx.selection.items.some((i) => i.id === id) || resolveInstall(ctx.inventory.items.find((i) => i.id === id) ?? ({ install: {} } as Item), ctx.system)?.method === "preinstalled";
-    steps.push(...shellSteps({ system: ctx.system, edition: ctx.edition, bin: ctx.edition === "server" ? "setupvibe-server" : "setupvibe", user: ctx.user, home, agentAliases: ctx.agentAliases ?? true, zsh: has("zsh"), tmux: has("tmux") && has("tpm"), starship: has("starship") }));
+    steps.push(...shellSteps({ system: ctx.system, edition: ctx.edition, bin: "setupvibe", user: ctx.user, home, agentAliases: ctx.agentAliases ?? true, zsh: has("zsh"), tmux: has("tmux") && has("tpm"), starship: has("starship") }));
   }
 
   const security = securityApplies(ctx.edition, ctx.variant, ctx.selection);
@@ -307,7 +309,7 @@ export function autoPlan(ctx: AutoContext): AutoPlan {
  * live-restore on the desktop only, because dockerd refuses live-restore in
  * Swarm mode. An existing daemon.json is merged, not replaced.
  */
-export function daemonSettings(edition: "desktop" | "server", current: Record<string, unknown> = {}, variant: AutoContext["variant"] = "local"): Record<string, unknown> {
+export function daemonSettings(edition: EditionId, current: Record<string, unknown> = {}, variant: AutoContext["variant"] = "local"): Record<string, unknown> {
   return {
     ...current,
     // A desktop reachable from outside publishes container ports on 127.0.0.1
@@ -319,7 +321,7 @@ export function daemonSettings(edition: "desktop" | "server", current: Record<st
   };
 }
 
-function dockerDaemonStep(edition: "desktop" | "server", variant: AutoContext["variant"]): Step {
+function dockerDaemonStep(edition: EditionId, variant: AutoContext["variant"]): Step {
   const file = "/etc/docker/daemon.json";
   return {
     id: "docker-daemon",

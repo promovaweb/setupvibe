@@ -10,12 +10,14 @@
 import { describe, expect, test } from "bun:test";
 import schema from "../inventory.schema.json";
 import desktop from "../../desktop/inventory.json";
+import omarchy from "../../omarchy/inventory.json";
 import server from "../../server/inventory.json";
 import { flagsFor, installKeysFor, profileItems, resolveInstall, type Inventory, type Item } from "../inventory";
 
 const inventories: [string, Inventory][] = [
   ["desktop", desktop as Inventory],
   ["server", server as Inventory],
+  ["omarchy", omarchy as Inventory],
 ];
 
 const itemKeys = new Set(Object.keys(schema.$defs.item.properties));

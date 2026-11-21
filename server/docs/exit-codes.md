@@ -17,16 +17,17 @@ devem tratar o code antes de interpretar a mensagem.
 | 9 | `MCP` | `mcp`, quando o servidor não inicia ou perde o transporte stdio | confira a configuração do cliente MCP e o stderr do servidor |
 | 10 | `PARTIAL` | `init`, `auto`, `install`, `remove`, `update`, `check`, `shell apply`, `shell remove`, `migrate`, `self uninstall`, `user create`, `user nopasswd`, `security apply`, `security remove`, `config import`, `mcp install`, `doctor --repair-windows` quando parte dos passos falhou e o resto ficou aplicado | leia o log da execução; a mensagem final traz o caminho |
 | 11 | `UNSUPPORTED_SYSTEM` | `system`, `init`, `auto`, `list`, `install`, `remove`, `update`, `check`, `shell apply`, `migrate`, `user create`, `security apply`; `upgrade` quando não existe binário para a plataforma | confira `{{bin}} system`; a edição ou a arquitetura não tem suporte |
-| 12 | `ROOT` | `init` e `auto` quando rodam como root sem `--user` | crie o usuário com `{{bin}} user create <nome>` ou rode `auto --user <nome>` |
+| 12 | `ROOT` | Desktop ou Omarchy executado como root | rode como usuário comum |
 | 13 | `SUDO_PASSWORD` | `auto` e `migrate` quando o `sudo` pede senha e não há terminal | rode no terminal, ou crie a regra com `{{bin}} user nopasswd <nome>` |
 | 14 | `DISK_SPACE` | `init` e `auto` quando a pasta do usuário tem menos de 10 GB livres no desktop ou 5 GB no servidor | libere espaço e rode de novo |
+| 15 | `EDITION_REQUIRED` | edição ausente no comando e no estado | passe `desktop`, `server` ou `omarchy`, ou use `setupvibe edition set` |
 | 20 | `REBOOT_PENDING` | `auto` quando existe reinício pendente e `--reboot` não foi passado | reinicie e rode `auto` de novo, ou passe `--reboot` |
 | 30 | `LOCKED` | `auto` quando outra execução segura `~/.setupvibe/run.lock` | espere a outra execução terminar; confira o PID do lock |
 | 130 | `INTERRUPTED` | qualquer command interrompido com Ctrl+C; `remove`, `self uninstall` e `credentials` quando você recusa a confirmação | nada foi concluído; rode de novo quando quiser |
 
 A fonte única é `shared/core/app/exit-codes.ts`. Ela alimenta a seção de exit
 codes de cada `--help`, o `--opencli`, a tool MCP `exit_codes` e a resource
-`{{bin}}://exit-codes`.
+`setupvibe://exit-codes`.
 
 ## Por command
 

@@ -25,7 +25,7 @@ linha de `PATH` do `zshrc-server`, que entra no `~/.zshrc` de um servidor.
 Três superfícies mostram o resultado:
 
 ```bash
-{{bin}} system                 # SetupVibe 1   found (server): run setupvibe-server migrate --dry-run
+{{bin}} system                 # SetupVibe 1   found (server): run setupvibe server migrate --dry-run
 {{bin}} doctor                 # ! SetupVibe 1 found: ~/.zshrc from SetupVibe 1; ...
 {{bin}}                        # o cartão Doctor e o próximo passo no Início
 ```

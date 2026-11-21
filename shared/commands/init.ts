@@ -22,7 +22,6 @@ import { ensureStateDirs, readState, writeState } from "../state/store.ts";
 import { initPlan, type InitRecord } from "../init/plan.ts";
 import {
   checkDisk,
-  checkEdition,
   checkLocale,
   checkMemory,
   checkNetworkAndClock,
@@ -58,8 +57,7 @@ export const initCommand: Command = {
     }
     const config = readState<Record<string, unknown>>("config.json", {});
     const checks: RequirementCheck[] = [
-      checkRoot(isRoot(), false),
-      checkEdition(config.edition as string | undefined, manifest.edition),
+      checkRoot(isRoot(), manifest.edition === "server"),
       checkDisk(freeDiskGb(), manifest.edition),
       checkMemory(totalMemoryGb()),
       checkLocale(process.env),

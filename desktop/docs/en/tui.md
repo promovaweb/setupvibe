@@ -1,5 +1,11 @@
 # TUI
 
+Open `setupvibe` in an interactive terminal. On first launch, the
+menu suggests Omarchy when it finds `/usr/share/omarchy`, Desktop with a
+graphical session, or Server on headless Linux. Use the arrows and press
+Enter to save. On later launches, the saved edition appears in the header.
+Press `E` or click the edition to change the preference.
+
 The terminal interface opens with `{{bin}}` without arguments or with
 `{{bin}} tui`. It requires stdin and stdout in a TTY; outside one the process
 exits with code 8.

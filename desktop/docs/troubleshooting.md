@@ -392,22 +392,13 @@ command `tui` exige stdin e stdout em TTY e devolve 8 fora disso.
 **Exit code.** 2 (`USAGE`) para o binário sem argumentos num pipe; 8
 (`NO_TTY`) para `tui`.
 
-## Duas edições na mesma máquina
+## Edição ausente ou incompatível
 
-**Sintoma.** `✗ the desktop edition is already set up on this machine`, ou o
-`doctor` avisa que as duas edições estão instaladas.
-
-**Causa.** `setupvibe` e `setupvibe-server` compartilham `~/.setupvibe/` e o
-prefixo `SETUPVIBE_`. Só uma edição pode ficar instalada por máquina.
-
-**Comando.** Remova a edição que não vai ficar, mantendo os dados se precisar:
-
-```bash
-setupvibe self uninstall --yes --keep-data
-setupvibe-server init
-```
-
-**Exit code.** 2 (`USAGE`) no `init` e no `auto` da edição que não pode rodar.
+Execute `setupvibe <edition> <command>` para escolher a edição naquela
+execução. Sem o prefixo, o CLI usa a edição salva e a informa em stderr.
+Sem edição explícita ou salva, os comandos da edição saem com código 15
+(`EDITION_REQUIRED`). Rode `setupvibe edition set <edition>` para gravar a
+escolha. Na TUI, use `E` para abrir o menu de edições. Omarchy exige Omarchy e Server exige Linux.
 
 ## PATH e bloco do shell
 

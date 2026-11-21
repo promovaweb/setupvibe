@@ -1,5 +1,18 @@
 # MCP
 
+Pass `edition` to a tool as `desktop`, `server`, or `omarchy`.
+Tools default to the edition saved by the user. To set a default for one
+connection, launch `setupvibe server mcp` or use the desired edition prefix.
+Tools that require an inventory return exit code 15 when no edition is
+available. Inventory and documentation resources use the default edition.
+
+For a real Server `install` or `update` on a graphical Linux system, send
+`confirm_security: true` only after the user approves the security plan.
+
+```json
+{ "name": "check", "arguments": { "edition": "desktop", "items": ["php"] } }
+```
+
 `{{bin}} mcp` turns the process into a Model Context Protocol server over stdio. Nothing beyond the protocol is written to stdout; diagnostics go to stderr. The same executable carries the TUI, the CLI and the MCP server.
 
 The server exposes 20 tools, 6 resources and 1 prompt. Tools that run the CLI return the same envelope as `--json`, so the agent sees what a person would see in the terminal. Tools that change the machine dry run by default; `remove` and `migrate` also require `confirm: true`.
@@ -19,18 +32,18 @@ Before suggesting a command, read `skill` with the `cli` topic. Before calling a
 ## Client configuration
 
 ```json
-{ "mcpServers": { "{{bin}}": { "command": "{{bin}}", "args": ["mcp"] } } }
+{ "mcpServers": { "setupvibe": { "command": "setupvibe", "args": ["mcp"] } } }
 ```
 
 In OpenCode the block lives in the application configuration:
 
 ```json
-{ "mcp": { "{{bin}}": { "type": "local", "command": ["{{bin}}", "mcp"], "enabled": true } } }
+{ "mcp": { "setupvibe": { "type": "local", "command": ["setupvibe", "mcp"], "enabled": true } } }
 ```
 
 `{{bin}} mcp install` registers the server in Claude Code (`claude mcp add --scope user`), in Codex (`codex mcp add`) and in OpenCode (the `mcp` block of `~/.config/opencode/opencode.json`, with a backup). An agent that is not installed is left out, and running it again does not change what is already configured.
 
-For development without compiling, use `bun` with the edition entry point instead of the binary.
+For development without compiling, use `bun` with the `main.ts` entry point instead of the binary.
 
 ## List without starting
 
@@ -82,7 +95,7 @@ None. The tool takes no argument.
 
 **Examples.**
 
-- **Confirm the edition:** `about {}` returns `bin: "{{bin}}"` and the session `dataDir`, showing which binary serves the call.
+- **Confirm the edition:** `about {}` returns `bin: "setupvibe"` and the session `dataDir`, showing which binary serves the call.
 - **Check the version:** `about {}` returns `version`, useful before suggesting a flag that only exists in the new release.
 - **See the platform:** `about {}` returns `platform: "linux-x64"`, which explains why an item shows in `list` and another does not.
 - **Check the data folder:** `about {}` returns the effective `dataDir`, including when the session runs with `SETUPVIBE_HOME` pointing elsewhere.
@@ -542,7 +555,7 @@ None. The tool takes no argument.
 
 Resources are passive reads, with no argument beyond the URI. The `<bin>://` scheme avoids a collision with other servers in the same client.
 
-### Resource `{{bin}}://inventory`
+### Resource `setupvibe://inventory`
 
 **Purpose.** Returns the edition inventory as JSON: the same record the binary uses to install, verify and list.
 
@@ -558,13 +571,13 @@ No parameter beyond the URI.
 
 **Examples.**
 
-- **Find ids:** read `{{bin}}://inventory` before building `install` or `remove`.
+- **Find ids:** read `setupvibe://inventory` before building `install` or `remove`.
 - **Check the pinned version:** find the item and read `version` and `versionPolicy`.
 - **See the profiles:** `profiles` carries the edition profiles, such as `essencial`, with the item list of each one.
 - **Check the method:** `install` shows the method per system, such as `mise`, `native` or `installer`.
 - **Audit an item:** `verify` shows the command and the expected value used by `check`.
 
-### Resource `{{bin}}://selection`
+### Resource `setupvibe://selection`
 
 **Purpose.** Returns the `selection.json` of this machine: the chosen items, the installed version and the status of the last check.
 
@@ -580,13 +593,13 @@ No parameter beyond the URI.
 
 **Examples.**
 
-- **See what was chosen:** read `{{bin}}://selection` before suggesting `update`.
+- **See what was chosen:** read `setupvibe://selection` before suggesting `update`.
 - **Find an adopted item:** `adopted: true` marks an item `init` found on the machine.
 - **See check failures:** `status: "fail"` marks the item that needs `install --force` in the CLI.
 - **Check the installed version:** compare `version` with the inventory to find what is off.
 - **New machine:** the resource returns `items: []` before the first `init`.
 
-### Resource `{{bin}}://about`
+### Resource `setupvibe://about`
 
 **Purpose.** Returns the binary identity and runtime as JSON, the same as the `about` tool.
 
@@ -602,13 +615,13 @@ No parameter beyond the URI.
 
 **Examples.**
 
-- **Check the version:** read `{{bin}}://about` before quoting a new behavior.
+- **Check the version:** read `setupvibe://about` before quoting a new behavior.
 - **Check the edition:** `bin` and `title` show whether the session is desktop or server.
 - **Check the folder:** `dataDir` shows the effective data folder.
 - **Collect credits:** `credits` brings the name, role and URL of each project.
 - **Check the platform:** `platform` shows the system and architecture of the process.
 
-### Resource `{{bin}}://exit-codes`
+### Resource `setupvibe://exit-codes`
 
 **Purpose.** Returns the exit-code table as JSON, the same as the `exit_codes` tool.
 
@@ -624,13 +637,13 @@ No parameter beyond the URI.
 
 **Examples.**
 
-- **Build the handling:** read `{{bin}}://exit-codes` to map the codes in the agent.
+- **Build the handling:** read `setupvibe://exit-codes` to map the codes in the agent.
 - **Explain 10:** confirm `PARTIAL` and the message before answering the person.
 - **Explain 13:** confirm `SUDO_PASSWORD` and the passwordless rule.
 - **Explain 30:** confirm `LOCKED` and the run lock.
 - **Explain 130:** confirm `INTERRUPTED` and that nothing was completed.
 
-### Resource `{{bin}}://skill`
+### Resource `setupvibe://skill`
 
 **Purpose.** Returns all the embedded documentation as Markdown, like `{{bin}} --skill` without a topic.
 
@@ -646,13 +659,13 @@ No parameter beyond the URI.
 
 **Examples.**
 
-- **Read everything before operating:** read `{{bin}}://skill` in a session with no prior knowledge.
+- **Read everything before operating:** read `setupvibe://skill` in a session with no prior knowledge.
 - **Check the documentation of a version:** the text comes from the running binary, not from the repository.
 - **Prepare a new agent:** hand the Markdown over as the starting instruction.
 - **Audit the embedded doc:** compare the Markdown with the files in `docs/`.
-- **Avoid when context is short:** prefer `{{bin}}://skill/cli` for a CLI task.
+- **Avoid when context is short:** prefer `setupvibe://skill/cli` for a CLI task.
 
-### Resource `{{bin}}://skill/{topic}`
+### Resource `setupvibe://skill/{topic}`
 
 **Purpose.** Returns one section of the embedded documentation.
 
@@ -670,11 +683,11 @@ No parameter beyond the URI.
 
 **Examples.**
 
-- **Learn the CLI:** read `{{bin}}://skill/cli` before suggesting a command.
-- **Check keys:** read `{{bin}}://skill/tui` to guide someone in the TUI.
-- **Solve a failure:** read `{{bin}}://skill/troubleshooting`.
-- **Migrate a machine:** read `{{bin}}://skill/migration` before calling `migrate`.
-- **Find items:** read `{{bin}}://skill/inventory` for one table per category.
+- **Learn the CLI:** read `setupvibe://skill/cli` before suggesting a command.
+- **Check keys:** read `setupvibe://skill/tui` to guide someone in the TUI.
+- **Solve a failure:** read `setupvibe://skill/troubleshooting`.
+- **Migrate a machine:** read `setupvibe://skill/migration` before calling `migrate`.
+- **Find items:** read `setupvibe://skill/inventory` for one table per category.
 
 ## Prompts
 

@@ -1,3 +1,4 @@
+import omarchyJson from "../../omarchy/inventory.json";
 /** list, install, remove and update operations (spec sections 5, 6 and 8). */
 import "../../desktop/src/edition.ts";
 import { describe, expect, test } from "bun:test";
@@ -69,13 +70,14 @@ describe("remove plan", () => {
     expect(removePlan([item("docker")], "debian").refused[0]!.reason).toContain("--include-native");
     const native = removePlan([item("docker")], "debian", { includeNative: true });
     expect(describeCmd(native.steps[0]!.commands[0]!)).toStartWith("sudo apt-get remove -y docker-ce");
-    expect(describeCmd(removePlan([item("tmux")], "arch", { includeNative: true }).steps[0]!.commands[0]!)).toBe("sudo pacman -Rns --noconfirm tmux");
+    const sshpass = (omarchyJson as Inventory).items.find((i) => i.id === "sshpass")!;
+    expect(removePlan([sshpass], "omarchy", { includeNative: true }).refused[0]!.reason).toContain("Omarchy owns");
   });
 
   test("init items, preinstalled items and vendor installers are refused", () => {
-    const plan = removePlan([item("mise"), item("herdr"), item("claude-code")], "omarchy");
+    const plan = removePlan((omarchyJson as Inventory).items.filter((i) => ["mise", "herdr", "claude-code"].includes(i.id)), "omarchy");
     expect(plan.steps).toEqual([]);
-    expect(plan.refused.map((r) => r.id)).toEqual(["mise", "herdr", "claude-code"]);
+    expect(plan.refused.map((r) => r.id)).toEqual(["mise", "claude-code", "herdr"]);
   });
 });
 
@@ -96,7 +98,7 @@ describe("apps outside the inventory", () => {
 
 describe("status", () => {
   test("per system, selection and headless", () => {
-    expect(itemStatus(item("herdr"), "omarchy", false, [])).toBe("system");
+    expect(itemStatus((omarchyJson as Inventory).items.find((i) => i.id === "herdr")!, "omarchy", false, [])).toBe("system");
     expect(itemStatus(item("php"), "windows", false, [])).toBe("unavailable");
     expect(itemStatus(item("mise"), "debian", false, [])).toBe("init");
     expect(itemStatus(item("nerd-fonts"), "debian", true, [])).toBe("gui");

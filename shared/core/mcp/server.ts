@@ -9,6 +9,7 @@
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import type { EditionId } from "../app/edition.ts";
 import { manifest } from "../app/manifest.ts";
 import { error } from "../app/errors.ts";
 import { registerBaseTools } from "./tools/base.ts";
@@ -30,9 +31,10 @@ export interface Catalog {
 export interface Registrar {
   server: McpServer;
   catalog: Catalog;
+  defaultEdition?: EditionId;
 }
 
-function createServer(): Registrar {
+function createServer(defaultEdition?: EditionId): Registrar {
   const server = new McpServer(
     { name: manifest.bin, version: manifest.version },
     {
@@ -43,7 +45,7 @@ function createServer(): Registrar {
     },
   );
   const catalog: Catalog = { name: manifest.bin, version: manifest.version, tools: [], resources: [], prompts: [] };
-  const registrar: Registrar = { server, catalog };
+  const registrar: Registrar = { server, catalog, defaultEdition };
   registerAll(registrar);
   return registrar;
 }
@@ -57,13 +59,13 @@ function registerAll(r: Registrar): void {
 }
 
 /** Describes the server without opening a transport. */
-export function describeServer(): Catalog {
-  return createServer().catalog;
+export function describeServer(defaultEdition?: EditionId): Catalog {
+  return createServer(defaultEdition).catalog;
 }
 
 /** Starts the server on stdio and waits for the transport to close. */
-export async function startStdioServer(): Promise<void> {
-  const { server } = createServer();
+export async function startStdioServer(defaultEdition?: EditionId): Promise<void> {
+  const { server } = createServer(defaultEdition);
   const transport = new StdioServerTransport();
   try {
     await server.connect(transport);

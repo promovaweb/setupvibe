@@ -2,8 +2,7 @@
 
 Tudo que o `{{bin}}` persiste fica em `~/.setupvibe/`. A pasta é criada com
 0700 e os arquivos de dados são gravados com 0600.
-O `setupvibe` e o `setupvibe-server` usam a mesma pasta e o mesmo prefixo
-`SETUPVIBE_`, porque só um deles fica instalado por máquina.
+As edições compartilham a pasta de dados e o prefixo `SETUPVIBE_`.
 
 ## Arquivos em `~/.setupvibe/`
 
@@ -12,6 +11,7 @@ O `setupvibe` e o `setupvibe-server` usam a mesma pasta e o mesmo prefixo
 | `settings.json` | preferências em texto claro; keys em notação de ponto | `config set`, `config unset`, a TUI quando você troca o idioma, o tema, o mouse ou os ícones |
 | `credentials.json` | envelope AES-256-GCM com os segredos | `credentials set`, `credentials remove`, `credentials clear`, `credentials rotate-key` |
 | `master.key` | 32 bytes em hexadecimal, criados na primeira gravação do cofre | `credentials set` e `credentials rotate-key` |
+| `edition.json` | edição salva para o usuário atual | `setupvibe edition set`, menu de edições da TUI |
 | `config.json` | usuário, sistema detectado, registro do `init`, identidade do Git, canal de release, `network` e `migratedFromV1` | `init`, `auto`, `user create`, `migrate`; o `self uninstall` apaga |
 | `selection.json` | itens escolhidos, versão instalada e status do último check | `install`, `remove`, `update`, `auto`, `init` |
 | `external.json` | apps instalados pelo mise fora do inventário | `install --external`, `remove --external` |

@@ -2,9 +2,10 @@
  * Requirements checked before `init` and `auto` change anything.
  *
  * Disk space, memory, network, clock and locale (spec section 17), plus the
- * root rule (section 3) and edition exclusivity (section 1). Each check
+ * root rule (section 3). Each check
  * returns a status and, when it fails, the exit code and the fix.
  */
+import type { EditionId } from "../core/app/edition.ts";
 import { statfsSync } from "node:fs";
 import { totalmem } from "node:os";
 import { homedir } from "../system/home.ts";
@@ -23,12 +24,12 @@ export interface RequirementCheck {
 }
 
 /** Free disk space required in the home folder, in GB (spec section 17). */
-export const MIN_DISK_GB = { desktop: 10, server: 5 } as const;
+export const MIN_DISK_GB = { desktop: 10, server: 5, omarchy: 10 } as const;
 
 /** Memory below which the remoto profile adds swap, in GB. */
 export const LOW_MEMORY_GB = 2;
 
-export function checkDisk(freeGb: number, edition: "desktop" | "server"): RequirementCheck {
+export function checkDisk(freeGb: number, edition: EditionId): RequirementCheck {
   const min = MIN_DISK_GB[edition];
   return freeGb >= min
     ? { name: "disk", status: "ok", detail: `${freeGb.toFixed(1)} GB free (minimum ${min} GB)` }
@@ -60,19 +61,8 @@ export function checkClock(serverDate: Date | undefined, now: Date): Requirement
 export function checkRoot(root: boolean, allowRoot: boolean): RequirementCheck {
   if (!root) return { name: "user", status: "ok", detail: "not root" };
   return allowRoot
-    ? { name: "user", status: "ok", detail: "root, only to create the working user" }
-    : { name: "user", status: "fail", detail: "running as root", code: ExitCode.ROOT, fix: "Create a user first: setupvibe user create <name>, then log in as that user." };
-}
-
-export function checkEdition(installed: string | undefined, running: "desktop" | "server"): RequirementCheck {
-  if (!installed || installed === running) return { name: "edition", status: "ok", detail: running };
-  return {
-    name: "edition",
-    status: "fail",
-    detail: `the ${installed} edition is already set up on this machine`,
-    code: ExitCode.USAGE,
-    fix: "Desktop and server are exclusive; keep the installed edition or run self uninstall first.",
-  };
+    ? { name: "user", status: "ok", detail: "root, allowed by the Server edition" }
+    : { name: "user", status: "fail", detail: "running as root", code: ExitCode.ROOT, fix: "Run as a regular user." };
 }
 
 /** Free space of the home folder in GB. */

@@ -32,7 +32,7 @@ describe("os-release", () => {
     expect(linuxSystemFromOsRelease(osRelease("debian", "12"), plain)).toBe("debian");
     expect(linuxSystemFromOsRelease(osRelease("linuxmint", "22"), plain)).toBe("mint");
     expect(linuxSystemFromOsRelease(osRelease("zorin", "18"), plain)).toBe("zorin");
-    expect(linuxSystemFromOsRelease(osRelease("arch"), plain)).toBe("arch");
+    expect(linuxSystemFromOsRelease(osRelease("arch"), plain)).toBeUndefined();
   });
 
   test("recognizes Omarchy and WSL", () => {
@@ -93,7 +93,7 @@ describe("support rules", () => {
   test("desktop accepts its systems at the minimum versions", () => {
     expect(unsupportedReason("ubuntu", "24.04", "x64", desktopSystems)).toBeUndefined();
     expect(unsupportedReason("debian", "13", "arm64", desktopSystems)).toBeUndefined();
-    expect(unsupportedReason("omarchy", "", "x64", desktopSystems)).toBeUndefined();
+    expect(unsupportedReason("omarchy", "", "x64", desktopSystems)).toBe("omarchy is not supported by this edition.");
     expect(unsupportedReason("windows", "26100", "x64", desktopSystems)).toBeUndefined();
   });
 

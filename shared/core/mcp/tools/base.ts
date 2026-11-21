@@ -8,19 +8,21 @@ import { aboutData } from "../../cli/commands/about.ts";
 import { root } from "../../cli/commands.ts";
 import { exitCodeDescriptions } from "../../app/exit-codes.ts";
 import { SKILL_TOPICS, skillText } from "../../skill/index.ts";
+import { withEdition } from "../../app/edition.ts";
+import { editionInput, mcpEdition } from "../../../mcp/tools.ts";
 import type { Registrar } from "../server.ts";
 
-export function registerBaseTools({ server, catalog }: Registrar): void {
+export function registerBaseTools({ server, catalog, defaultEdition }: Registrar): void {
   catalog.tools.push({ name: "about", description: "Version, executable, runtime, platform and credits of the binary." });
   server.registerTool(
     "about",
     {
       title: "About the binary",
       description: "Returns version, executable path, runtime, platform, data directory and credits.",
-      inputSchema: {},
+      inputSchema: { edition: editionInput },
     },
-    async () => {
-      const d = aboutData();
+    async ({ edition }) => {
+      const d = withEdition(mcpEdition(edition, defaultEdition), aboutData);
       return { content: [{ type: "text", text: JSON.stringify(d, null, 2) }], structuredContent: d };
     },
   );
@@ -31,7 +33,7 @@ export function registerBaseTools({ server, catalog }: Registrar): void {
     {
       title: "Exit codes",
       description: "Lists the CLI exit codes with symbolic name and description. 0 is success.",
-      inputSchema: {},
+      inputSchema: { edition: editionInput },
     },
     async () => {
       const d = { codes: exitCodeDescriptions.map((x) => ({ ...x })) };
@@ -47,8 +49,8 @@ export function registerBaseTools({ server, catalog }: Registrar): void {
       description:
         "Returns the binary documentation in Markdown. Without a topic, returns everything. " +
         `Topics: ${SKILL_TOPICS.join(", ")}. Read "cli" before suggesting commands to the user.`,
-      inputSchema: { topic: z.enum(SKILL_TOPICS).optional().describe("Desired section. Omit for everything.") },
+      inputSchema: { edition: editionInput, topic: z.enum(SKILL_TOPICS).optional().describe("Desired section. Omit for everything.") },
     },
-    async ({ topic }) => ({ content: [{ type: "text", text: skillText(root, topic) }] }),
+    async ({ edition, topic }) => ({ content: [{ type: "text", text: withEdition(mcpEdition(edition, defaultEdition), () => skillText(root, topic)) }] }),
   );
 }

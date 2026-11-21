@@ -395,24 +395,14 @@ agents:
 **Exit code.** 2 (`USAGE`) for the binary without arguments in a pipe; 8
 (`NO_TTY`) for `tui`.
 
-## Two editions on the same machine
+## Missing or incompatible edition
 
-**Symptom.** `✗ the desktop edition is already set up on this machine`, or
-`doctor` warns that both editions are installed.
-
-**Cause.** `setupvibe` and `setupvibe-server` share `~/.setupvibe/` and the
-`SETUPVIBE_` prefix. Only one edition can stay installed on a machine.
-
-**Command.** Remove the edition that will not stay, keeping the data if you need
-it:
-
-```bash
-setupvibe self uninstall --yes --keep-data
-setupvibe-server init
-```
-
-**Exit code.** 2 (`USAGE`) in the `init` and `auto` of the edition that cannot
-run.
+Use `setupvibe <edition> <command>` to choose the edition for that
+invocation. Without an explicit edition, the CLI uses the saved edition
+and reports it on stderr. Edition commands exit with code 15
+(`EDITION_REQUIRED`) if neither is available. Run
+`setupvibe edition set <edition>` to save a choice. In the TUI, press `E` to
+open the edition menu. Omarchy requires Omarchy and Server requires Linux.
 
 ## PATH and the shell block
 

@@ -44,7 +44,7 @@ export function printErrorJson(command: string, e: AppError): void {
 }
 
 /** Runs the CLI and returns the exit code without exiting the process. */
-export async function runCli(argv: readonly string[]): Promise<number> {
+export async function runCli(argv: readonly string[], features: Pick<Context, "chooseEdition" | "mcpEdition"> = {}): Promise<number> {
   let json = argv.includes("--json") || prefersJson();
   let commandName = manifest.bin;
 
@@ -82,6 +82,7 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     }
 
     const ctx: Context = {
+      ...features,
       args,
       options,
       json,

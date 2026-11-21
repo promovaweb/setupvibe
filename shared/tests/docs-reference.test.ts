@@ -20,7 +20,7 @@ import { exitCodeDescriptions } from "../core/app/exit-codes.ts";
 const repo = join(import.meta.dir, "..", "..");
 
 /** Folders of the embedded documentation, one language each. */
-const folders = ["desktop/docs", "desktop/docs/en", "server/docs", "server/docs/en"];
+const folders = ["desktop/docs", "desktop/docs/en", "server/docs", "server/docs/en", "omarchy/docs", "omarchy/docs/en"];
 
 /** Manuals this test owns; `cli.md` and `mcp.md` have their own coverage. */
 const manuals = ["README.md", "configuration.md", "exit-codes.md", "tui.md", "troubleshooting.md", "migration.md"];
@@ -34,7 +34,7 @@ test("every folder publishes the six reference manuals", () => {
   }
 });
 
-test("every settings key appears in the four configuration manuals", () => {
+test("every settings key appears in the configuration manuals", () => {
   for (const folder of folders) {
     const markdown = read(folder, "configuration.md");
     const missing = SETTINGS_SCHEMA.map((def) => def.key).filter((key) => !markdown.includes(`\`${key}\``));
@@ -66,7 +66,7 @@ test("configuration manuals keep five distinct examples of set, get and unset", 
   }
 });
 
-test("every exit code appears with its name in the four tables", () => {
+test("every exit code appears with its name in the exit-code tables", () => {
   for (const folder of folders) {
     const markdown = read(folder, "exit-codes.md");
     const missing = exitCodeDescriptions

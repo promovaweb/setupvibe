@@ -1,27 +1,11 @@
-/**
- * Binary manifest.
- *
- * Single source of identity for the executable: command name, title,
- * version, description, author and links. Help text, the About tab, the MCP
- * server and the OpenCLI description all read from here.
- *
- * The name, title and description come from the registered edition
- * (`app/edition.ts`). Version, license and links come from the root
- * package.json, shared by both binaries. Bun embeds the JSON at build time,
- * so the manifest stays valid outside the repository.
- *
- * Both editions share the data directory `~/.setupvibe/` and the environment
- * prefix `SETUPVIBE_`, because only one of them can be installed on a machine.
- */
 import pkg from "../../../package.json" with { type: "json" };
-import { edition } from "./edition.ts";
+import { edition, type EditionId } from "./edition.ts";
 
 /** Static identity of the executable. */
 export interface Manifest {
-  /** Executable name: `setupvibe` or `setupvibe-server`. */
+  /** Canonical executable name. */
   readonly bin: string;
-  /** Edition id: `desktop` or `server`. */
-  readonly edition: "desktop" | "server";
+  readonly edition: EditionId;
   /** Human-readable name for titles and headers. */
   readonly title: string;
   /** SemVer version from package.json. */
@@ -49,14 +33,13 @@ interface SetupVibeBlock {
 }
 
 const block: SetupVibeBlock = (pkg as { setupvibe?: SetupVibeBlock }).setupvibe ?? {};
-const current = edition();
 
 export const manifest: Manifest = Object.freeze({
-  bin: current.bin,
-  edition: current.id,
-  title: current.title,
+  bin: "setupvibe",
+  get edition() { return edition().id; },
+  get title() { return edition().title; },
   version: pkg.version,
-  description: current.description,
+  get description() { return edition().description; },
   author: block.author ?? "",
   site: block.site ?? "",
   repository: block.repository ?? "",
@@ -64,6 +47,15 @@ export const manifest: Manifest = Object.freeze({
   dataName: "setupvibe",
   envPrefix: "SETUPVIBE",
 });
+
+/** Invocation used in help and documentation for a command path. */
+export function commandPrefix(path: readonly string[]): string {
+  return path[0] === "edition" ? manifest.bin : `${manifest.bin} ${manifest.edition}`;
+}
+
+export function qualifyExample(example: string, path: readonly string[]): string {
+  return example.replace(/(?<![\w/.-])setupvibe(?= |$)/g, commandPrefix(path));
+}
 
 /** Credits shown in the About tab and by the `about` command. */
 export const credits: ReadonlyArray<{ name: string; role: string; url: string }> = Object.freeze([

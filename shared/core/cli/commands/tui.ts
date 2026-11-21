@@ -27,7 +27,7 @@ export const tuiCommand: Command = {
     }
     const { startTui } = await import("../../tui/index.ts");
     const tab = typeof ctx.options.tab === "string" ? ctx.options.tab : undefined;
-    await startTui({ initialTab: tab });
+    await startTui({ initialTab: tab, chooseEdition: ctx.chooseEdition });
     return { data: { closed: true }, text: "" };
   },
 };

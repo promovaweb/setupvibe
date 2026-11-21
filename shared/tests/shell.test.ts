@@ -60,7 +60,7 @@ describe("contents", () => {
   });
 
   test("Omarchy Bash block keeps Omarchy's Starship config", () => {
-    expect(bashBlock("/home/u")).toContain('STARSHIP_CONFIG="/home/u/.config/setupvibe/starship.toml"');
+    expect(bashBlock("/home/u")).not.toContain("STARSHIP_CONFIG");
   });
 
   test("tmux settings load .local before TPM", () => {
@@ -98,8 +98,8 @@ describe("steps", () => {
   });
 
   test("Omarchy edits .bashrc only and never switches the login shell", () => {
-    const steps = shellSteps({ system: "omarchy", edition: "desktop", user: "u", home: "/h", zsh: false, tmux: true, starship: true });
-    expect(steps.map((s) => s.id)).toEqual(["shell-files", "starship-preset", "shell-block"]);
+    const steps = shellSteps({ system: "omarchy", edition: "omarchy", user: "u", home: "/h", zsh: false, tmux: true, starship: true });
+    expect(steps.map((s) => s.id)).toEqual(["shell-files", "shell-block"]);
     expect(steps.find((s) => s.id === "shell-block")!.description).toContain("/h/.bashrc");
   });
 

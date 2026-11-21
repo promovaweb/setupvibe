@@ -24,7 +24,7 @@ lands in the `~/.zshrc` of a server.
 Three surfaces show the result:
 
 ```bash
-{{bin}} system                 # SetupVibe 1   found (server): run setupvibe-server migrate --dry-run
+{{bin}} system                 # SetupVibe 1   found (server): run setupvibe server migrate --dry-run
 {{bin}} doctor                 # ! SetupVibe 1 found: ~/.zshrc from SetupVibe 1; ...
 {{bin}}                        # the Doctor card and the next step on the Home
 ```

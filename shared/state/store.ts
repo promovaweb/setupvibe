@@ -22,7 +22,7 @@ import { dirname, join } from "node:path";
 import { baseDir } from "../core/config/paths.ts";
 import { manifest } from "../core/app/manifest.ts";
 
-export const STATE_FILES = ["config.json", "selection.json", "external.json"] as const;
+export const STATE_FILES = ["config.json", "selection.json", "external.json", "edition.json"] as const;
 export type StateFile = (typeof STATE_FILES)[number];
 
 /** Current schema version of each state file. */
@@ -30,6 +30,7 @@ export const SCHEMA_VERSIONS: Record<StateFile, number> = {
   "config.json": 1,
   "selection.json": 1,
   "external.json": 1,
+  "edition.json": 1,
 };
 
 /** Migration from version N to N+1, keyed by `<file>@<N>`. */

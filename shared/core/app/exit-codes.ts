@@ -40,6 +40,8 @@ export const ExitCode = {
   SUDO_PASSWORD: 13,
   /** Not enough free disk space. */
   DISK_SPACE: 14,
+  /** No edition was given and this user has no saved choice. */
+  EDITION_REQUIRED: 15,
   /** A restart is needed before the remaining steps. */
   REBOOT_PENDING: 20,
   /** Another SetupVibe run holds the lock. */
@@ -68,6 +70,7 @@ export const exitCodeDescriptions: ReadonlyArray<{ code: ExitCode; name: string;
     { code: ExitCode.ROOT, name: "ROOT", description: "Running as root without --user." },
     { code: ExitCode.SUDO_PASSWORD, name: "SUDO_PASSWORD", description: "sudo asks for a password in a non-interactive run." },
     { code: ExitCode.DISK_SPACE, name: "DISK_SPACE", description: "Not enough free disk space." },
+    { code: ExitCode.EDITION_REQUIRED, name: "EDITION_REQUIRED", description: "Pass desktop, server or omarchy, or save an edition with setupvibe edition set." },
     { code: ExitCode.REBOOT_PENDING, name: "REBOOT_PENDING", description: "A restart is needed before the remaining steps." },
     { code: ExitCode.LOCKED, name: "LOCKED", description: "Another SetupVibe run holds the lock." },
     { code: ExitCode.INTERRUPTED, name: "INTERRUPTED", description: "Input cancelled or process interrupted." },

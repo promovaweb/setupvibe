@@ -31,7 +31,6 @@ interface Catalog {
 interface EditionCase {
   id: string;
   bin: string;
-  entry: string;
   docs: { language: "pt-BR" | "en"; file: string; labels: string[] }[];
 }
 
@@ -42,7 +41,6 @@ const editions: EditionCase[] = [
   {
     id: "desktop",
     bin: "setupvibe",
-    entry: "desktop/src/main.ts",
     docs: [
       { language: "pt-BR", file: "desktop/docs/mcp.md", labels: ptLabels },
       { language: "en", file: "desktop/docs/en/mcp.md", labels: enLabels },
@@ -50,11 +48,18 @@ const editions: EditionCase[] = [
   },
   {
     id: "server",
-    bin: "setupvibe-server",
-    entry: "server/src/main.ts",
+    bin: "setupvibe",
     docs: [
       { language: "pt-BR", file: "server/docs/mcp.md", labels: ptLabels },
       { language: "en", file: "server/docs/en/mcp.md", labels: enLabels },
+    ],
+  },
+  {
+    id: "omarchy",
+    bin: "setupvibe",
+    docs: [
+      { language: "pt-BR", file: "omarchy/docs/mcp.md", labels: ptLabels },
+      { language: "en", file: "omarchy/docs/en/mcp.md", labels: enLabels },
     ],
   },
 ];
@@ -65,13 +70,13 @@ const catalogs = new Map<string, Catalog>();
 function catalogOf(edition: EditionCase): Catalog {
   const cached = catalogs.get(edition.id);
   if (cached) return cached;
-  const result = Bun.spawnSync([process.execPath, join(repo, edition.entry), "mcp", "--list", "--json"], {
+  const result = Bun.spawnSync([process.execPath, join(repo, "main.ts"), edition.id, "mcp", "--list", "--json"], {
     cwd: repo,
     stdout: "pipe",
     stderr: "pipe",
     env: { ...process.env, SETUPVIBE_HOME: home, NO_COLOR: "1" },
   });
-  if (result.exitCode !== 0) throw new Error(`${edition.entry} mcp --list failed: ${result.stderr.toString()}`);
+  if (result.exitCode !== 0) throw new Error(`setupvibe ${edition.id} mcp --list failed: ${result.stderr.toString()}`);
   const data = JSON.parse(result.stdout.toString()).data as Catalog;
   catalogs.set(edition.id, data);
   return data;

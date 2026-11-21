@@ -7,6 +7,7 @@ import { z } from "zod";
 import { vaultStatus } from "../../config/credentials.ts";
 import { SETTINGS_SCHEMA, flatten, readSettings, getPath } from "../../config/settings.ts";
 import { paths } from "../../config/paths.ts";
+import { editionInput } from "../../../mcp/tools.ts";
 import type { Registrar } from "../server.ts";
 
 export function registerConfigTools({ server, catalog }: Registrar): void {
@@ -16,7 +17,7 @@ export function registerConfigTools({ server, catalog }: Registrar): void {
     {
       title: "List configuration",
       description: "Lists the settings.json keys (merged with defaults) and the known schema.",
-      inputSchema: {},
+      inputSchema: { edition: editionInput },
     },
     async () => {
       const d = {
@@ -34,7 +35,7 @@ export function registerConfigTools({ server, catalog }: Registrar): void {
     {
       title: "Read a configuration key",
       description: "Returns the value of a key in dot notation, e.g. output.format.",
-      inputSchema: { key: z.string().min(1).describe("Key in dot notation.") },
+      inputSchema: { edition: editionInput, key: z.string().min(1).describe("Key in dot notation.") },
     },
     async ({ key }) => {
       const value = getPath(readSettings(), key);
@@ -53,7 +54,7 @@ export function registerConfigTools({ server, catalog }: Registrar): void {
     {
       title: "Credentials vault status",
       description: "Reports file, master key source, count and names of credentials. Never returns values.",
-      inputSchema: {},
+      inputSchema: { edition: editionInput },
     },
     async () => {
       const d = vaultStatus();

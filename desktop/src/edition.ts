@@ -1,9 +1,3 @@
-/**
- * Identity of the desktop edition (`setupvibe`).
- *
- * Imported first by `desktop/src/main.ts`, before any core module, so the
- * core reads this binary's name, documentation and inventory.
- */
 import { registerEdition } from "../../shared/core/app/edition.ts";
 import overview from "../docs/README.md" with { type: "text" };
 import cli from "../docs/cli.md" with { type: "text" };
@@ -25,7 +19,6 @@ import inventory from "../inventory.json" with { type: "json" };
 
 registerEdition({
   id: "desktop",
-  bin: "setupvibe",
   title: "SetupVibe",
   description: "Sets up and maintains a pinned development environment on macOS, Linux and Windows.",
   docs: {

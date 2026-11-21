@@ -1,34 +1,35 @@
 # Documentação do {{title}}
 
-O `{{bin}}` instala e mantém um ambiente de desenvolvimento com versões fixadas em macOS, Linux (Ubuntu, Debian, Mint, Zorin, Arch e Omarchy), Windows e WSL. Também roda em servidores e VPS para desenvolvimento por acesso remoto. A lista oficial do que ele instala é o inventário embutido no binário.
+O `{{bin}}` instala e mantém um ambiente de desenvolvimento com versões fixadas em macOS, Linux (Ubuntu, Debian, Mint, e Zorin), Windows e WSL. Também roda em servidores e VPS para desenvolvimento por acesso remoto. A lista oficial do que ele instala é o inventário embutido no binário.
 
 `{{bin}}` é um executável único com três modos de uso:
 
 | Modo | Como entrar | Para quem |
 | --- | --- | --- |
-| TUI | `{{bin}}` sem argumentos em um terminal interativo | pessoas |
+| TUI | `setupvibe` sem argumentos em um terminal interativo | pessoas |
 | CLI | `{{bin}} <command> [options]`, com saída em texto ou `--json` | pessoas, scripts e agentes |
 | MCP | `{{bin}} mcp`, servidor Model Context Protocol via stdio | agentes de IA |
 
 Os três modos compartilham a mesma identidade, a mesma configuração
 (`~/.setupvibe/settings.json`), o mesmo cofre de credenciais
 (`~/.setupvibe/credentials.json`, cifrado) e a mesma tabela de exit codes.
-O `setupvibe` e o `setupvibe-server` usam a mesma pasta `~/.setupvibe/` e o
-prefixo `SETUPVIBE_` nas variáveis, porque só um deles fica instalado por
-máquina.
+Execute `setupvibe <edition> <command>` para escolher a edição naquela
+execução. Sem o prefixo, o CLI usa a edição salva e a informa em stderr.
+Sem edição explícita ou salva, os comandos da edição saem com código 15
+(`EDITION_REQUIRED`). Rode `setupvibe edition set <edition>` para gravar a
+escolha. Na TUI, use `E` para abrir o menu de edições.
 
 ## Instalação automática
 
 `{{bin}} auto` instala tudo sem perguntar nada, para máquinas sem interface,
 provisionamento e agentes. As respostas vêm de opções, de variáveis
-`SETUPVIBE_*` ou de um arquivo `--config`. Como root, `--user` cria o usuário
-de trabalho e o `auto` continua como ele. Sem `--profile`, entra todo o
+`SETUPVIBE_*` ou de um arquivo `--config`. Sem `--profile`, entra todo o
 inventário compatível com o sistema; itens gráficos ficam de fora em máquina
 sem interface.
 
 ```bash
 {{bin}} auto --dry-run          # mostra o plano sem alterar nada
-{{bin}} auto --user deploy --ssh-key "ssh-ed25519 AAAA..."
+{{bin}} auto --profile essencial
 ```
 
 O resultado completo fica em `~/.setupvibe/last-run.json`. Os códigos de
@@ -46,7 +47,7 @@ inventário, com versão fixada.
 ## Ambiente do terminal
 
 `{{bin}} auto` configura o shell, o prompt e o tmux. As alterações em
-`~/.zshrc` (ou `~/.bashrc` no Omarchy) e em `~/.tmux.conf` ficam entre os
+`~/.zshrc` e em `~/.tmux.conf` ficam entre os
 marcadores `# >>> setupvibe >>>` e `# <<< setupvibe <<<`, com cópia de
 segurança antes da primeira mudança. Personalizações vão em `~/.zshrc.local`,
 `~/.bashrc.local` e `~/.tmux.conf.local`. `{{bin}} shell apply` refaz a

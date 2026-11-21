@@ -15,6 +15,8 @@
  * The renderer is destroyed on every exit path to hand the terminal back.
  */
 import { BoxRenderable, TextRenderable, TextAttributes, bold, createCliRenderer, fg, t, type CliRenderer, type KeyEvent, type Renderable } from "@opentui/core";
+import { EDITIONS, selectEdition } from "../app/edition.ts";
+import { savedEdition, saveEdition, suggestedEdition } from "../../commands/edition.ts";
 import { manifest } from "../app/manifest.ts";
 import { systemSummary } from "../cli/commands/about.ts";
 import { icon } from "../../tui/icons.ts";
@@ -27,6 +29,7 @@ import type { ScreenContext, Screen, ScreenKey } from "./screen.ts";
 export interface TuiOptions {
   /** "overview" (the Home) or a module id. */
   initialTab?: string;
+  chooseEdition?: boolean;
 }
 
 function setting(key: string): unknown {
@@ -136,6 +139,73 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
   let mounted = new Map<string, Renderable>();
   let active: Screen | undefined;
   let helpBox: BoxRenderable | undefined;
+  let picker: BoxRenderable | undefined;
+  const suggested = suggestedEdition();
+  let choice = EDITIONS.indexOf(suggested);
+  let currentDefault: ReturnType<typeof savedEdition>;
+
+  const closePicker = () => {
+    if (picker) renderer.root.remove(picker);
+    picker = undefined;
+  };
+
+  const showPicker = (message?: string) => {
+    closeHelp();
+    closePicker();
+    picker = new BoxRenderable(renderer, {
+      position: "absolute", top: 2, left: 2, width: "90%", padding: 1, flexDirection: "column",
+      borderStyle: "rounded", borderColor: theme.borderActive, backgroundColor: theme.surfaceHigh, zIndex: 12,
+      title: ` SetupVibe · ${tr("edition.choose")} `, titleColor: theme.accent,
+    });
+    for (const [index, id] of EDITIONS.entries()) {
+      const row = new TextRenderable(renderer, {
+        content: `${index === choice ? "›" : " "} ${id}${id === suggested ? `  (${tr("edition.suggested")})` : ""}`,
+        fg: index === choice ? theme.accent : theme.text, selectable: false,
+      });
+      row.onMouseDown = (event) => {
+        event.stopPropagation();
+        choice = index;
+        showPicker();
+      };
+      picker.add(row);
+    }
+    picker.add(new TextRenderable(renderer, {
+      marginTop: 1, fg: theme.text, wrapMode: "word",
+      content: tr("edition.preview", { before: currentDefault ?? tr("edition.none"), after: EDITIONS[choice]! }),
+    }));
+    if (message) picker.add(new TextRenderable(renderer, { content: message, fg: theme.text, wrapMode: "word" }));
+    picker.add(new TextRenderable(renderer, { content: tr("edition.keys"), fg: theme.textDim }));
+    renderer.root.add(picker);
+  };
+
+  const openPicker = () => {
+    try {
+      currentDefault = savedEdition();
+      choice = EDITIONS.indexOf(currentDefault ?? suggested);
+      showPicker();
+    } catch (error) {
+      showPicker((error as Error).message);
+    }
+  };
+
+  const pickKey = (key: string) => {
+    if (key === "q" || (["escape", "backspace"].includes(key) && !app)) return quit();
+    if (key === "escape" || key === "backspace") return closePicker();
+    if (key === "up" || key === "down") {
+      choice = (choice + (key === "up" ? -1 : 1) + EDITIONS.length) % EDITIONS.length;
+      return showPicker();
+    }
+    if (key !== "return" && key !== "enter") return;
+    const id = EDITIONS[choice]!;
+    try {
+      saveEdition(id);
+    } catch (error) {
+      return showPicker((error as Error).message);
+    }
+    selectEdition(id);
+    closePicker();
+    build(app ? home.id : options.initialTab ?? defaultInitialTab());
+  };
 
   const all = (): Screen[] => [home, ...screens];
   const find = (id: string) => all().find((s) => s.id === id);
@@ -192,6 +262,7 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
       ["Esc  Backspace", tr("help.back")],
       ["L", tr("help.language")],
       ["T", tr("help.theme")],
+      ["E", tr("global.edition")],
       ["?", tr("help.toggle")],
       ["q  Ctrl+C", tr("help.quit")],
     ];
@@ -210,6 +281,7 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
   const globalKeys = (onHome: boolean): ScreenKey[] => [
     ...(onHome ? [] : [{ key: "esc", action: tr("global.back"), press: "escape" }]),
     { key: `1-${screens.length}`, action: tr("global.go") },
+    { key: "E", action: tr("global.edition"), press: "E" },
     { key: "L", action: tr("global.language"), press: "L" },
     { key: "T", action: tr("global.theme"), press: "T" },
     { key: "?", action: tr("global.help"), press: "?" },
@@ -271,6 +343,12 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
     };
     brand.add(name);
     brand.add(new TextRenderable(renderer, { content: ` v${manifest.version}`, fg: theme.textDim, bg: theme.barBackground }));
+    const editionLabel = new TextRenderable(renderer, { content: ` [${manifest.edition}]`, fg: theme.accent, bg: theme.barBackground, selectable: false });
+    editionLabel.onMouseDown = (event) => {
+      event.stopPropagation();
+      openPicker();
+    };
+    brand.add(editionLabel);
     crumb = new TextRenderable(renderer, { content: "", flexShrink: 0, bg: theme.barBackground });
     brand.add(crumb);
     header.add(brand);
@@ -343,6 +421,8 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
 
   /** Handles a key by name: the open screen first, then the global keys. */
   function handle(name: string): void {
+    if (picker) return pickKey(name);
+    if (name === "E") return openPicker();
     if (active?.onKey?.(name, context)) return;
     const onHome = active === home;
     switch (name) {
@@ -376,7 +456,7 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
 
   const onKey = (key: KeyEvent) => {
     // Shift+l is L (language); plain l stays with the screens.
-    handle(key.name === "l" && key.shift ? "L" : key.name === "t" && key.shift ? "T" : key.name);
+    handle(key.shift && ["l", "t", "e"].includes(key.name) ? key.name.toUpperCase() : key.name);
   };
   renderer.keyInput.on("keypress", onKey);
   renderer.once("destroy", () => {
@@ -386,6 +466,7 @@ export async function mountTui(renderer: CliRenderer, options: TuiOptions = {}, 
     active?.onLeave?.(context);
   });
 
-  build(options.initialTab ?? defaultInitialTab());
+  if (options.chooseEdition) openPicker();
+  else build(options.initialTab ?? defaultInitialTab());
   await closed;
 }

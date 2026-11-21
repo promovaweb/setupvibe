@@ -8,8 +8,6 @@
     "debian",
     "mint",
     "zorin",
-    "arch",
-    "omarchy",
     "macos",
     "windows",
     "wsl"
@@ -230,23 +228,6 @@
             "llvm"
           ]
         },
-        "arch-family": {
-          "method": "native",
-          "packages": [
-            "base-devel",
-            "git",
-            "curl",
-            "wget",
-            "unzip",
-            "openssl",
-            "zlib",
-            "readline",
-            "sqlite",
-            "libyaml",
-            "libffi",
-            "tk"
-          ]
-        },
         "macos": {
           "method": "native",
           "packages": [
@@ -281,9 +262,6 @@
           "method": "installer",
           "url": "https://github.com/jdx/mise/releases/download/v{version}/mise-v{version}-{os}-{arch}",
           "checksum": "release-sha256sums"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -305,12 +283,6 @@
       "default": true,
       "install": {
         "debian-family": {
-          "method": "native",
-          "packages": [
-            "sshpass"
-          ]
-        },
-        "arch-family": {
           "method": "native",
           "packages": [
             "sshpass"
@@ -345,11 +317,6 @@
         "all": {
           "method": "mise",
           "tool": "node"
-        },
-        "omarchy": {
-          "method": "mise",
-          "tool": "node",
-          "note": "Omarchy already manages Node with mise; SetupVibe only pins the version when it is missing."
         }
       },
       "verify": {
@@ -443,33 +410,6 @@
             "libsqlite3-dev",
             "zlib1g-dev",
             "libpq-dev"
-          ]
-        },
-        "arch-family": {
-          "method": "native",
-          "packages": [
-            "base-devel",
-            "autoconf",
-            "bison",
-            "re2c",
-            "pkgconf",
-            "libxml2",
-            "openssl",
-            "icu",
-            "libzip",
-            "oniguruma",
-            "curl",
-            "libpng",
-            "libjpeg-turbo",
-            "freetype2",
-            "libwebp",
-            "gmp",
-            "libsodium",
-            "readline",
-            "bzip2",
-            "sqlite",
-            "zlib",
-            "postgresql-libs"
           ]
         },
         "macos": {
@@ -631,9 +571,6 @@
         "unix": {
           "method": "mise",
           "tool": "ruby"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         },
         "windows": {
           "method": "unsupported",
@@ -816,9 +753,6 @@
         "all": {
           "method": "mise",
           "tool": "bat"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -842,9 +776,6 @@
         "all": {
           "method": "mise",
           "tool": "eza"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -868,9 +799,6 @@
         "all": {
           "method": "mise",
           "tool": "zoxide"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -894,9 +822,6 @@
         "all": {
           "method": "mise",
           "tool": "fzf"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -920,9 +845,6 @@
         "all": {
           "method": "mise",
           "tool": "ripgrep"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -946,9 +868,6 @@
         "all": {
           "method": "mise",
           "tool": "fd"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -972,9 +891,6 @@
         "all": {
           "method": "mise",
           "tool": "lazygit"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -999,9 +915,6 @@
           "method": "mise",
           "tool": "aqua:neovim/neovim",
           "note": "The registry default is a vfox plugin downloaded at install time, which failed on Windows CI; aqua uses the release binary."
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -1071,9 +984,6 @@
         "all": {
           "method": "mise",
           "tool": "fastfetch"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -1120,9 +1030,6 @@
         "all": {
           "method": "mise",
           "tool": "jq"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -1146,10 +1053,6 @@
         "unix": {
           "method": "mise",
           "tool": "starship"
-        },
-        "omarchy": {
-          "method": "preinstalled",
-          "note": "SetupVibe writes its own STARSHIP_CONFIG and keeps Omarchy's file."
         },
         "windows": {
           "method": "unsupported",
@@ -1180,18 +1083,8 @@
             "zsh"
           ]
         },
-        "arch": {
-          "method": "native",
-          "packages": [
-            "zsh"
-          ]
-        },
         "macos": {
           "method": "preinstalled"
-        },
-        "omarchy": {
-          "method": "unsupported",
-          "reason": "Omarchy keeps Bash."
         },
         "windows": {
           "method": "unsupported",
@@ -1223,19 +1116,10 @@
           "repo": "https://github.com/ohmyzsh/ohmyzsh",
           "path": "~/.oh-my-zsh"
         },
-        "arch": {
-          "method": "git",
-          "repo": "https://github.com/ohmyzsh/ohmyzsh",
-          "path": "~/.oh-my-zsh"
-        },
         "macos": {
           "method": "git",
           "repo": "https://github.com/ohmyzsh/ohmyzsh",
           "path": "~/.oh-my-zsh"
-        },
-        "omarchy": {
-          "method": "unsupported",
-          "reason": "Omarchy keeps Bash."
         },
         "windows": {
           "method": "unsupported",
@@ -1267,10 +1151,6 @@
           "repo": "https://github.com/zsh-users/zsh-autosuggestions",
           "path": "~/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
         },
-        "omarchy": {
-          "method": "unsupported",
-          "reason": "Omarchy keeps Bash."
-        },
         "windows": {
           "method": "unsupported",
           "reason": "The Windows shell stays original."
@@ -1301,10 +1181,6 @@
           "repo": "https://github.com/zsh-users/zsh-syntax-highlighting",
           "path": "~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
         },
-        "omarchy": {
-          "method": "unsupported",
-          "reason": "Omarchy keeps Bash."
-        },
         "windows": {
           "method": "unsupported",
           "reason": "The Windows shell stays original."
@@ -1333,19 +1209,9 @@
             "tmux"
           ]
         },
-        "arch": {
-          "method": "native",
-          "packages": [
-            "tmux"
-          ]
-        },
         "macos": {
           "method": "brew",
           "formula": "tmux"
-        },
-        "omarchy": {
-          "method": "preinstalled",
-          "note": "SetupVibe does not change Omarchy's tmux configuration."
         },
         "windows": {
           "method": "unsupported",
@@ -1376,10 +1242,6 @@
           "method": "git",
           "repo": "https://github.com/tmux-plugins/tpm",
           "path": "~/.tmux/plugins/tpm"
-        },
-        "omarchy": {
-          "method": "unsupported",
-          "reason": "SetupVibe does not change Omarchy's tmux configuration."
         },
         "windows": {
           "method": "unsupported",
@@ -1455,10 +1317,6 @@
           ],
           "path": "~/Library/Fonts"
         },
-        "omarchy": {
-          "method": "preinstalled",
-          "note": "Omarchy ships JetBrains Mono Nerd Font."
-        },
         "windows": {
           "method": "winget",
           "id": "DEVCOM.JetBrainsMonoNerdFont"
@@ -1482,13 +1340,6 @@
       "default": false,
       "install": {
         "debian-family": {
-          "method": "native",
-          "packages": [
-            "ffmpeg",
-            "imagemagick"
-          ]
-        },
-        "arch-family": {
           "method": "native",
           "packages": [
             "ffmpeg",
@@ -1650,17 +1501,6 @@
           ],
           "skipWhen": "docker-desktop-integration"
         },
-        "arch": {
-          "method": "native",
-          "packages": [
-            "docker",
-            "docker-buildx",
-            "docker-compose"
-          ]
-        },
-        "omarchy": {
-          "method": "preinstalled"
-        },
         "macos": {
           "method": "brew",
           "cask": "docker-desktop",
@@ -1722,9 +1562,6 @@
         "all": {
           "method": "mise",
           "tool": "gh"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -1851,9 +1688,6 @@
           "method": "mise",
           "tool": "lazydocker"
         },
-        "omarchy": {
-          "method": "preinstalled"
-        },
         "windows": {
           "method": "unsupported",
           "reason": "Use lazydocker inside WSL."
@@ -1896,26 +1730,6 @@
             "whois",
             "iputils-ping",
             "speedtest-cli"
-          ]
-        },
-        "arch-family": {
-          "method": "native",
-          "packages": [
-            "htop",
-            "btop",
-            "glances",
-            "nmap",
-            "mtr",
-            "tcpdump",
-            "iftop",
-            "nload",
-            "iotop",
-            "sysstat",
-            "rsync",
-            "net-tools",
-            "bind",
-            "whois",
-            "iputils"
           ]
         },
         "macos": {
@@ -2072,12 +1886,6 @@
           "method": "unsupported",
           "reason": "Tailscale runs on the Windows host."
         },
-        "arch-family": {
-          "method": "native",
-          "packages": [
-            "tailscale"
-          ]
-        },
         "macos": {
           "method": "brew",
           "cask": "tailscale-app",
@@ -2122,12 +1930,6 @@
           "method": "unsupported",
           "reason": "Use the Windows OpenSSH server."
         },
-        "arch-family": {
-          "method": "native",
-          "packages": [
-            "openssh"
-          ]
-        },
         "macos": {
           "method": "unsupported",
           "reason": "Use Remote Login in System Settings."
@@ -2156,12 +1958,6 @@
       "default": false,
       "install": {
         "debian-family": {
-          "method": "native",
-          "packages": [
-            "mosh"
-          ]
-        },
-        "arch-family": {
           "method": "native",
           "packages": [
             "mosh"
@@ -2198,9 +1994,6 @@
           "url": "https://claude.ai/install.sh",
           "checksum": "none-official"
         },
-        "omarchy": {
-          "method": "preinstalled"
-        },
         "windows": {
           "method": "installer",
           "url": "https://claude.ai/install.ps1",
@@ -2232,9 +2025,6 @@
           "method": "mise",
           "tool": "npm:@openai/codex",
           "note": "The official Windows installer always takes the latest release; mise keeps the pinned version on every system."
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -2261,9 +2051,6 @@
         "all": {
           "method": "mise",
           "tool": "npm:@github/copilot"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -2291,9 +2078,6 @@
           "method": "mise",
           "tool": "aqua:sst/opencode",
           "note": "The npm package needs its postinstall script, which mise skips; the release binary does not."
-        },
-        "omarchy": {
-          "method": "preinstalled"
         }
       },
       "verify": {
@@ -2400,9 +2184,6 @@
         "unix": {
           "method": "mise",
           "tool": "herdr"
-        },
-        "omarchy": {
-          "method": "preinstalled"
         },
         "windows": {
           "method": "unsupported",
@@ -2532,12 +2313,6 @@
           "method": "unsupported",
           "reason": "The Windows host handles security for WSL."
         },
-        "arch-family": {
-          "method": "native",
-          "packages": [
-            "ufw"
-          ]
-        },
         "macos": {
           "method": "unsupported",
           "reason": "macOS has its own firewall and updates."
@@ -2578,12 +2353,6 @@
           "method": "unsupported",
           "reason": "The Windows host handles security for WSL."
         },
-        "arch-family": {
-          "method": "native",
-          "packages": [
-            "fail2ban"
-          ]
-        },
         "macos": {
           "method": "unsupported",
           "reason": "macOS has its own firewall and updates."
@@ -2623,10 +2392,6 @@
         "wsl": {
           "method": "unsupported",
           "reason": "The Windows host handles security for WSL."
-        },
-        "arch-family": {
-          "method": "unsupported",
-          "reason": "Arch has no unattended upgrades; updates stay with the user."
         },
         "macos": {
           "method": "unsupported",

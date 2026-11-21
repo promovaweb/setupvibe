@@ -1,3 +1,4 @@
+import omarchyJson from "../../omarchy/inventory.json";
 /** init, install methods, user create and the security module (spec sections 3, 6, 12, 17 and 18). */
 import "../../desktop/src/edition.ts";
 import { describe, expect, test } from "bun:test";
@@ -8,7 +9,7 @@ import type { Inventory, Item } from "../inventory";
 import { describeCmd, dryRunner, failureOutput, finalArgv, runSteps, type Step } from "../exec/runner";
 import { itemSteps, miseAsset, misePlatform, nativeInstallCmd, verifyOutputMatches } from "../install/methods";
 import { initPlan, missingPrerequisites } from "../init/plan";
-import { checkClock, checkDisk, checkEdition, checkLocale, checkMemory, checkRoot, exitCodeOf } from "../init/requirements";
+import { checkClock, checkDisk, checkLocale, checkMemory, checkRoot, exitCodeOf } from "../init/requirements";
 import { nopasswdStep, sudoersPath, userCreatePlan, validateUserOptions } from "../users/create";
 import { SSHD_DROPIN, securityPlan, SWARM_PORTS } from "../security/plan";
 import { ExitCode } from "../core/app/exit-codes";
@@ -16,6 +17,7 @@ import { autoPlan } from "../auto/plan";
 import { resolveAnswers } from "../auto/answers";
 
 const desktop = desktopJson as Inventory;
+const omarchy = omarchyJson as Inventory;
 const server = serverJson as Inventory;
 const item = (inv: Inventory, id: string) => inv.items.find((i) => i.id === id) as Item;
 const commands = (steps: Step[]) => steps.flatMap((s) => s.commands.map(describeCmd));
@@ -62,7 +64,6 @@ describe("runner", () => {
 describe("install methods", () => {
   test("native packages per system", () => {
     expect(describeCmd(nativeInstallCmd("ubuntu", ["zsh"])[0]!)).toContain("sudo apt-get install -y");
-    expect(describeCmd(nativeInstallCmd("arch", ["zsh"])[0]!)).toBe("sudo pacman -S --noconfirm --needed zsh");
     expect(describeCmd(nativeInstallCmd("omarchy", ["zsh"])[0]!)).toBe("omarchy pkg add zsh");
     expect(describeCmd(nativeInstallCmd("macos", ["tmux"])[0]!)).toBe("brew install tmux");
   });
@@ -77,7 +78,7 @@ describe("install methods", () => {
 
   test("preinstalled and unsupported items have no steps", () => {
     const ctx = { arch: "x64", inventory: desktop, home: HOME };
-    expect(itemSteps(item(desktop, "herdr"), "omarchy", ctx)).toEqual([]);
+    expect(itemSteps(item(omarchy, "herdr"), "omarchy", { ...ctx, inventory: omarchy })).toEqual([]);
     expect(itemSteps(item(desktop, "php"), "windows", ctx)).toEqual([]);
   });
 
@@ -160,7 +161,7 @@ describe("init", () => {
   });
 
   test("Omarchy keeps its mise and installs build dependencies with omarchy pkg", () => {
-    const steps = initPlan({ inventory: desktop, system: "omarchy", arch: "x64", home: HOME });
+    const steps = initPlan({ inventory: omarchy, system: "omarchy", arch: "x64", home: HOME });
     expect(steps.map((s) => s.id)).toEqual(["build-deps"]);
     expect(commands(steps)[0]).toStartWith("omarchy pkg add base-devel");
   });
@@ -199,7 +200,6 @@ describe("requirements", () => {
     expect(checkClock(new Date("2026-11-12T11:00:00Z"), now).status).toBe("fail");
     expect(checkRoot(true, false)).toMatchObject({ status: "fail", code: ExitCode.ROOT });
     expect(checkRoot(true, true).status).toBe("ok");
-    expect(checkEdition("server", "desktop").status).toBe("fail");
     expect(exitCodeOf([checkRoot(false, false), checkDisk(1, "server")])).toBe(ExitCode.DISK_SPACE);
   });
 });
@@ -223,7 +223,7 @@ describe("user create", () => {
   });
 
   test("Arch uses the wheel group", () => {
-    expect(describeCmd(userCreatePlan({ name: "dev", system: "arch" })[0]!.commands[0]!)).toContain("--groups wheel");
+    expect(describeCmd(userCreatePlan({ name: "dev", system: "omarchy" })[0]!.commands[0]!)).toContain("--groups wheel");
   });
 
   test("the sudo rule is validated with visudo before it is installed", () => {
@@ -262,9 +262,9 @@ describe("security module", () => {
     }
   });
 
-  test("Arch has no unattended upgrades; macOS and Windows are skipped", () => {
-    const arch = securityPlan({ ...base, system: "arch", edition: "desktop" });
-    expect(arch.steps.some((s) => s.id === "unattended-upgrades")).toBe(false);
+  test("Omarchy preserves its security settings, like macOS and Windows", () => {
+    const omarchyPlan = securityPlan({ ...base, system: "omarchy", edition: "desktop" });
+    expect(omarchyPlan.steps).toEqual([]);
     expect(securityPlan({ ...base, system: "macos", edition: "desktop" }).steps).toEqual([]);
   });
 

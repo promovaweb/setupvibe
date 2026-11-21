@@ -1,3 +1,4 @@
+import omarchyJson from "../../omarchy/inventory.json";
 /** SetupVibe TUI: inventory model, checklist, doctor and the rendered screens (spec section 10). */
 import "../../desktop/src/edition.ts";
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
@@ -17,12 +18,12 @@ const desktop = desktopJson as Inventory;
 
 describe("inventory model", () => {
   test("one category per inventory category, with statuses", () => {
-    const model = inventoryModel(desktop, "omarchy", false, [{ id: "go", version: desktop.items.find((i) => i.id === "go")!.version }]);
-    expect(model.map((c) => c.id)).toEqual(desktop.categories.map((c) => c.id));
+    const model = inventoryModel(omarchyJson as Inventory, "omarchy", false, [{ id: "php", version: "8.6.0" }]);
+    expect(model.map((c) => c.id)).toEqual(omarchyJson.categories.map((c) => c.id));
     const ai = model.find((c) => c.id === "ai")!;
     expect(ai.title).toBe("Agentes de IA");
     expect(ai.rows.find((r) => r.item.id === "herdr")!.status).toBe("system");
-    expect(model.find((c) => c.id === "languages")!.rows.find((r) => r.item.id === "go")!.status).toBe("installed");
+    expect(model.find((c) => c.id === "languages")!.rows.find((r) => r.item.id === "php")!.status).toBe("installed");
   });
 
   test("rows show the mark, the status and the pinned version", () => {

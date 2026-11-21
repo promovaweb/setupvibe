@@ -54,7 +54,7 @@ const createCommand: Command = {
       writeState("config.json", { ...config, user: name, nopasswd: Boolean(ctx.options.nopasswd) });
       const before = result.text;
       // Spec section 3: after creating the user, tell the person how to continue.
-      const next = `Next: log in as ${name} (ssh ${name}@<host>, or su - ${name}) and run: ${manifest.bin} init`;
+      const next = `Next: log in as ${name} (ssh ${name}@<host>, or su - ${name}) and run: ${manifest.bin} ${manifest.edition} init`;
       return { ...result, data: { ...(result.data as object), next }, text: () => `${typeof before === "function" ? before() : (before ?? "")}\n\n${next}` };
     }
     return result;

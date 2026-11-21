@@ -1,34 +1,36 @@
 # {{title}} documentation
 
-`{{bin}}` installs and maintains a development environment with pinned versions on macOS, Linux (Ubuntu, Debian, Mint, Zorin, Arch and Omarchy), Windows and WSL. It also runs on servers and VPS machines for development over remote access. The official list of what it installs is the inventory embedded in the binary.
+`{{bin}}` installs and maintains a development environment with pinned versions on macOS, Linux (Ubuntu, Debian, Mint, and Zorin), Windows and WSL. It also runs on servers and VPS machines for development over remote access. The official list of what it installs is the inventory embedded in the binary.
 
 `{{bin}}` is a single executable with three modes:
 
 | Mode | How to enter | For |
 | --- | --- | --- |
-| TUI | `{{bin}}` without arguments in an interactive terminal | people |
+| TUI | `setupvibe` without arguments in an interactive terminal | people |
 | CLI | `{{bin}} <command> [options]`, with text or `--json` output | people, scripts and agents |
 | MCP | `{{bin}} mcp`, a Model Context Protocol server over stdio | AI agents |
 
 The three modes share the same identity, the same configuration
 (`~/.setupvibe/settings.json`), the same credential vault
 (`~/.setupvibe/credentials.json`, encrypted) and the same exit code table.
-`setupvibe` and `setupvibe-server` share the `~/.setupvibe/` folder and the
-`SETUPVIBE_` variable prefix, because only one of them is installed on a
-machine.
+Use `setupvibe <edition> <command>` to choose the edition for that
+invocation. Without an explicit edition, the CLI uses the saved edition
+and reports it on stderr. Edition commands exit with code 15
+(`EDITION_REQUIRED`) if neither is available. Run
+`setupvibe edition set <edition>` to save a choice. In the TUI, press `E` to
+open the edition menu.
 
 ## Automatic installation
 
 `{{bin}} auto` installs everything without asking, for headless machines,
 provisioning and agents. The answers come from options, from `SETUPVIBE_*`
-variables or from a `--config` file. As root, `--user` creates the working user
-and `auto` continues as that user. Without `--profile`, every inventory item
+variables or from a `--config` file. Without `--profile`, every inventory item
 compatible with the system goes in; GUI items stay out on a machine without a
 display.
 
 ```bash
 {{bin}} auto --dry-run          # show the plan without changing anything
-{{bin}} auto --user deploy --ssh-key "ssh-ed25519 AAAA..."
+{{bin}} auto --profile essencial
 ```
 
 The full result goes to `~/.setupvibe/last-run.json`. The exit codes are in
@@ -46,7 +48,7 @@ version.
 ## Terminal environment
 
 `{{bin}} auto` configures the shell, the prompt and tmux. The changes in
-`~/.zshrc` (or `~/.bashrc` on Omarchy) and in `~/.tmux.conf` stay between the
+`~/.zshrc` and in `~/.tmux.conf` stay between the
 `# >>> setupvibe >>>` and `# <<< setupvibe <<<` markers, with a backup before
 the first change. Personal settings go in `~/.zshrc.local`, `~/.bashrc.local`
 and `~/.tmux.conf.local`. `{{bin}} shell apply` applies the configuration again

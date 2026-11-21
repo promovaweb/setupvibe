@@ -6,16 +6,18 @@ O `{{bin}}` instala e mantém um servidor Docker Swarm com versões fixadas em U
 
 | Modo | Como entrar | Para quem |
 | --- | --- | --- |
-| TUI | `{{bin}}` sem argumentos em um terminal interativo | pessoas |
+| TUI | `setupvibe` sem argumentos em um terminal interativo | pessoas |
 | CLI | `{{bin}} <command> [options]`, com saída em texto ou `--json` | pessoas, scripts e agentes |
 | MCP | `{{bin}} mcp`, servidor Model Context Protocol via stdio | agentes de IA |
 
 Os três modos compartilham a mesma identidade, a mesma configuração
 (`~/.setupvibe/settings.json`), o mesmo cofre de credenciais
 (`~/.setupvibe/credentials.json`, cifrado) e a mesma tabela de exit codes.
-O `setupvibe` e o `setupvibe-server` usam a mesma pasta `~/.setupvibe/` e o
-prefixo `SETUPVIBE_` nas variáveis, porque só um deles fica instalado por
-máquina.
+Execute `setupvibe <edition> <command>` para escolher a edição naquela
+execução. Sem o prefixo, o CLI usa a edição salva e a informa em stderr.
+Sem edição explícita ou salva, os comandos da edição saem com código 15
+(`EDITION_REQUIRED`). Rode `setupvibe edition set <edition>` para gravar a
+escolha. Na TUI, use `E` para abrir o menu de edições.
 
 ## Instalação automática
 
@@ -41,6 +43,12 @@ sistema, `{{bin}} install <itens>` instala itens e as dependências,
 usuário e `{{bin}} update` atualiza os itens cuja versão fixada mudou.
 `{{bin}} install --external <ferramenta>` instala pelo mise um app fora do
 inventário, com versão fixada.
+
+Em máquina com sessão gráfica, Server pede confirmação antes de aplicar
+UFW, fail2ban e o endurecimento do SSH. Em scripts, use `--confirm-security`
+após revisar o plano.
+
+O link `setupvibe-server` mantém a compatibilidade com scripts do Server.
 
 ## Docker Swarm
 

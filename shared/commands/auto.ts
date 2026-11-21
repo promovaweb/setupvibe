@@ -2,8 +2,8 @@
  * `auto` command: installs everything without asking (spec section 9).
  *
  * Meant for headless machines, provisioning and automation. It never opens
- * the TUI, never waits for input, works without a terminal and ends with an
- * exit code an automation can read:
+ * the TUI and works without a terminal using explicit confirmation where
+ * required. It ends with an exit code an automation can read:
  *
  * 1. as root, `--user` creates the working user with a temporary sudo rule,
  *    then SetupVibe runs itself again as that user;
@@ -28,15 +28,16 @@ import { readState, statePath, writeJsonAtomic, writeState, ensureStateDirs } fr
 import { openRunLog } from "../state/log.ts";
 import { acquireLock } from "../state/lock.ts";
 import { checkDisk, checkLocale, checkMemory, checkNetworkAndClock, exitCodeOf, freeDiskGb, totalMemoryGb, type RequirementCheck } from "../init/requirements.ts";
-import type { InitRecord } from "../init/plan.ts";
+import { missingPrerequisites, type InitRecord } from "../init/plan.ts";
 import { userCreatePlan } from "../users/create.ts";
 import { readAnswersFile, resolveAnswers, type AnswersFile } from "../auto/answers.ts";
 import { selectItems } from "../auto/selection.ts";
 import { autoPlan } from "../auto/plan.ts";
 import { checkItems } from "../auto/check.ts";
-import { hasAuthorizedKey } from "./security.ts";
+import { confirmSecurity, CONFIRM_SECURITY_OPTION, hasAuthorizedKey } from "./security.ts";
 import { readSshKey } from "./user.ts";
 import { planText } from "./execute.ts";
+import { mergeSelection, type SelectedItem } from "../ops/inventory-ops.ts";
 import { detectV1Here } from "../legacy/v1.ts";
 import { agentAliasesEnabled } from "../shell/config.ts";
 import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
@@ -79,6 +80,15 @@ export function childArgs(args: string[]): string[] {
     out.push(a);
   }
   return out;
+}
+
+/** Preserve the active edition across privilege changes and reboots. */
+function autoChildArgs(confirmed: boolean): string[] {
+  const original = process.argv.slice(2);
+  if (original[0] === manifest.edition) original.shift();
+  const args = childArgs(original);
+  if (confirmed && !args.includes("--confirm-security")) args.push("--confirm-security");
+  return [manifest.edition, ...args];
 }
 
 /** True when the system asks for a restart (Debian and Ubuntu). */
@@ -136,7 +146,7 @@ export function rebootSteps(user: string, command: string[]): Step[] {
 }
 
 const OPTIONS = [
-  { name: "--user", argument: { name: "name" }, description: "Working user. Required as root: created with sudo, then auto continues as that user. Env: SETUPVIBE_USER." },
+  { name: "--user", argument: { name: "name" }, description: "Optional working user for root Server runs: created with sudo, then auto continues as that user. Env: SETUPVIBE_USER." },
   { name: "--ssh-key", argument: { name: "key-or-file" }, description: "SSH public key for the working user. Env: SETUPVIBE_SSH_KEY." },
   { name: "--git-name", argument: { name: "name" }, description: "Git user.name. Env: SETUPVIBE_GIT_NAME." },
   { name: "--git-email", argument: { name: "email" }, description: "Git user.email. Env: SETUPVIBE_GIT_EMAIL." },
@@ -156,6 +166,7 @@ const OPTIONS = [
   { name: "--config", argument: { name: "file" }, description: "Answers file in the config export format, without secrets." },
   { name: "--plan", argument: { name: "file" }, description: "Write the plan as JSON to a file and exit without changes." },
   { name: "--dry-run", description: "Print the plan without changing anything." },
+  CONFIRM_SECURITY_OPTION,
   { name: "--skip-network-check", description: "Skip the network and clock check.", hidden: true },
   ...NETWORK_OPTIONS,
 ] as const;
@@ -178,11 +189,11 @@ async function run(ctx: Context) {
   const dryRun = Boolean(ctx.options["dry-run"] || ctx.options.plan);
   const runner: Runner = realRunner();
 
+  const securityConfirmed = await confirmSecurity(ctx, detected, true, dryRun);
+  if (typeof securityConfirmed !== "boolean") return securityConfirmed;
+
   // Root phase: create the working user, then run again as that user.
-  if (isRoot()) {
-    if (!answers.user) {
-      return { code: ExitCode.ROOT, data: {}, text: `✗ Running as root. Pass --user <name>: auto creates the user and continues as it.` };
-    }
+  if (isRoot() && answers.user) {
     let steps: Step[];
     try {
       steps = userCreatePlan({ name: answers.user, system, sshKey: readSshKey(answers.sshKey), nopasswd: true });
@@ -203,7 +214,7 @@ async function run(ctx: Context) {
       if (!existsSync(target) || realpathSync(self[0]!) !== realpathSync(target)) copyFileSync(self[0]!, target);
       self = [target];
     }
-    const child = Bun.spawn(["runuser", "-u", answers.user, "--", "env", "SETUPVIBE_AUTO_CREATED_NOPASSWD=1", ...self, ...childArgs(process.argv.slice(2))], {
+    const child = Bun.spawn(["runuser", "-u", answers.user, "--", "env", "SETUPVIBE_AUTO_CREATED_NOPASSWD=1", ...self, ...autoChildArgs(securityConfirmed)], {
       stdin: "ignore",
       stdout: "inherit",
       stderr: "inherit",
@@ -215,7 +226,7 @@ async function run(ctx: Context) {
 
   // User phase.
   const user = currentUser();
-  if (!dryRun && process.platform !== "win32") {
+  if (!dryRun && !isRoot() && process.platform !== "win32") {
     const sudo = await runner.exec({ argv: ["sudo", "-n", "true"] });
     if (sudo.code !== 0) {
       return { code: ExitCode.SUDO_PASSWORD, data: {}, text: "✗ sudo asks for a password. auto needs passwordless sudo: run as root with --user, or add a NOPASSWD rule." };
@@ -233,6 +244,7 @@ async function run(ctx: Context) {
   }
   const config = readState<Record<string, unknown>>("config.json", {});
   const init = config.init as InitRecord | undefined;
+  const initDone = Boolean(init?.done && !missingPrerequisites(inventory, init).length);
   let plan;
   try {
     plan = autoPlan({
@@ -244,7 +256,7 @@ async function run(ctx: Context) {
       variant: detected.variant,
       user: user.username,
       userHasKey: hasAuthorizedKey(user.homedir),
-      initDone: Boolean(init?.done),
+      initDone,
       memoryGb: totalMemoryGb(),
       answers,
       selection,
@@ -276,17 +288,19 @@ async function run(ctx: Context) {
       log.event({ item: c.id, action: "check", status: c.status === "ok" ? "ok" : "fail", message: c.output });
       if (c.status === "fail" && !ctx.json) ctx.stderr(`✗ check ${c.id}: ${c.output || "not found"}${c.expected ? ` (expected ${c.expected})` : ""}`);
     }
-    if (results.find((r) => r.id === "mise" || r.id === "build-deps")?.status !== "fail" && !init?.done) {
+    if (!initDone && !results.some((r) => r.status === "fail" && ["mise", "build-deps", "package-index"].includes(r.id))) {
       writeState("config.json", { ...config, edition: manifest.edition, system, user: user.username, init: { done: true, at: new Date().toISOString(), version: manifest.version, system, prerequisites: inventory.items.filter((i) => i.initOnly).map((i) => i.id) } satisfies InitRecord });
     }
     const failed = results.filter((r) => r.status === "fail").length + checked.filter((c) => c.status === "fail").length;
     const lastRun = { version: manifest.version, finishedAt: new Date().toISOString(), log: log.path, ...summary, results, checks: checked };
     writeJsonAtomic(statePath("last-run.json"), lastRun);
-    writeState("selection.json", { profile: answers.profile ?? null, items: selection.items.map((i) => ({ id: i.id, version: i.version, status: checked.find((c) => c.id === i.id)?.status ?? "ok" })) });
+    const previous = readState<{ items?: SelectedItem[] }>("selection.json", {}).items ?? [];
+    const installed = selection.items.map((i) => ({ id: i.id, version: i.version, status: checked.find((c) => c.id === i.id)?.status ?? ("ok" as const) }));
+    writeState("selection.json", { profile: answers.profile ?? null, items: mergeSelection(previous, installed) });
 
     if (rebootRequired()) {
       if (answers.reboot) {
-        const resume = [...selfArgv(), ...childArgs(process.argv.slice(2))];
+        const resume = [...selfArgv(), ...autoChildArgs(securityConfirmed)];
         await runSteps(process.platform === "win32" ? windowsRebootSteps(resume) : rebootSteps(user.username, resume), runner);
       }
       return { code: ExitCode.REBOOT_PENDING, data: lastRun, text: `${color.warn("!")} Restart needed${answers.reboot ? "; restarting and resuming automatically." : ". Run auto again after the restart, or pass --reboot."}` };
@@ -303,7 +317,7 @@ async function run(ctx: Context) {
 
 export const autoCommand: Command = {
   name: "auto",
-  description: "Install everything without asking, for headless machines and automation.",
+  description: "Install the inventory, with unattended operation on headless machines.",
   longDescription:
     "Answers come from options, environment variables or --config. As root, --user creates the working user and auto continues as it. Without a profile, the whole inventory compatible with this system is installed; GUI items are skipped on headless machines.",
   options: OPTIONS,

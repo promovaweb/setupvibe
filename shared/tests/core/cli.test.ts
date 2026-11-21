@@ -102,7 +102,7 @@ describe("cli", () => {
     expect(r.code).toBe(0);
     expect(r.stdout).toContain("# CLI");
     expect(r.stdout).toContain("# MCP");
-    expect(r.stdout).toContain(`\`${manifest.bin} credentials set\``);
+    expect(r.stdout).toContain(`\`${manifest.bin} desktop credentials set\``);
     const topic = await run(["--skill", "exit-codes", "--json"]);
     expect(JSON.parse(topic.stdout).data.topic).toBe("exit-codes");
   });

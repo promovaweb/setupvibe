@@ -1,15 +1,11 @@
-/**
- * Edition registry.
- *
- * SetupVibe 2 ships two binaries from one core: `setupvibe` (desktop) and
- * `setupvibe-server`. Each entry point imports its `edition.ts` first, which
- * calls `registerEdition()` before any core module is evaluated. The core
- * then reads the identity, the embedded documentation and the inventory of
- * the running binary from here.
- *
- * This module must not import anything from the core, so that registering
- * the edition never triggers the evaluation of modules that need it.
- */
+import { AsyncLocalStorage } from "node:async_hooks";
+
+export const EDITIONS = ["desktop", "server", "omarchy"] as const;
+export type EditionId = (typeof EDITIONS)[number];
+
+export function isEdition(value: unknown): value is EditionId {
+  return EDITIONS.some((id) => id === value);
+}
 
 /** Embedded Markdown documentation of one edition (see `docs/`). */
 export interface EditionDocs {
@@ -39,40 +35,38 @@ export function docsLanguage(env: Record<string, string | undefined> = process.e
   return /^pt/i.test(lang) ? "pt-BR" : "en";
 }
 
-/** Identity of one SetupVibe binary. */
+/** Inventory, documentation and identity of an edition. */
 export interface EditionDefinition {
-  /** `desktop` or `server`. */
-  readonly id: "desktop" | "server";
-  /** Executable name: `setupvibe` or `setupvibe-server`. */
-  readonly bin: string;
+  readonly id: EditionId;
   /** Human-readable title. */
   readonly title: string;
   /** One-line description. */
   readonly description: string;
   /** Embedded documentation printed by `--skill`, per language. */
   readonly docs: Record<DocsLanguage, EditionDocs>;
-  /** The edition inventory (desktop/inventory.json or server/inventory.json). */
+  /** Inventory embedded from the edition’s inventory.json. */
   readonly inventory: unknown;
 }
 
-const key = Symbol.for("setupvibe.edition");
-type Store = { [key]?: EditionDefinition };
+const definitions = new Map<EditionId, EditionDefinition>();
+const requestEdition = new AsyncLocalStorage<EditionId>();
+let active: EditionId = "desktop";
 
-/** Registers the running edition. Called once by the entry point. */
+/** Registers an embedded edition without changing the active one. */
 export function registerEdition(definition: EditionDefinition): void {
-  (globalThis as Store)[key] = definition;
+  definitions.set(definition.id, definition);
 }
 
-/**
- * The running edition.
- *
- * @throws when no edition was registered, which means a core module was
- *   imported before the entry point's `edition.ts`.
- */
-export function edition(): EditionDefinition {
-  const current = (globalThis as Store)[key];
-  if (!current) {
-    throw new Error("No SetupVibe edition registered. Import desktop/src/edition.ts or server/src/edition.ts before the core.");
-  }
-  return current;
+export function selectEdition(id: EditionId): void {
+  active = id;
+}
+
+export function withEdition<T>(id: EditionId, run: () => T): T {
+  return requestEdition.run(id, run);
+}
+
+export function edition(id = requestEdition.getStore() ?? active): EditionDefinition {
+  const definition = definitions.get(id);
+  if (!definition) throw new Error(`SetupVibe edition "${id}" was not registered.`);
+  return definition;
 }

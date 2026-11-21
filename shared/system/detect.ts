@@ -9,7 +9,7 @@
  *
  * Spec sections 2 (supported systems) and 18 (desktop on a server).
  */
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { arch as osArch, networkInterfaces, platform as osPlatform, release as osRelease } from "node:os";
 import type { System } from "../inventory.ts";
 
@@ -55,7 +55,6 @@ export const SUPPORTED_ARCHES: Record<System, Arch[]> = {
   debian: ["x64", "arm64"],
   mint: ["x64"],
   zorin: ["x64"],
-  arch: ["x64"],
   omarchy: ["x64"],
   macos: ["x64", "arm64"],
   windows: ["x64"],
@@ -106,7 +105,7 @@ export function linuxSystemFromOsRelease(fields: Record<string, string>, flags: 
   if (flags.wsl && (id === "ubuntu" || id === "debian")) return "wsl";
   if (flags.omarchy && id === "arch") return "omarchy";
   if (id === "linuxmint") return "mint";
-  if (["ubuntu", "debian", "zorin", "arch"].includes(id)) return id as System;
+  if (["ubuntu", "debian", "zorin"].includes(id)) return id as System;
   return undefined;
 }
 
@@ -126,6 +125,21 @@ export function isHeadless(env: Record<string, string | undefined>, platform: st
   if (env.DISPLAY || env.WAYLAND_DISPLAY) return false;
   if (env.XDG_SESSION_TYPE === "x11" || env.XDG_SESSION_TYPE === "wayland") return false;
   return true;
+}
+
+/** Detect local graphical logins even in a sudo or SSH environment without display variables. */
+export function hasGraphicalSession(): boolean {
+  if (!isHeadless(process.env, "linux", false)) return true;
+  const loginctl = Bun.which("loginctl");
+  if (!loginctl) return false;
+  const run = (args: string[]) => Bun.spawnSync([loginctl, ...args], { stdout: "pipe", stderr: "ignore", timeout: 1500 });
+  const sessions = run(["list-sessions", "--no-legend"]);
+  if (sessions.exitCode !== 0) return false;
+  return sessions.stdout.toString().trim().split("\n").filter(Boolean).some((line) => {
+    const id = line.trim().split(/\s+/, 1)[0]!;
+    const session = run(["show-session", "--property=Type", "--value", "--", id]);
+    return ["x11", "wayland"].includes(session.stdout.toString().trim());
+  });
 }
 
 /** True when an IPv4 or IPv6 address is publicly routable. */
@@ -223,7 +237,7 @@ export function detectSystem(allowed: readonly System[]): DetectedSystem {
   if (platform === "linux") {
     const fields = parseOsRelease(readText("/etc/os-release"));
     wsl = isWsl(env, readText("/proc/version"));
-    const omarchy = existsSync("/usr/share/omarchy");
+    const omarchy = statSync("/usr/share/omarchy", { throwIfNoEntry: false })?.isDirectory() ?? false;
     system = linuxSystemFromOsRelease(fields, { wsl, omarchy });
     id = fields.ID ?? "linux";
     name = fields.PRETTY_NAME ?? "Linux";
@@ -251,7 +265,9 @@ export function detectSystem(allowed: readonly System[]): DetectedSystem {
     headless,
     publicIp,
     variant: variantOf(headless, publicIp),
-    unsupportedReason: unsupportedReason(system, version, arch, allowed),
+    unsupportedReason: !system && id.toLowerCase() === "arch"
+      ? "Arch Linux without Omarchy is not supported."
+      : unsupportedReason(system, version, arch, allowed),
     ...(distro ? { distro } : {}),
   };
 }

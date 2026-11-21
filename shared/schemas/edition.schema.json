@@ -1,0 +1,26 @@
+{
+  "$id": "https://raw.githubusercontent.com/promovaweb/setupvibe/v2/shared/schemas/edition.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "edition": {
+      "type": "string",
+      "enum": [
+        "desktop",
+        "server",
+        "omarchy"
+      ],
+      "description": "Edition selected explicitly for commands and the TUI."
+    }
+  },
+  "required": [
+    "edition"
+  ],
+  "additionalProperties": false,
+  "description": "~/.setupvibe/edition.json"
+}

@@ -7,6 +7,7 @@
  * so an older binary does not reject a file written by a newer one.
  */
 import { z } from "zod";
+import { EDITIONS } from "../core/app/edition.ts";
 import { rawUrl } from "../repo.ts";
 
 const system = z.enum(["ubuntu", "debian", "mint", "zorin", "arch", "omarchy", "macos", "windows", "wsl"]);
@@ -14,7 +15,7 @@ const system = z.enum(["ubuntu", "debian", "mint", "zorin", "arch", "omarchy", "
 export const configSchema = z
   .object({
     schemaVersion: z.number().int().min(1).optional(),
-    edition: z.enum(["desktop", "server"]).optional().describe("Edition that ran init on this machine."),
+    edition: z.enum(EDITIONS).optional().describe("Edition that ran init on this machine."),
     system: system.optional(),
     user: z.string().optional().describe("Working user."),
     channel: z.enum(["stable", "beta"]).optional().describe("Release channel read by upgrade and the update notice."),
@@ -47,7 +48,12 @@ export const externalSchema = z
   .loose()
   .describe("~/.setupvibe/external.json: mise tools installed with install --external");
 
-export const STATE_SCHEMAS = { "config.json": configSchema, "selection.json": selectionSchema, "external.json": externalSchema } as const;
+export const editionSchema = z.object({
+  schemaVersion: z.number().int().min(1).optional(),
+  edition: z.enum(EDITIONS).describe("Edition selected explicitly for commands and the TUI."),
+}).describe("~/.setupvibe/edition.json");
+
+export const STATE_SCHEMAS = { "config.json": configSchema, "selection.json": selectionSchema, "external.json": externalSchema, "edition.json": editionSchema } as const;
 
 /** JSON Schema of one state file. */
 export function jsonSchemaFor(file: keyof typeof STATE_SCHEMAS): Record<string, unknown> {

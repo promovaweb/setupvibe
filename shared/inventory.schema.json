@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://setupvibe.dev/schema/inventory-1.json",
   "title": "SetupVibe inventory",
-  "description": "Official list of everything a SetupVibe 2 edition installs and manages. One file per edition: desktop/inventory.json and server/inventory.json.",
+  "description": "Official list of everything a SetupVibe 2 edition installs and manages. One file per edition: desktop/inventory.json, server/inventory.json and omarchy/inventory.json.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -25,7 +25,8 @@
     "edition": {
       "enum": [
         "desktop",
-        "server"
+        "server",
+        "omarchy"
       ]
     },
     "updated": {
@@ -160,7 +161,6 @@
         "debian",
         "mint",
         "zorin",
-        "arch",
         "omarchy",
         "macos",
         "windows",
@@ -174,7 +174,6 @@
         "debian",
         "mint",
         "zorin",
-        "arch",
         "omarchy",
         "macos",
         "windows",

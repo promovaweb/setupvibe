@@ -1,4 +1,5 @@
 /** Shell completion command backed by the declarative registry. */
+import { EDITIONS, withEdition } from "../../app/edition.ts";
 import { manifest } from "../../app/manifest.ts";
 import { COMPLETION_SHELLS, generateCompletion, type CompletionShell } from "../completion.ts";
 import type { Command } from "../registry.ts";
@@ -12,7 +13,13 @@ export function createCompletionCommand(getRoot: () => Command): Command {
     arguments: [{ name: "shell", required: true, values: COMPLETION_SHELLS, description: "Shell to generate completion for: bash, zsh, fish or powershell." }],
     run: ({ args }) => {
       const shell = args[0] as CompletionShell;
-      const script = generateCompletion(getRoot(), shell);
+      const root = getRoot();
+      const editions = EDITIONS.map((id) => withEdition(id, () => ({
+        name: id,
+        description: manifest.description,
+        subcommands: root.subcommands,
+      })));
+      const script = generateCompletion({ ...root, subcommands: [...(root.subcommands ?? []), ...editions] }, shell);
       return { data: { shell, script }, text: script };
     },
   };

@@ -1,3 +1,4 @@
+import type { EditionId } from "./core/app/edition.ts";
 /**
  * SetupVibe 2 inventory model.
  *
@@ -8,7 +9,7 @@
  */
 
 /** Systems a SetupVibe edition can run on. */
-export type System = "ubuntu" | "debian" | "mint" | "zorin" | "arch" | "omarchy" | "macos" | "windows" | "wsl";
+export type System = "ubuntu" | "debian" | "mint" | "zorin" | "omarchy" | "macos" | "windows" | "wsl";
 
 /** Keys accepted in an item's `install` map, from specific to general. */
 export type InstallKey = System | "debian-family" | "arch-family" | "linux" | "unix" | "all";
@@ -93,7 +94,7 @@ export interface Profile {
 export interface Inventory {
   $schema?: string;
   schemaVersion: 1;
-  edition: "desktop" | "server";
+  edition: EditionId;
   updated: string;
   systems: System[];
   categories: { id: string; name: Localized }[];
@@ -102,10 +103,10 @@ export interface Inventory {
   items: Item[];
 }
 
-export const ALL_SYSTEMS: readonly System[] = ["ubuntu", "debian", "mint", "zorin", "arch", "omarchy", "macos", "windows", "wsl"];
+export const ALL_SYSTEMS: readonly System[] = ["ubuntu", "debian", "mint", "zorin", "omarchy", "macos", "windows", "wsl"];
 
 const DEBIAN_FAMILY: readonly System[] = ["ubuntu", "debian", "mint", "zorin", "wsl"];
-const ARCH_FAMILY: readonly System[] = ["arch", "omarchy"];
+const ARCH_FAMILY: readonly System[] = ["omarchy"];
 
 /**
  * Install keys that apply to a system, from the most specific to the most

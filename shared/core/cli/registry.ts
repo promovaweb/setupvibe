@@ -11,6 +11,7 @@
  * `Command` and register it in `commands.ts`. The stub in `template/command/`
  * shows the expected shape.
  */
+import type { EditionId } from "../app/edition.ts";
 import type { ExitCode } from "../app/exit-codes.ts";
 
 /** Topics of the embedded documentation (--skill, docs, MCP resources). */
@@ -56,6 +57,9 @@ export type Options = Record<string, string | boolean | undefined>;
 
 /** Context handed to `run`. */
 export interface Context {
+  /** First TUI launch, with no explicit or saved edition. */
+  chooseEdition?: boolean;
+  mcpEdition?: EditionId;
   /** Positional arguments in the given order. */
   args: string[];
   /** Resolved options (long name without `--`). */

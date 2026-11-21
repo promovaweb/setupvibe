@@ -27,7 +27,7 @@ const applyCommand: Command = {
     if (!detected.system || detected.unsupportedReason) return { code: ExitCode.UNSUPPORTED_SYSTEM, data: {}, text: `✗ ${detected.unsupportedReason}` };
     const config = readState<Record<string, unknown>>("config.json", {});
     const legacy = detectV1Here(homedir());
-    const steps = [...(legacy.found ? migrateSteps({ home: homedir(), detection: { ...legacy, sshCopyId: false } }) : []), ...shellSteps({
+    const steps = [...(manifest.edition !== "omarchy" && legacy.found ? migrateSteps({ home: homedir(), detection: { ...legacy, sshCopyId: false } }) : []), ...shellSteps({
       system: detected.system,
       edition: manifest.edition,
       bin: manifest.bin,

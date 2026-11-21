@@ -28,7 +28,7 @@ export interface UserCreateOptions {
 
 /** Sudo group of a system. */
 export function sudoGroup(system: System): string {
-  return system === "arch" || system === "omarchy" ? "wheel" : "sudo";
+  return system === "omarchy" ? "wheel" : "sudo";
 }
 
 /** Path of the SetupVibe sudoers rule for a user. */

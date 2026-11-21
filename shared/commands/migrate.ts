@@ -91,7 +91,7 @@ export const migrateCommand: Command = {
     };
 
     const config = readState<Record<string, unknown>>("config.json", {});
-    const steps: Step[] = [...migrateSteps({ home, detection: v1 })];
+    const steps: Step[] = [...migrateSteps({ home, detection: v1, edition: manifest.edition })];
     if (detected.system !== "windows" && (v1.zshrc || v1.tmux || v1.omarchyBlock)) {
       steps.push(
         ...shellSteps({

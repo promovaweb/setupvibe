@@ -44,7 +44,6 @@ interface PublicTree {
 interface EditionCase {
   id: string;
   bin: string;
-  entry: string;
   docs: { language: "pt-BR" | "en"; file: string; examples: string; labels: string[] }[];
 }
 
@@ -54,8 +53,7 @@ const enLabels = ["Syntax", "Arguments and options", "Output", "Persistent effec
 const editions: EditionCase[] = [
   {
     id: "desktop",
-    bin: "setupvibe",
-    entry: "desktop/src/main.ts",
+    bin: "setupvibe desktop",
     docs: [
       { language: "pt-BR", file: "desktop/docs/cli.md", examples: "#### Exemplos", labels: ptLabels },
       { language: "en", file: "desktop/docs/en/cli.md", examples: "#### Examples", labels: enLabels },
@@ -63,25 +61,32 @@ const editions: EditionCase[] = [
   },
   {
     id: "server",
-    bin: "setupvibe-server",
-    entry: "server/src/main.ts",
+    bin: "setupvibe server",
     docs: [
       { language: "pt-BR", file: "server/docs/cli.md", examples: "#### Exemplos", labels: ptLabels },
       { language: "en", file: "server/docs/en/cli.md", examples: "#### Examples", labels: enLabels },
+    ],
+  },
+  {
+    id: "omarchy",
+    bin: "setupvibe omarchy",
+    docs: [
+      { language: "pt-BR", file: "omarchy/docs/cli.md", examples: "#### Exemplos", labels: ptLabels },
+      { language: "en", file: "omarchy/docs/en/cli.md", examples: "#### Examples", labels: enLabels },
     ],
   },
 ];
 
 /** Runs the edition entry point with `--opencli` and returns the public tree. */
 function publicTree(edition: EditionCase): PublicTree {
-  const result = Bun.spawnSync([process.execPath, join(repo, edition.entry), "--opencli"], {
+  const result = Bun.spawnSync([process.execPath, join(repo, "main.ts"), edition.id, "--opencli"], {
     cwd: repo,
     stdout: "pipe",
     stderr: "pipe",
     env: { ...process.env, SETUPVIBE_HOME: home, NO_COLOR: "1" },
   });
   if (result.exitCode !== 0) {
-    throw new Error(`${edition.entry} --opencli failed: ${result.stderr.toString()}`);
+    throw new Error(`setupvibe ${edition.id} --opencli failed: ${result.stderr.toString()}`);
   }
   const document = JSON.parse(result.stdout.toString()) as { command: OpenCliCommand };
   const skill = document.command.options?.find((option) => option.name === "--skill");
@@ -148,7 +153,8 @@ for (const edition of editions) {
       const repeated: string[] = [];
 
       for (const command of commands) {
-        const body = section(markdown, edition.bin, command.name);
+        const bin = command.name.startsWith("edition") ? "setupvibe" : edition.bin;
+        const body = section(markdown, bin, command.name);
         if (!body) {
           missing.push(command.name);
           continue;
@@ -158,7 +164,7 @@ for (const edition of editions) {
           incomplete.push(`${command.name} (${absent.join(", ")})`);
           continue;
         }
-        const blocks = examples(body, doc.examples).filter((block) => block.includes(edition.bin));
+        const blocks = examples(body, doc.examples).filter((block) => block.includes(bin));
         if (blocks.length < 5) short.push(`${command.name} (${blocks.length})`);
         else if (new Set(blocks).size < 5) repeated.push(command.name);
       }

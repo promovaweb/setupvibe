@@ -204,6 +204,7 @@ function convertStep(id: string, description: string, file: string, local: strin
 }
 
 export interface MigrateOptions {
+  edition?: "desktop" | "server" | "omarchy";
   home: string;
   detection: V1Detection;
   /** Clock for the note in the `.local` files. */
@@ -244,7 +245,7 @@ export function migrateSteps(o: MigrateOptions): Step[] {
       action: async () => {
         backupOnce(file, o.home);
         mkdirSync(dirname(file), { recursive: true });
-        writeFileSync(file, sshCopyIdShortcut);
+        writeFileSync(file, sshCopyIdShortcut.replace("@EDITION@", o.edition ?? "desktop"));
         chmodSync(file, 0o755);
       },
     });

@@ -1,5 +1,11 @@
 # TUI
 
+Abra `setupvibe` em um terminal interativo. No primeiro uso, o menu
+sugere Omarchy quando encontra `/usr/share/omarchy`, Desktop quando há uma
+sessão gráfica e Server em Linux sem interface gráfica. Escolha com as setas
+e pressione Enter para salvar. Nas próximas aberturas, a edição salva aparece
+no cabeçalho. Pressione `E` ou clique na edição para mudar a preferência.
+
 A interface de terminal abre com `{{bin}}` sem argumentos ou com
 `{{bin}} tui`. Ela exige stdin e stdout em um TTY; fora disso o processo
 encerra com exit code 8.

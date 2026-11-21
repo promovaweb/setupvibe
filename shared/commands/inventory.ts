@@ -18,12 +18,12 @@ import { flagsFor, resolveInstall } from "../inventory.ts";
 import { realRunner, runSteps } from "../exec/runner.ts";
 import { detectSystem, type DetectedSystem } from "../system/detect.ts";
 import { readState, writeState } from "../state/store.ts";
-import type { InitRecord } from "../init/plan.ts";
+import { missingPrerequisites, type InitRecord } from "../init/plan.ts";
 import { resolveAnswers } from "../auto/answers.ts";
 import { selectItems } from "../auto/selection.ts";
 import { autoPlan } from "../auto/plan.ts";
 import { checkItems } from "../auto/check.ts";
-import { hasAuthorizedKey } from "./security.ts";
+import { confirmSecurity, CONFIRM_SECURITY_OPTION, hasAuthorizedKey } from "./security.ts";
 import { executePlan, DRY_RUN_OPTION } from "./execute.ts";
 import { applyNetworkOptions, NETWORK_OPTIONS } from "../exec/network.ts";
 import { totalMemoryGb } from "../init/requirements.ts";
@@ -60,8 +60,9 @@ function machine(needInit: boolean): Machine | Result {
     return { code: ExitCode.UNSUPPORTED_SYSTEM, data: { system: detected }, text: `✗ ${detected.unsupportedReason}` };
   }
   const config = readState<Record<string, unknown>>("config.json", {});
-  if (needInit && !(config.init as InitRecord | undefined)?.done) {
-    return { code: ExitCode.CONFIG, data: { init: false }, text: `✗ init has not been completed. Run: ${manifest.bin} init` };
+  const init = config.init as InitRecord | undefined;
+  if (needInit && (!init?.done || missingPrerequisites(inventory, init).length)) {
+    return { code: ExitCode.CONFIG, data: { init: false }, text: `✗ init has not been completed. Run: ${manifest.bin} ${manifest.edition} init` };
   }
   const selection = readState<{ items?: SelectedItem[] }>("selection.json", {}).items ?? [];
   return { inventory, detected, system: detected.system, config, selection };
@@ -172,6 +173,8 @@ async function installItems(ctx: Context, m: Machine, ids: string[], force: bool
     legacy: detectV1Here(user.homedir),
   });
   const steps = selection.items.length ? plan.steps.filter((s) => s.id !== "git-identity") : [];
+  const securityRefusal = await confirmSecurity(ctx, m.detected, plan.security && steps.length > 0, dryRun);
+  if (typeof securityRefusal !== "boolean") return securityRefusal;
   for (const s of selection.skipped) if (!ctx.json) ctx.stderr(`- ${s.id}: ${s.reason}`);
   for (const i of selection.items) {
     const elsewhere = otherManagerPath(i);
@@ -195,6 +198,7 @@ const installCommand: Command = {
     { name: "--external", description: "Install a mise tool that is not in the inventory; the version is pinned and recorded in external.json." },
     { name: "--force", description: "Reinstall items that already pass their check." },
     DRY_RUN_OPTION,
+    CONFIRM_SECURITY_OPTION,
     ...NETWORK_OPTIONS,
   ],
   exitCodes: [ExitCode.PARTIAL, ExitCode.CONFIG, ExitCode.UNSUPPORTED_SYSTEM, ExitCode.NOT_FOUND],
@@ -203,6 +207,7 @@ const installCommand: Command = {
     const m = machine(true);
     if (isResult(m)) return m;
     if (!ctx.options.external) return installItems(ctx, m, ctx.args, Boolean(ctx.options.force));
+    if (manifest.edition === "omarchy") return { code: ExitCode.USAGE, data: {}, text: "✗ Omarchy manages the global mise configuration. Use mise directly for tools outside SetupVibe’s inventory." };
 
     if (ctx.args.length !== 1 || !MISE_TOOL.test(ctx.args[0]!)) return { code: ExitCode.USAGE, data: {}, text: "✗ --external takes one mise tool, such as terraform or terraform@1.13.4." };
     const { tool, version: given } = splitToolSpec(ctx.args[0]!);
@@ -245,6 +250,7 @@ const removeCommand: Command = {
     };
 
     if (ctx.options.external) {
+      if (manifest.edition === "omarchy") return { code: ExitCode.USAGE, data: {}, text: "✗ Omarchy manages the global mise configuration. Use mise directly for tools outside SetupVibe’s inventory." };
       const tool = ctx.args[0]!;
       const apps = readState<{ apps?: ExternalApp[] }>("external.json", {}).apps ?? [];
       if (!apps.some((a) => a.tool === tool)) return { code: ExitCode.NOT_FOUND, data: { tool }, text: `✗ ${tool} was not installed with install --external.` };
@@ -283,7 +289,7 @@ const removeCommand: Command = {
 const updateCommand: Command = {
   name: "update",
   description: "Update the selected items whose pinned version changed in this SetupVibe's inventory.",
-  options: [DRY_RUN_OPTION, ...NETWORK_OPTIONS],
+  options: [DRY_RUN_OPTION, CONFIRM_SECURITY_OPTION, ...NETWORK_OPTIONS],
   exitCodes: [ExitCode.PARTIAL, ExitCode.CONFIG, ExitCode.UNSUPPORTED_SYSTEM],
   examples: [`${manifest.bin} update --dry-run`, `${manifest.bin} update`],
   run: async (ctx) => {

@@ -8,6 +8,7 @@ import { BLOCK_START } from "../shell/config";
 import {
   addedLines,
   detectV1,
+  detectV1Here,
   isV1Tmux,
   isV1Zshrc,
   legacyRemoveStep,
@@ -115,17 +116,18 @@ describe("migration", () => {
     }
   });
 
-  test("the ssh_copy_id shortcut passes the SetupVibe 1 options to ssh copy-id", () => {
+  test("the ssh_copy_id shortcut passes the SetupVibe 1 options to ssh copy-id", async () => {
     const dir = mkdtempSync(join(tmpdir(), "sv-copyid-"));
     try {
       const fake = join(dir, "setupvibe");
       writeFileSync(fake, '#!/bin/sh\necho "args: $*"\n[ -t 0 ] || { read -r p || true; echo "stdin: $p"; }\n');
       chmodSync(fake, 0o755);
-      const shortcut = join(import.meta.dir, "..", "legacy", "ssh_copy_id.sh");
+      const shortcut = join(dir, ".setupvibe", "bin", "ssh_copy_id");
+      await migrateSteps({ home: dir, edition: "server", detection: { ...detectV1Here(dir), sshCopyId: true } })[0]!.action!(dryRunner());
       const env = { ...process.env, PATH: `${dir}:${process.env.PATH}` };
       const run = (args: string[]) => Bun.spawnSync(["sh", shortcut, ...args], { env, stdin: "ignore" });
       const withPass = run(["--host", "10.0.0.1", "--user", "deploy", "--pass", "s3cret", "--port", "2222"]);
-      expect(withPass.stdout.toString()).toContain("args: ssh copy-id deploy@10.0.0.1 --port 2222 --password-stdin");
+      expect(withPass.stdout.toString()).toContain("args: server ssh copy-id deploy@10.0.0.1 --port 2222 --password-stdin");
       expect(withPass.stdout.toString()).toContain("stdin: s3cret");
       expect(run(["--host", "h"]).exitCode).toBe(2);
     } finally {

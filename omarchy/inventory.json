@@ -1,0 +1,902 @@
+{
+  "$schema": "../shared/inventory.schema.json",
+  "schemaVersion": 1,
+  "edition": "omarchy",
+  "updated": "2026-11-20",
+  "systems": [
+    "omarchy"
+  ],
+  "categories": [
+    {
+      "id": "system",
+      "name": {
+        "en": "System",
+        "pt-BR": "Sistema"
+      }
+    },
+    {
+      "id": "languages",
+      "name": {
+        "en": "Languages",
+        "pt-BR": "Linguagens"
+      }
+    },
+    {
+      "id": "terminal",
+      "name": {
+        "en": "Terminal tools",
+        "pt-BR": "Ferramentas de terminal"
+      }
+    },
+    {
+      "id": "shell",
+      "name": {
+        "en": "Shell",
+        "pt-BR": "Shell"
+      }
+    },
+    {
+      "id": "devops",
+      "name": {
+        "en": "DevOps",
+        "pt-BR": "DevOps"
+      }
+    },
+    {
+      "id": "network",
+      "name": {
+        "en": "Network and monitoring",
+        "pt-BR": "Rede e monitoramento"
+      }
+    },
+    {
+      "id": "ai",
+      "name": {
+        "en": "AI agents",
+        "pt-BR": "Agentes de IA"
+      }
+    }
+  ],
+  "repositories": {},
+  "profiles": {
+    "essencial": {
+      "description": {
+        "en": "Default Omarchy selection.",
+        "pt-BR": "Seleção padrão do Omarchy."
+      },
+      "items": [
+        "build-deps",
+        "mise",
+        "sshpass",
+        "node",
+        "php-build-deps",
+        "php",
+        "bat",
+        "eza",
+        "zoxide",
+        "fzf",
+        "ripgrep",
+        "fd",
+        "lazygit",
+        "neovim",
+        "fastfetch",
+        "jq",
+        "starship",
+        "tmux",
+        "nerd-fonts",
+        "gh",
+        "claude-code",
+        "codex",
+        "opencode",
+        "herdr"
+      ]
+    },
+    "remoto": {
+      "description": {
+        "en": "Remote access packages for Omarchy.",
+        "pt-BR": "Pacotes de acesso remoto para Omarchy."
+      },
+      "extends": "essencial",
+      "items": [
+        "mosh",
+        "tailscale",
+        "openssh-server"
+      ]
+    }
+  },
+  "items": [
+    {
+      "id": "build-deps",
+      "name": "Build dependencies",
+      "category": "system",
+      "description": {
+        "en": "Compilers and libraries that mise needs to build runtimes such as Ruby.",
+        "pt-BR": "Compiladores e bibliotecas de que o mise precisa para compilar linguagens como o Ruby."
+      },
+      "homepage": "https://mise.jdx.dev/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "initOnly": true,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "base-devel",
+            "git",
+            "curl",
+            "wget",
+            "unzip",
+            "openssl",
+            "zlib",
+            "readline",
+            "sqlite",
+            "libyaml",
+            "libffi",
+            "tk"
+          ]
+        }
+      },
+      "verify": {
+        "command": "git --version"
+      }
+    },
+    {
+      "id": "mise",
+      "name": "mise",
+      "category": "system",
+      "description": {
+        "en": "Runtime and tool manager that installs and pins most inventory items.",
+        "pt-BR": "Gerenciador de linguagens e ferramentas que instala e fixa a maior parte do inventário."
+      },
+      "homepage": "https://mise.jdx.dev/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "initOnly": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "mise --version"
+      }
+    },
+    {
+      "id": "sshpass",
+      "name": "sshpass",
+      "category": "system",
+      "description": {
+        "en": "Non-interactive SSH password helper used by `setupvibe ssh copy-id`.",
+        "pt-BR": "Auxiliar de senha SSH usado pelo `setupvibe ssh copy-id`."
+      },
+      "homepage": "https://sourceforge.net/projects/sshpass/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "sshpass"
+          ]
+        }
+      },
+      "verify": {
+        "command": "sshpass -V"
+      }
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "category": "languages",
+      "description": {
+        "en": "JavaScript runtime, LTS line.",
+        "pt-BR": "Runtime JavaScript, linha LTS."
+      },
+      "homepage": "https://nodejs.org/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled",
+          "note": "Omarchy manages Node through mise."
+        }
+      },
+      "verify": {
+        "command": "node --version"
+      }
+    },
+    {
+      "id": "php-build-deps",
+      "name": "PHP build dependencies",
+      "category": "system",
+      "description": {
+        "en": "Libraries that mise needs to compile PHP and its extensions.",
+        "pt-BR": "Bibliotecas de que o mise precisa para compilar o PHP e as extensões."
+      },
+      "homepage": "https://github.com/jdx/vfox-php",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "requires": [
+        "build-deps"
+      ],
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "base-devel",
+            "autoconf",
+            "bison",
+            "re2c",
+            "pkgconf",
+            "libxml2",
+            "openssl",
+            "icu",
+            "libzip",
+            "oniguruma",
+            "curl",
+            "libpng",
+            "libjpeg-turbo",
+            "freetype2",
+            "libwebp",
+            "gmp",
+            "libsodium",
+            "readline",
+            "bzip2",
+            "sqlite",
+            "zlib",
+            "postgresql-libs"
+          ]
+        }
+      },
+      "verify": {
+        "command": "command -v re2c >/dev/null && { [ \"$(uname)\" = Darwin ] || pkg-config --exists libcurl oniguruma libzip icu-i18n libsodium; } && echo ok",
+        "expect": "ok"
+      }
+    },
+    {
+      "id": "php",
+      "name": "PHP",
+      "category": "languages",
+      "description": {
+        "en": "PHP built by mise from the official source, with the extensions Laravel needs. Composer is a separate item.",
+        "pt-BR": "PHP compilado pelo mise a partir do código oficial, com as extensões de que o Laravel precisa. O Composer é um item à parte."
+      },
+      "homepage": "https://www.php.net/",
+      "version": "8.6.0",
+      "versionPolicy": "exact",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "mise",
+          "tool": "php@{version}"
+        }
+      },
+      "verify": {
+        "command": "\"$HOME/.setupvibe/omarchy/mise/installs/php/{version}/bin/php\" --version",
+        "expect": "8.6.0"
+      },
+      "requires": [
+        "build-deps",
+        "php-build-deps"
+      ]
+    },
+    {
+      "id": "ruby",
+      "name": "Ruby",
+      "category": "languages",
+      "description": {
+        "en": "Ruby built by mise.",
+        "pt-BR": "Ruby compilado pelo mise."
+      },
+      "homepage": "https://www.ruby-lang.org/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": false,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "ruby --version"
+      }
+    },
+    {
+      "id": "bat",
+      "name": "bat",
+      "category": "terminal",
+      "description": {
+        "en": "cat with syntax highlighting.",
+        "pt-BR": "cat com destaque de sintaxe."
+      },
+      "homepage": "https://github.com/sharkdp/bat",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "bat --version"
+      }
+    },
+    {
+      "id": "eza",
+      "name": "eza",
+      "category": "terminal",
+      "description": {
+        "en": "Modern ls.",
+        "pt-BR": "ls moderno."
+      },
+      "homepage": "https://eza.rocks/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "eza --version"
+      }
+    },
+    {
+      "id": "zoxide",
+      "name": "zoxide",
+      "category": "terminal",
+      "description": {
+        "en": "Smarter cd.",
+        "pt-BR": "cd mais esperto."
+      },
+      "homepage": "https://github.com/ajeetdsouza/zoxide",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "zoxide --version"
+      }
+    },
+    {
+      "id": "fzf",
+      "name": "fzf",
+      "category": "terminal",
+      "description": {
+        "en": "Fuzzy finder.",
+        "pt-BR": "Busca aproximada no terminal."
+      },
+      "homepage": "https://junegunn.github.io/fzf/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "fzf --version"
+      }
+    },
+    {
+      "id": "ripgrep",
+      "name": "ripgrep",
+      "category": "terminal",
+      "description": {
+        "en": "Fast recursive search (`rg`).",
+        "pt-BR": "Busca recursiva rápida (`rg`)."
+      },
+      "homepage": "https://github.com/BurntSushi/ripgrep",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "rg --version"
+      }
+    },
+    {
+      "id": "fd",
+      "name": "fd",
+      "category": "terminal",
+      "description": {
+        "en": "Fast file finder.",
+        "pt-BR": "Localizador de arquivos rápido."
+      },
+      "homepage": "https://github.com/sharkdp/fd",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "fd --version"
+      }
+    },
+    {
+      "id": "lazygit",
+      "name": "lazygit",
+      "category": "terminal",
+      "description": {
+        "en": "Terminal UI for Git.",
+        "pt-BR": "Interface de terminal para o Git."
+      },
+      "homepage": "https://github.com/jesseduffield/lazygit",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "lazygit --version"
+      }
+    },
+    {
+      "id": "neovim",
+      "name": "neovim",
+      "category": "terminal",
+      "description": {
+        "en": "Modern Vim.",
+        "pt-BR": "Vim moderno."
+      },
+      "homepage": "https://neovim.io/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "nvim --version"
+      }
+    },
+    {
+      "id": "fastfetch",
+      "name": "fastfetch",
+      "category": "terminal",
+      "description": {
+        "en": "System information.",
+        "pt-BR": "Informações do sistema."
+      },
+      "homepage": "https://github.com/fastfetch-cli/fastfetch",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "fastfetch --version"
+      }
+    },
+    {
+      "id": "jq",
+      "name": "jq",
+      "category": "terminal",
+      "description": {
+        "en": "JSON processor.",
+        "pt-BR": "Processador de JSON."
+      },
+      "homepage": "https://jqlang.org/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "jq --version"
+      }
+    },
+    {
+      "id": "starship",
+      "name": "Starship",
+      "category": "shell",
+      "description": {
+        "en": "Cross-shell prompt, gruvbox-rainbow preset.",
+        "pt-BR": "Prompt para qualquer shell, preset gruvbox-rainbow."
+      },
+      "homepage": "https://starship.rs/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled",
+          "note": "Omarchy owns the Starship configuration."
+        }
+      },
+      "verify": {
+        "command": "starship --version"
+      }
+    },
+    {
+      "id": "tmux",
+      "name": "tmux",
+      "category": "shell",
+      "description": {
+        "en": "Terminal multiplexer with session restore.",
+        "pt-BR": "Multiplexador de terminal com restauração de sessões."
+      },
+      "homepage": "https://github.com/tmux/tmux",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled",
+          "note": "SetupVibe does not change Omarchy's tmux configuration."
+        }
+      },
+      "verify": {
+        "command": "tmux -V"
+      }
+    },
+    {
+      "id": "nerd-fonts",
+      "name": "Nerd Fonts",
+      "category": "shell",
+      "flags": [
+        "gui"
+      ],
+      "description": {
+        "en": "FiraCode and JetBrains Mono Nerd Fonts. On remote machines they belong on the client computer.",
+        "pt-BR": "Nerd Fonts FiraCode e JetBrains Mono. Em máquinas remotas, ficam no computador de onde a pessoa conecta."
+      },
+      "homepage": "https://www.nerdfonts.com/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled",
+          "note": "Omarchy ships JetBrains Mono Nerd Font."
+        }
+      },
+      "verify": {
+        "command": "fc-list | grep -i 'Nerd Font'"
+      }
+    },
+    {
+      "id": "media-tools",
+      "name": "ffmpeg and ImageMagick",
+      "category": "terminal",
+      "description": {
+        "en": "Audio, video and image conversion.",
+        "pt-BR": "Conversão de áudio, vídeo e imagem."
+      },
+      "homepage": "https://ffmpeg.org/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": false,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "ffmpeg",
+            "imagemagick"
+          ]
+        }
+      },
+      "verify": {
+        "command": "ffmpeg -version"
+      }
+    },
+    {
+      "id": "docker",
+      "name": "Docker",
+      "category": "devops",
+      "flags": [
+        "service"
+      ],
+      "description": {
+        "en": "Docker Engine with Buildx and Compose; Docker Desktop on macOS.",
+        "pt-BR": "Docker Engine com Buildx e Compose; Docker Desktop no macOS."
+      },
+      "homepage": "https://www.docker.com/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": false,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "docker --version && { [ \"$(uname -s)\" = Darwin ] || systemctl is-active --quiet docker; }"
+      }
+    },
+    {
+      "id": "gh",
+      "name": "GitHub CLI",
+      "category": "devops",
+      "description": {
+        "en": "GitHub from the terminal.",
+        "pt-BR": "GitHub pelo terminal."
+      },
+      "homepage": "https://cli.github.com/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "gh --version"
+      }
+    },
+    {
+      "id": "lazydocker",
+      "name": "lazydocker",
+      "category": "devops",
+      "description": {
+        "en": "Terminal UI for Docker.",
+        "pt-BR": "Interface de terminal para o Docker."
+      },
+      "homepage": "https://github.com/jesseduffield/lazydocker",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": false,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "lazydocker --version"
+      }
+    },
+    {
+      "id": "network-tools",
+      "name": "Network and monitoring tools",
+      "category": "network",
+      "description": {
+        "en": "htop, btop, glances, nmap, mtr, tcpdump, iftop, nload, iotop, sysstat and DNS tools.",
+        "pt-BR": "htop, btop, glances, nmap, mtr, tcpdump, iftop, nload, iotop, sysstat e ferramentas de DNS."
+      },
+      "homepage": "https://github.com/promovaweb/setupvibe",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": false,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "htop",
+            "btop",
+            "glances",
+            "nmap",
+            "mtr",
+            "tcpdump",
+            "iftop",
+            "nload",
+            "iotop",
+            "sysstat",
+            "rsync",
+            "net-tools",
+            "bind",
+            "whois",
+            "iputils"
+          ]
+        }
+      },
+      "verify": {
+        "command": "nmap --version"
+      }
+    },
+    {
+      "id": "tailscale",
+      "name": "Tailscale",
+      "category": "network",
+      "flags": [
+        "service"
+      ],
+      "description": {
+        "en": "Private network. Joins automatically with TAILSCALE_AUTHKEY.",
+        "pt-BR": "Rede privada. Entra sozinho com TAILSCALE_AUTHKEY."
+      },
+      "homepage": "https://tailscale.com/",
+      "version": "stable",
+      "versionPolicy": "repository",
+      "default": false,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "tailscale"
+          ]
+        }
+      },
+      "verify": {
+        "command": "tailscale version"
+      }
+    },
+    {
+      "id": "openssh-server",
+      "name": "OpenSSH server",
+      "category": "network",
+      "flags": [
+        "service",
+        "port"
+      ],
+      "description": {
+        "en": "SSH server, never with password authentication turned on by SetupVibe.",
+        "pt-BR": "Servidor SSH, sem que o SetupVibe ligue a autenticação por senha."
+      },
+      "homepage": "https://www.openssh.com/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": false,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "openssh"
+          ]
+        }
+      },
+      "verify": {
+        "command": "command -v sshd >/dev/null && { systemctl is-active --quiet ssh || systemctl is-active --quiet sshd; }"
+      }
+    },
+    {
+      "id": "mosh",
+      "name": "mosh",
+      "category": "network",
+      "description": {
+        "en": "Mobile shell for unstable connections.",
+        "pt-BR": "Shell para conexões instáveis."
+      },
+      "homepage": "https://mosh.org/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": false,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "mosh"
+          ]
+        }
+      },
+      "verify": {
+        "command": "mosh-server --version"
+      }
+    },
+    {
+      "id": "claude-code",
+      "name": "Claude Code",
+      "category": "ai",
+      "description": {
+        "en": "Anthropic coding agent, official native installer with self-update.",
+        "pt-BR": "Agente de código da Anthropic, pelo instalador nativo oficial, que se atualiza sozinho."
+      },
+      "homepage": "https://claude.com/claude-code",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "claude --version"
+      }
+    },
+    {
+      "id": "codex",
+      "name": "Codex",
+      "category": "ai",
+      "description": {
+        "en": "OpenAI coding agent.",
+        "pt-BR": "Agente de código da OpenAI."
+      },
+      "homepage": "https://developers.openai.com/codex",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "codex --version"
+      }
+    },
+    {
+      "id": "copilot",
+      "name": "GitHub Copilot CLI",
+      "category": "ai",
+      "description": {
+        "en": "GitHub Copilot in the terminal.",
+        "pt-BR": "GitHub Copilot no terminal."
+      },
+      "homepage": "https://github.com/features/copilot/cli",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": false,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "copilot --version"
+      }
+    },
+    {
+      "id": "opencode",
+      "name": "OpenCode",
+      "category": "ai",
+      "description": {
+        "en": "Open source coding agent.",
+        "pt-BR": "Agente de código aberto."
+      },
+      "homepage": "https://opencode.ai/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "opencode --version"
+      }
+    },
+    {
+      "id": "herdr",
+      "name": "Herdr",
+      "category": "ai",
+      "description": {
+        "en": "Terminal multiplexer for coding agents.",
+        "pt-BR": "Multiplexador de terminal para agentes de código."
+      },
+      "homepage": "https://herdr.dev/",
+      "version": "system",
+      "versionPolicy": "system",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "preinstalled"
+        }
+      },
+      "verify": {
+        "command": "herdr --version"
+      }
+    }
+  ]
+}

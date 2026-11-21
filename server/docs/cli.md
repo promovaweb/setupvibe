@@ -8,6 +8,12 @@ A referência gerada do registry, que acompanha `--skill cli`, repete a mesma
 
 ## Convenções
 
+Execute `setupvibe <edition> <command>` para escolher a edição naquela
+execução. Sem o prefixo, o CLI usa a edição salva e a informa em stderr.
+Sem edição explícita ou salva, os comandos da edição saem com código 15
+(`EDITION_REQUIRED`). Rode `setupvibe edition set <edition>` para gravar a
+escolha. Na TUI, use `E` para abrir o menu de edições.
+
 - `{{bin}} <command> [subcommand] [arguments] [options]`.
 - Options aceitam `--key value` e `--key=value`. Não há agrupamento de flags
   curtas (`-abc`).
@@ -33,7 +39,7 @@ A referência gerada do registry, que acompanha `--skill cli`, repete a mesma
 | Option | Efeito |
 | --- | --- |
 | `-h`, `--help` | Help do command atual. Exit code 0. |
-| `-V`, `--version` | Imprime `{{bin}} <version>`. Exit code 0. |
+| `-V`, `--version` | Imprime `setupvibe <version>`. Exit code 0. |
 | `--json` | Saída em JSON com envelope estável. Erros também saem em JSON, em stdout. |
 | `--skill [topic]` | Documentação embutida. Topics: `cli`, `tui`, `mcp`, `config`, `exit-codes`, `troubleshooting`, `migration`, `inventory`, `reference`. |
 | `--opencli` | Descrição OpenCLI 0.1 da árvore de commands em JSON. |
@@ -50,7 +56,7 @@ Texto é o padrão quando `output.format` em settings.json é `text`. Com
 ```json
 {
   "ok": true,
-  "command": "{{bin}} config get",
+  "command": "setupvibe config get",
   "data": { "key": "tui.theme", "value": "night" }
 }
 ```
@@ -60,7 +66,7 @@ Em erro:
 ```json
 {
   "ok": false,
-  "command": "{{bin}} credentials get",
+  "command": "setupvibe credentials get",
   "error": {
     "code": 4,
     "name": "CREDENTIALS",
@@ -92,6 +98,123 @@ e exemplos que combinam os subcommands.
 
 ## Commands
 
+### `setupvibe edition`
+
+Mostra a edição salva pelo usuário atual.
+
+#### Sintaxe
+
+```bash
+setupvibe edition
+```
+
+#### Argumentos e options
+
+Aceita as opções globais.
+
+#### Saída
+
+Mostra a edição salva em texto e em `data.edition` ao usar `--json`. A
+ausência de uma escolha aparece como `null` em JSON.
+
+#### Efeitos persistentes
+
+Lê `~/.setupvibe/edition.json`.
+
+#### Permissões
+
+Exige acesso de leitura ao estado do usuário.
+
+#### Recusas e exit codes
+
+Sai com 0 quando o estado pode ser lido, mesmo sem edição salva.
+
+#### Limites
+
+O campo `edition` em `config.json` registra a última inicialização. A
+preferência de uso fica em `edition.json`.
+
+#### Exemplos
+
+```bash
+setupvibe edition
+```
+
+```bash
+setupvibe edition --json
+```
+
+```bash
+setupvibe edition --help
+```
+
+```bash
+setupvibe edition --no-color
+```
+
+```bash
+setupvibe edition --json --no-color
+```
+
+### `setupvibe edition set`
+
+Mostra a edição anterior e o inventário que a TUI e os comandos sem edição
+passarão a usar. Depois grava a nova preferência.
+
+#### Sintaxe
+
+```bash
+setupvibe edition set <edition>
+```
+
+#### Argumentos e options
+
+Aceita `desktop`, `server` ou `omarchy`.
+
+#### Saída
+
+A mudança prevista aparece em stderr. Em JSON, `data.previous` e
+`data.edition` mostram a escolha anterior e a nova.
+
+#### Efeitos persistentes
+
+Grava `~/.setupvibe/edition.json` para o usuário atual.
+
+#### Permissões
+
+Exige acesso de escrita ao estado. A conta root pode escolher Server em Linux.
+
+#### Recusas e exit codes
+
+Edição inválida sai com 2. Edição incompatível com o sistema sai com 11.
+Desktop e Omarchy recusam root com código 12.
+
+#### Limites
+
+Os itens já instalados e as configurações do sistema permanecem instalados.
+
+#### Exemplos
+
+```bash
+setupvibe edition set desktop
+```
+
+```bash
+setupvibe edition set server
+```
+
+```bash
+setupvibe edition set omarchy
+```
+
+```bash
+setupvibe edition set desktop --json
+```
+
+```bash
+setupvibe edition set server --json
+```
+
 ### `{{bin}} tui`
 
 Abre a interface de terminal no Início, com um cartão por módulo: Inventory,
@@ -116,13 +239,13 @@ envelope final traz `data = { "closed": true }`.
 
 #### Efeitos persistentes
 
-Nenhum arquivo é criado pela abertura. Os módulos
+A primeira escolha de edição grava `edition.json`. Os módulos
 podem gravar `settings.json` e os arquivos de estado quando você altera uma
 preferência ou executa uma ação nelas.
 
 #### Permissões
 
-Exige TTY em stdin e stdout. Não exige sudo nem root.
+Exige TTY em stdin e stdout. Não exige sudo.
 
 #### Recusas e exit codes
 
@@ -259,7 +382,7 @@ na verificação, marcados `adopted`. Cria `~/.setupvibe/` com modo 0700 e um ru
 
 #### Permissões
 
-Recusa root. Usa sudo para pacotes do sistema. Não exige TTY,
+Roda como root ou usa sudo para pacotes do sistema. Não exige TTY,
 mas só pergunta o nome e o e-mail do Git quando há terminal.
 
 #### Recusas e exit codes
@@ -314,7 +437,7 @@ arquivo `--config`.
 
 | Nome | Tipo | Obrigatório | Padrão | Valores |
 | --- | --- | --- | --- | --- |
-| `--user` | texto | como root, sim | `SETUPVIBE_USER` | nome de usuário |
+| `--user` | texto | não (Server) | `SETUPVIBE_USER` | nome de usuário |
 | `--ssh-key` | texto ou caminho | não | `SETUPVIBE_SSH_KEY` | chave pública ou arquivo |
 | `--git-name` | texto | não | `SETUPVIBE_GIT_NAME` | nome livre |
 | `--git-email` | texto | não | `SETUPVIBE_GIT_EMAIL` | e-mail |
@@ -359,13 +482,16 @@ senha. Com `--reboot`, agenda a retomada em uma unit systemd.
 
 #### Permissões
 
-Como root, exige `--user`: cria o usuário e continua como ele.
-Como usuário comum, exige sudo sem senha. Não pede confirmação e funciona sem
-TTY.
+Em Linux com sessão gráfica, o módulo de segurança do Server pede
+confirmação. Em automação ou modo JSON, use `--confirm-security` após revisar
+o plano. Uma recusa no prompt sai com código 130.
+
+Com `--user`, a execução como root cria o usuário e continua na nova conta.
+Como usuário comum, exige sudo sem senha. Funciona sem TTY em máquinas sem sessão gráfica.
 
 #### Recusas e exit codes
 
-Root sem `--user`: `ROOT` (12). Sudo com senha:
+Root no Desktop ou Omarchy: `ROOT` (12). Sudo com senha:
 `SUDO_PASSWORD` (13). Sistema sem suporte: `UNSUPPORTED_SYSTEM` (11). Disco
 insuficiente: `DISK_SPACE` (14). Rede ou relógio fora do esperado:
 `NETWORK_OR_API` (5). Itens com falha: `PARTIAL` (10). Reinício pendente:
@@ -509,6 +635,10 @@ Atualiza `selection.json` com a versão e o status. Com `--external`, grava o
 app em `external.json` e fixa a versão resolvida.
 
 #### Permissões
+
+Em Linux com sessão gráfica, o módulo de segurança do Server pede
+confirmação. Em automação ou modo JSON, use `--confirm-security` após revisar
+o plano. Uma recusa no prompt sai com código 130.
 
 Usa sudo quando o método exige. Exige init concluído. Não
 exige TTY.
@@ -657,6 +787,10 @@ Reinstala os itens desatualizados e atualiza
 `selection.json`. Grava um run log.
 
 #### Permissões
+
+Em Linux com sessão gráfica, o módulo de segurança do Server pede
+confirmação. Em automação ou modo JSON, use `--confirm-security` após revisar
+o plano. Uma recusa no prompt sai com código 130.
 
 Exige init concluído. Usa sudo quando o método exige.
 
@@ -1587,7 +1721,7 @@ rodar `init`. `data` traz `user`; no plano, `dryRun` e `steps`; na execução, `
 #### Efeitos persistentes
 
 Cria o usuário, o home, o grupo de sudo (`wheel` no
-Arch e no Omarchy), o `authorized_keys` com a chave e, com `--nopasswd`, a
+Omarchy), o `authorized_keys` com a chave e, com `--nopasswd`, a
 regra `/etc/sudoers.d/90-setupvibe-<name>` validada com `visudo -cf`. Grava
 `user` e `nopasswd` em `config.json`.
 
@@ -1796,6 +1930,10 @@ usuário tem chave autorizada. Grava o estado anterior em
 `~/.setupvibe/state/security.json` antes da primeira mudança.
 
 #### Permissões
+
+Em Linux com sessão gráfica, o módulo de segurança do Server pede
+confirmação. Em automação ou modo JSON, use `--confirm-security` após revisar
+o plano. Uma recusa no prompt sai com código 130.
 
 Exige root ou sudo. Em execução sem terminal, o sudo precisa
 funcionar sem senha.
@@ -2447,7 +2585,7 @@ Nenhuma recusa prevista.
 #### Limites
 
 Com `SETUPVIBE_HOME`, os caminhos apontam para a pasta
-alternativa. As duas edições usam `~/.setupvibe/`.
+alternativa. As três edições usam `~/.setupvibe/`.
 
 #### Exemplos
 
@@ -2627,6 +2765,10 @@ Instala os itens do arquivo, grava a identidade do
 Git com `git config --global` e atualiza `selection.json`.
 
 #### Permissões
+
+Em Linux com sessão gráfica, o módulo de segurança do Server pede
+confirmação. Em automação ou modo JSON, use `--confirm-security` após revisar
+o plano. Uma recusa no prompt sai com código 130.
 
 Exige init concluído. Usa sudo quando o método exige.
 
@@ -3221,7 +3363,7 @@ Tool com falha devolve erro no JSON-RPC, sem derrubar o servidor.
 #### Limites
 
 Nada além de JSON-RPC pode ir para stdout; diagnósticos vão para
-stderr. O cliente configura `{ "command": "{{bin}}", "args": ["mcp"] }`.
+stderr. O cliente configura `{ "command": "setupvibe", "args": ["mcp"] }`.
 Nenhuma tool devolve o valor de uma credencial.
 
 #### Exemplos

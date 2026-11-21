@@ -1,8 +1,7 @@
 /**
  * Shared security module (spec sections 12 and 18).
  *
- * Applied always by `setupvibe-server` and by `setupvibe` on exposed
- * machines:
+ * Applied by Server and by Desktop on exposed machines.
  *
  * - UFW: deny incoming, allow SSH; on the server also the Swarm ports;
  * - fail2ban: the sshd jail;
@@ -13,6 +12,7 @@
  *
  * The SSH change goes through `sshd -t` before the service reloads.
  */
+import type { EditionId } from "../core/app/edition.ts";
 import type { System } from "../inventory.ts";
 import type { Step } from "../exec/runner.ts";
 import { nativeInstallCmd } from "../install/methods.ts";
@@ -25,7 +25,7 @@ export const SSHD_DROPIN = "/etc/ssh/sshd_config.d/10-setupvibe.conf";
 
 export interface SecurityOptions {
   system: System;
-  edition: "desktop" | "server";
+  edition: EditionId;
   /** Working user whose authorized keys allow the SSH hardening. */
   user: string;
   /** True when the user has at least one authorized key. */
@@ -43,7 +43,7 @@ export interface SecurityPlan {
 
 /** Systems where the security module applies. */
 export function securitySupported(system: System): boolean {
-  return ["ubuntu", "debian", "mint", "zorin", "arch", "omarchy"].includes(system);
+  return ["ubuntu", "debian", "mint", "zorin"].includes(system);
 }
 
 /** Builds the security steps. */
@@ -52,8 +52,7 @@ export function securityPlan(o: SecurityOptions): SecurityPlan {
   if (!securitySupported(o.system)) {
     return { steps: [], skipped: [{ part: "all", reason: `${o.system} keeps its own firewall and updates.` }] };
   }
-  const apt = !["arch", "omarchy"].includes(o.system);
-  const packages = apt ? ["ufw", "fail2ban", "unattended-upgrades", "systemd-timesyncd"] : ["ufw", "fail2ban"];
+  const packages = ["ufw", "fail2ban", "unattended-upgrades", "systemd-timesyncd"];
   const steps: Step[] = [
     recordStep(),
     { id: "security-packages", description: `Install ${packages.join(", ")}`, commands: nativeInstallCmd(o.system, packages) },
@@ -79,18 +78,14 @@ export function securityPlan(o: SecurityOptions): SecurityPlan {
       ],
     },
   ];
-  if (apt) {
-    steps.push({
-      id: "unattended-upgrades",
-      description: "Automatic security updates",
-      commands: [
-        { argv: ["tee", "/etc/apt/apt.conf.d/20auto-upgrades"], sudo: true, input: 'APT::Periodic::Update-Package-Lists "1";\nAPT::Periodic::Unattended-Upgrade "1";\n' },
-        { argv: ["systemctl", "enable", "--now", "unattended-upgrades"], sudo: true },
-      ],
-    });
-  } else {
-    skipped.push({ part: "unattended-upgrades", reason: "Arch has no unattended upgrades; updates stay with the user." });
-  }
+  steps.push({
+    id: "unattended-upgrades",
+    description: "Automatic security updates",
+    commands: [
+      { argv: ["tee", "/etc/apt/apt.conf.d/20auto-upgrades"], sudo: true, input: 'APT::Periodic::Update-Package-Lists "1";\nAPT::Periodic::Unattended-Upgrade "1";\n' },
+      { argv: ["systemctl", "enable", "--now", "unattended-upgrades"], sudo: true },
+    ],
+  });
   if (o.userHasKey) {
     steps.push({
       id: "ssh-hardening",

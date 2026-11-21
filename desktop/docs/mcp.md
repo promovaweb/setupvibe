@@ -1,5 +1,19 @@
 # MCP
 
+Passe `edition` como parâmetro da ferramenta com o valor `desktop`,
+`server` ou `omarchy`. Sem o parâmetro, o servidor usa a edição salva pelo
+usuário. Para fixar a edição padrão da conexão, inicie com
+`setupvibe server mcp` ou com o prefixo da edição desejada. Ferramentas que
+precisam de um inventário retornam código 15 quando nenhuma edição foi
+selecionada. Os recursos de inventário e documentação usam a edição padrão.
+
+Para executar `install` ou `update` com Server em um Linux com sessão
+gráfica, envie `confirm_security: true` após a pessoa aprovar o plano.
+
+```json
+{ "name": "check", "arguments": { "edition": "desktop", "items": ["php"] } }
+```
+
 `{{bin}} mcp` transforma o processo em um servidor Model Context Protocol sobre stdio. Nada além do protocolo é escrito em stdout; diagnósticos vão para stderr. O mesmo executável reúne TUI, CLI e servidor MCP.
 
 O servidor expõe 20 tools, 6 resources e 1 prompt. As tools que rodam o próprio CLI devolvem o mesmo envelope do `--json`, para o agente ver o que uma pessoa veria no terminal. Tools que alteram a máquina fazem dry run por padrão; `remove` e `migrate` também exigem `confirm: true`.
@@ -19,18 +33,18 @@ Antes de sugerir um command, leia `skill` com o tópico `cli`. Antes de chamar u
 ## Configuração no cliente
 
 ```json
-{ "mcpServers": { "{{bin}}": { "command": "{{bin}}", "args": ["mcp"] } } }
+{ "mcpServers": { "setupvibe": { "command": "setupvibe", "args": ["mcp"] } } }
 ```
 
 No OpenCode, o bloco fica na configuração do aplicativo:
 
 ```json
-{ "mcp": { "{{bin}}": { "type": "local", "command": ["{{bin}}", "mcp"], "enabled": true } } }
+{ "mcp": { "setupvibe": { "type": "local", "command": ["setupvibe", "mcp"], "enabled": true } } }
 ```
 
 `{{bin}} mcp install` registra o servidor no Claude Code (`claude mcp add --scope user`), no Codex (`codex mcp add`) e no OpenCode (bloco `mcp` de `~/.config/opencode/opencode.json`, com cópia de segurança). Agente que não está instalado fica de fora, e rodar de novo não muda o que já está configurado.
 
-Para desenvolvimento, sem compilar, use `bun` com o entry point da edição no lugar do binário.
+Para desenvolvimento, sem compilar, use `bun` com o entry point `main.ts` no lugar do binário.
 
 ## Listar sem iniciar
 
@@ -82,7 +96,7 @@ Nenhum. A tool não recebe argumento.
 
 **Exemplos.**
 
-- **Confirmar a edição:** `about {}` devolve `bin: "{{bin}}"` e o `dataDir` da sessão, o que mostra qual binário atende a sessão.
+- **Confirmar a edição:** `about {}` devolve `bin: "setupvibe"` e o `dataDir` da sessão, o que mostra qual binário atende a sessão.
 - **Conferir a versão:** `about {}` devolve `version`, útil antes de sugerir uma flag que só existe na versão nova.
 - **Ver a plataforma:** `about {}` devolve `platform: "linux-x64"`, o que explica por que um item existe em `list` e outro não.
 - **Checar a pasta de dados:** `about {}` devolve o `dataDir` efetivo, inclusive quando a sessão roda com `SETUPVIBE_HOME` apontando para outro lugar.
@@ -542,7 +556,7 @@ Nenhum. A tool não recebe argumento.
 
 Resources são leituras passivas, sem argumento além do URI. O esquema `<bin>://` evita colisão com outros servidores no mesmo cliente.
 
-### Resource `{{bin}}://inventory`
+### Resource `setupvibe://inventory`
 
 **Finalidade.** Entrega o inventário da edição como JSON: o mesmo registro que o binário usa para instalar, verificar e listar.
 
@@ -558,13 +572,13 @@ Nenhum parâmetro além do URI.
 
 **Exemplos.**
 
-- **Descobrir ids:** leia `{{bin}}://inventory` antes de montar `install` ou `remove`.
+- **Descobrir ids:** leia `setupvibe://inventory` antes de montar `install` ou `remove`.
 - **Conferir a versão fixada:** procure o item e leia `version` e `versionPolicy`.
 - **Ver os perfis:** `profiles` traz os perfis da edição, como `essencial`, com a lista de itens de cada um.
 - **Conferir o método:** `install` mostra o método por sistema, como `mise`, `native` ou `installer`.
 - **Auditar um item:** `verify` mostra o comando e o valor esperado usados por `check`.
 
-### Resource `{{bin}}://selection`
+### Resource `setupvibe://selection`
 
 **Finalidade.** Entrega o `selection.json` desta máquina: os itens escolhidos, a versão instalada e o status do último check.
 
@@ -580,13 +594,13 @@ Nenhum parâmetro além do URI.
 
 **Exemplos.**
 
-- **Ver o que foi escolhido:** leia `{{bin}}://selection` antes de sugerir `update`.
+- **Ver o que foi escolhido:** leia `setupvibe://selection` antes de sugerir `update`.
 - **Achar item adotado:** `adopted: true` indica item que o `init` encontrou na máquina.
 - **Ver falhas do check:** `status: "fail"` indica o item que precisa de `install --force` no CLI.
 - **Conferir a versão instalada:** compare `version` com o inventário para achar o que está fora.
 - **Máquina nova:** o resource devolve `items: []` antes do primeiro `init`.
 
-### Resource `{{bin}}://about`
+### Resource `setupvibe://about`
 
 **Finalidade.** Entrega a identidade e o runtime do binário em JSON, igual à tool `about`.
 
@@ -602,13 +616,13 @@ Nenhum parâmetro além do URI.
 
 **Exemplos.**
 
-- **Conferir a versão:** leia `{{bin}}://about` antes de citar um comportamento novo.
+- **Conferir a versão:** leia `setupvibe://about` antes de citar um comportamento novo.
 - **Conferir a edição:** `bin` e `title` mostram se a sessão é desktop ou servidor.
 - **Conferir a pasta:** `dataDir` mostra a pasta de dados efetiva.
 - **Coletar créditos:** `credits` traz nome, papel e URL de cada projeto.
 - **Conferir a plataforma:** `platform` mostra sistema e arquitetura do processo.
 
-### Resource `{{bin}}://exit-codes`
+### Resource `setupvibe://exit-codes`
 
 **Finalidade.** Entrega a tabela de exit codes em JSON, igual à tool `exit_codes`.
 
@@ -624,13 +638,13 @@ Nenhum parâmetro além do URI.
 
 **Exemplos.**
 
-- **Montar o tratamento:** leia `{{bin}}://exit-codes` para mapear os codes no agente.
+- **Montar o tratamento:** leia `setupvibe://exit-codes` para mapear os codes no agente.
 - **Explicar o 10:** confirme `PARTIAL` e a mensagem antes de responder à pessoa.
 - **Explicar o 13:** confirme `SUDO_PASSWORD` e a regra sem senha.
 - **Explicar o 30:** confirme `LOCKED` e o lock de execução.
 - **Explicar o 130:** confirme `INTERRUPTED` e que nada foi concluído.
 
-### Resource `{{bin}}://skill`
+### Resource `setupvibe://skill`
 
 **Finalidade.** Entrega toda a documentação embutida em Markdown, como `{{bin}} --skill` sem tópico.
 
@@ -646,13 +660,13 @@ Nenhum parâmetro além do URI.
 
 **Exemplos.**
 
-- **Ler tudo antes de operar:** leia `{{bin}}://skill` numa sessão sem conhecimento prévio.
+- **Ler tudo antes de operar:** leia `setupvibe://skill` numa sessão sem conhecimento prévio.
 - **Conferir a documentação de uma versão:** o texto vem do binário em execução, não do repositório.
 - **Preparar um agente novo:** entregue o Markdown como instrução inicial.
 - **Auditar a doc embutida:** compare o Markdown com os arquivos de `docs/`.
-- **Evitar quando o contexto é curto:** prefira `{{bin}}://skill/cli` para uma tarefa de CLI.
+- **Evitar quando o contexto é curto:** prefira `setupvibe://skill/cli` para uma tarefa de CLI.
 
-### Resource `{{bin}}://skill/{topic}`
+### Resource `setupvibe://skill/{topic}`
 
 **Finalidade.** Entrega uma seção da documentação embutida.
 
@@ -670,11 +684,11 @@ Nenhum parâmetro além do URI.
 
 **Exemplos.**
 
-- **Aprender o CLI:** leia `{{bin}}://skill/cli` antes de sugerir um command.
-- **Conferir teclas:** leia `{{bin}}://skill/tui` para orientar alguém na TUI.
-- **Resolver uma falha:** leia `{{bin}}://skill/troubleshooting`.
-- **Migrar uma máquina:** leia `{{bin}}://skill/migration` antes de chamar `migrate`.
-- **Achar itens:** leia `{{bin}}://skill/inventory` para uma tabela por categoria.
+- **Aprender o CLI:** leia `setupvibe://skill/cli` antes de sugerir um command.
+- **Conferir teclas:** leia `setupvibe://skill/tui` para orientar alguém na TUI.
+- **Resolver uma falha:** leia `setupvibe://skill/troubleshooting`.
+- **Migrar uma máquina:** leia `setupvibe://skill/migration` antes de chamar `migrate`.
+- **Achar itens:** leia `setupvibe://skill/inventory` para uma tabela por categoria.
 
 ## Prompts
 

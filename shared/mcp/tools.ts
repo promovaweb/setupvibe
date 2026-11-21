@@ -28,7 +28,14 @@
 import { z } from "zod";
 import type { Registrar } from "../core/mcp/server.ts";
 import { manifest } from "../core/app/manifest.ts";
-import { edition } from "../core/app/edition.ts";
+import { edition, EDITIONS, withEdition, type EditionId } from "../core/app/edition.ts";
+import { EDITION_REQUIRED, editionRefusal, savedEdition } from "../commands/edition.ts";
+import { ExitCode } from "../core/app/exit-codes.ts";
+import { AppError } from "../core/app/errors.ts";
+import { detectSystem } from "../system/detect.ts";
+import { rootRefusal } from "../startup.ts";
+import { isRoot } from "../exec/runner.ts";
+import type { Inventory } from "../inventory.ts";
 import { selfArgv } from "../commands/auto.ts";
 import { readState } from "../state/store.ts";
 import { machineFindings } from "../commands/maintenance.ts";
@@ -84,27 +91,62 @@ function json(data: Record<string, unknown>, isError = false) {
 // Inventory ids, or with external a mise tool such as terraform@1.13.4 or aqua:sst/opencode; the CLI validates both.
 const items = z.array(z.string().regex(/^[a-z0-9][a-z0-9:/._-]*(@[A-Za-z0-9._+-]+)?$/)).min(1).describe("Inventory item ids, as listed by the list tool; with external, one mise tool (tool or tool@version).");
 
+export const editionInput = z.enum(EDITIONS).optional().describe("Edition for this request. Defaults to the saved edition (or the edition chosen when starting MCP).");
+
+export function mcpEdition(requested?: EditionId, fallback?: EditionId): EditionId {
+  const id = requested ?? fallback ?? savedEdition();
+  if (!id) throw new AppError(ExitCode.EDITION_REQUIRED, EDITION_REQUIRED);
+  return id;
+}
+
+function mcpFailure(error: unknown) {
+  if (!(error instanceof AppError)) throw error;
+  return json({ ok: false, exitCode: error.code, error: error.message }, true);
+}
+
+async function useMachine<T>(requested: EditionId | undefined, fallback: EditionId | undefined, read: (id: EditionId) => T | Promise<T>) {
+  try {
+    const id = mcpEdition(requested, fallback);
+    const system = detectSystem((edition(id).inventory as Inventory).systems);
+    const refusal = editionRefusal(id, system);
+    if (refusal) throw new AppError(ExitCode.UNSUPPORTED_SYSTEM, refusal);
+    const root = rootRefusal(["check"], isRoot(), process.platform, id);
+    if (root) throw new AppError(ExitCode.ROOT, root);
+    return await withEdition(id, () => read(id));
+  } catch (error) {
+    return mcpFailure(error);
+  }
+}
+
 /** Registers the SetupVibe tools on the MCP server. */
-export function registerSetupVibeTools({ server, catalog }: Registrar, runCli: (args: string[]) => Promise<CliRun> = runCliJson): void {
+export function registerSetupVibeTools({ server, catalog, defaultEdition }: Registrar, runCli: (args: string[]) => Promise<CliRun> = runCliJson): void {
+  const run = async (requested: EditionId | undefined, args: string[]) => {
+    try {
+      return reply(await runCli([mcpEdition(requested, defaultEdition), ...args]));
+    } catch (error) {
+      return mcpFailure(error);
+    }
+  };
+  const read = <T>(requested: EditionId | undefined, load: (id: EditionId) => T | Promise<T>) => useMachine(requested, defaultEdition, load);
   const add = (name: string, description: string) => catalog.tools.push({ name, description });
 
   add("system", "Detected system, version, architecture, WSL, headless and public IP flags, and the machine variant.");
-  server.registerTool("system", { title: "Detected system", description: "Returns what SetupVibe detected about this machine.", inputSchema: {}, annotations: { readOnlyHint: true } }, async () =>
-    reply(await runCli(["system", "--no-update-check"])),
+  server.registerTool("system", { title: "Detected system", description: "Returns what SetupVibe detected about this machine.", inputSchema: { edition: editionInput }, annotations: { readOnlyHint: true } }, async ({ edition }) =>
+    run(edition, ["system", "--no-update-check"]),
   );
 
   add("list", "Inventory items with their status on this system.");
   server.registerTool(
     "list",
-    { title: "Inventory", description: "Lists inventory items with status (installed, outdated, failed, available, gui, system, init, unavailable).", inputSchema: { category: z.string().optional().describe("Only one category id.") }, annotations: { readOnlyHint: true } },
-    async ({ category }) => reply(await runCli(["list", ...(category ? ["--category", category] : [])])),
+    { title: "Inventory", description: "Lists inventory items with status (installed, outdated, failed, available, gui, system, init, unavailable).", inputSchema: { edition: editionInput, category: z.string().optional().describe("Only one category id.") }, annotations: { readOnlyHint: true } },
+    async ({ edition, category }) => run(edition, ["list", ...(category ? ["--category", category] : [])]),
   );
 
   add("check", "Verifies installed items against their pinned versions.");
   server.registerTool(
     "check",
-    { title: "Check items", description: "Runs each item's check. Without items, checks the selection.", inputSchema: { items: items.optional() }, annotations: { readOnlyHint: true } },
-    async ({ items: ids }) => reply(await runCli(["check", ...(ids ?? [])])),
+    { title: "Check items", description: "Runs each item's check. Without items, checks the selection.", inputSchema: { edition: editionInput, items: items.optional() }, annotations: { readOnlyHint: true } },
+    async ({ edition, items: ids }) => run(edition, ["check", ...(ids ?? [])]),
   );
 
   add("install", "Installs inventory items; a dry run unless dry_run is false.");
@@ -114,13 +156,18 @@ export function registerSetupVibeTools({ server, catalog }: Registrar, runCli: (
       title: "Install items",
       description: "Installs items and their requirements. Returns the plan when dry_run is true (default). Requires a completed init.",
       inputSchema: {
+        edition: editionInput,
         items,
         dry_run: z.boolean().default(true).describe("Preview without changes. Set false to install."),
         force: z.boolean().default(false).describe("Reinstall items that already pass their check."),
+        confirm_security: z.boolean().optional().describe("The user confirmed Server firewall, fail2ban and SSH changes on a graphical system."),
         external: z.boolean().default(false).describe("items holds one mise tool outside the inventory (tool or tool@version); the version is pinned in external.json."),
       },
     },
-    async ({ items: ids, dry_run, force, external }) => reply(await runCli(["install", ...(external ? ["--external"] : []), ...ids, ...(dry_run ? ["--dry-run"] : []), ...(force ? ["--force"] : [])])),
+    async ({ edition, items: ids, dry_run, force, external, confirm_security }) => run(edition, [
+      "install", ...(external ? ["--external"] : []), ...ids, ...(dry_run ? ["--dry-run"] : []),
+      ...(force ? ["--force"] : []), ...(confirm_security ? ["--confirm-security"] : []),
+    ]),
   );
 
   add("remove", "Removes inventory items; needs confirm: true unless it is a dry run.");
@@ -130,6 +177,7 @@ export function registerSetupVibeTools({ server, catalog }: Registrar, runCli: (
       title: "Remove items",
       description: "Removes items installed in the user's space. Returns the plan when dry_run is true (default). A real removal needs confirm: true, after showing the plan to the user.",
       inputSchema: {
+        edition: editionInput,
         items,
         dry_run: z.boolean().default(true).describe("Preview without changes."),
         confirm: z.boolean().default(false).describe("The user confirmed the removal."),
@@ -139,44 +187,48 @@ export function registerSetupVibeTools({ server, catalog }: Registrar, runCli: (
       },
       annotations: { destructiveHint: true },
     },
-    async ({ items: ids, dry_run, confirm, include_native, force, external }) => {
+    async ({ edition, items: ids, dry_run, confirm, include_native, force, external }) => {
       if (!dry_run && !confirm) {
         const data = { exitCode: 2, ok: false, error: "Removal needs confirm: true. Show the dry-run plan to the user and ask first." };
         return { content: [{ type: "text" as const, text: JSON.stringify(data) }], structuredContent: data, isError: true };
       }
-      return reply(await runCli(["remove", ...(external ? ["--external"] : []), ...ids, "--yes", ...(dry_run ? ["--dry-run"] : []), ...(include_native ? ["--include-native"] : []), ...(force ? ["--force"] : [])]));
+      return run(edition, ["remove", ...(external ? ["--external"] : []), ...ids, "--yes", ...(dry_run ? ["--dry-run"] : []), ...(include_native ? ["--include-native"] : []), ...(force ? ["--force"] : [])]);
     },
   );
 
   add("update", "Updates selected items whose pinned version changed; a dry run unless dry_run is false.");
   server.registerTool(
     "update",
-    { title: "Update items", description: "Reinstalls selected items whose pinned version changed in the inventory.", inputSchema: { dry_run: z.boolean().default(true).describe("Preview without changes.") } },
-    async ({ dry_run }) => reply(await runCli(["update", ...(dry_run ? ["--dry-run"] : [])])),
+    { title: "Update items", description: "Reinstalls selected items whose pinned version changed in the inventory.", inputSchema: {
+      edition: editionInput,
+      dry_run: z.boolean().default(true).describe("Preview without changes."),
+      confirm_security: z.boolean().optional().describe("The user confirmed Server firewall, fail2ban and SSH changes on a graphical system."),
+    } },
+    async ({ edition, dry_run, confirm_security }) => run(edition, ["update", ...(dry_run ? ["--dry-run"] : []), ...(confirm_security ? ["--confirm-security"] : [])]),
   );
 
   add("health", "Only the SetupVibe findings of doctor (prerequisites, items, shell, leftovers), without the runtime checks.");
-  server.registerTool("health", { title: "SetupVibe health", description: "Doctor findings for the SetupVibe installation.", inputSchema: {}, annotations: { readOnlyHint: true } }, async () => {
+  server.registerTool("health", { title: "SetupVibe health", description: "Doctor findings for the SetupVibe installation.", inputSchema: { edition: editionInput }, annotations: { readOnlyHint: true } }, async ({ edition }) => read(edition, () => {
     // The same findings as `setupvibe doctor` and the TUI Doctor module.
     const findings = machineFindings();
     return json({ ok: findings.every((f) => f.level === "ok"), findings });
-  });
+  }));
 
   add("doctor", "Runtime checks and SetupVibe findings, each with the command that fixes it; the same as setupvibe doctor.");
-  server.registerTool("doctor", { title: "Doctor", description: "Runs setupvibe doctor: runtime, terminal and configuration checks plus the SetupVibe findings (prerequisites, items, shell, SetupVibe 1 leftovers, exposed containers). Read-only.", inputSchema: {}, annotations: { readOnlyHint: true } }, async () =>
-    reply(await runCli(["doctor"])),
+  server.registerTool("doctor", { title: "Doctor", description: "Runs setupvibe doctor: runtime, terminal and configuration checks plus the SetupVibe findings (prerequisites, items, shell, SetupVibe 1 leftovers, exposed containers). Read-only.", inputSchema: { edition: editionInput }, annotations: { readOnlyHint: true } }, async ({ edition }) =>
+    run(edition, ["doctor"]),
   );
 
   add("report", "Markdown report of this machine for a GitHub issue, without secrets.");
-  server.registerTool("report", { title: "Machine report", description: "Returns the report that setupvibe report prints: system, versions, selection and the last run, with secrets removed.", inputSchema: {}, annotations: { readOnlyHint: true } }, async () =>
-    reply(await runCli(["report"])),
+  server.registerTool("report", { title: "Machine report", description: "Returns the report that setupvibe report prints: system, versions, selection and the last run, with secrets removed.", inputSchema: { edition: editionInput }, annotations: { readOnlyHint: true } }, async ({ edition }) =>
+    run(edition, ["report"]),
   );
 
   add("init", "Checks requirements and installs the prerequisites; a dry run unless dry_run is false.");
   server.registerTool(
     "init",
-    { title: "Init", description: "Installs the build dependencies and mise. Returns the plan when dry_run is true (default).", inputSchema: { dry_run: z.boolean().default(true).describe("Preview without changes. Set false to run.") } },
-    async ({ dry_run }) => reply(await runCli(["init", ...(dry_run ? ["--dry-run"] : [])])),
+    { title: "Init", description: "Installs the build dependencies and mise. Returns the plan when dry_run is true (default).", inputSchema: { edition: editionInput, dry_run: z.boolean().default(true).describe("Preview without changes. Set false to run.") } },
+    async ({ edition, dry_run }) => run(edition, ["init", ...(dry_run ? ["--dry-run"] : [])]),
   );
 
   add("migrate", "Moves a SetupVibe 1 machine to SetupVibe 2; a dry run unless dry_run is false and confirm is true.");
@@ -186,38 +238,39 @@ export function registerSetupVibeTools({ server, catalog }: Registrar, runCli: (
       title: "Migrate from SetupVibe 1",
       description: "Converts ~/.zshrc and ~/.tmux.conf from SetupVibe 1 and adopts what is installed. Returns the plan when dry_run is true (default). A real run needs confirm: true, after showing the plan to the user.",
       inputSchema: {
+        edition: editionInput,
         dry_run: z.boolean().default(true).describe("Preview without changes."),
         confirm: z.boolean().default(false).describe("The user confirmed the migration."),
         remove_legacy: z.array(z.enum(["go", "rbenv", "npm-global", "nodesource", "all"])).optional().describe("SetupVibe 1 duplicates to remove in the real run."),
       },
       annotations: { destructiveHint: true },
     },
-    async ({ dry_run, confirm, remove_legacy }) => {
+    async ({ edition, dry_run, confirm, remove_legacy }) => {
       if (!dry_run && !confirm) return json({ exitCode: 2, ok: false, error: "Migration needs confirm: true. Show the dry-run plan to the user and ask first." }, true);
-      return reply(await runCli(["migrate", ...(dry_run ? ["--dry-run"] : []), ...(remove_legacy?.length ? ["--remove-legacy", remove_legacy.join(",")] : [])]));
+      return run(edition, ["migrate", ...(dry_run ? ["--dry-run"] : []), ...(remove_legacy?.length ? ["--remove-legacy", remove_legacy.join(",")] : [])]);
     },
   );
 
   add("logs", "Recent SetupVibe runs and the events of one of them.");
   server.registerTool(
     "logs",
-    { title: "Run logs", description: "Lists the run logs in ~/.setupvibe/logs, newest first, and returns the events (item, action, status, message) of the chosen run.", inputSchema: { run: z.string().optional().describe("Log file name from runs; the newest when left out.") }, annotations: { readOnlyHint: true } },
-    async ({ run }) => {
+    { title: "Run logs", description: "Lists the run logs in ~/.setupvibe/logs, newest first, and returns the events (item, action, status, message) of the chosen run.", inputSchema: { edition: editionInput, run: z.string().optional().describe("Log file name from runs; the newest when left out.") }, annotations: { readOnlyHint: true } },
+    async ({ edition, run }) => read(edition, () => {
       const runs = logFiles();
       const file = run ?? runs[0];
       if (run && !runs.includes(run)) return json({ ok: false, error: `Unknown run: ${run}`, runs }, true);
       const events = file ? logEvents(file) : [];
       return json({ ok: true, runs, run: file ?? null, events, failed: events.filter((e) => e.status === "fail").length });
-    },
+    }),
   );
 
   add("tailscale", "Local Tailscale client: this machine, tailnet, peers with connection type, serve and health.");
-  server.registerTool("tailscale", { title: "Tailscale", description: "Reads the local Tailscale client (tailscale status and serve), without the Tailscale API. Returns installed: false when the client is missing.", inputSchema: {}, annotations: { readOnlyHint: true } }, async () =>
-    json({ ok: true, ...(await collect()) } as Record<string, unknown>),
+  server.registerTool("tailscale", { title: "Tailscale", description: "Reads the local Tailscale client (tailscale status and serve), without the Tailscale API. Returns installed: false when the client is missing.", inputSchema: { edition: editionInput }, annotations: { readOnlyHint: true } }, async ({ edition }) =>
+    read(edition, async () => json({ ok: true, ...(await collect()) } as Record<string, unknown>)),
   );
 
   add("machine", "System, CPU, memory, swap, disks, network rates and the processes using the most CPU.");
-  server.registerTool("machine", { title: "Machine", description: "One reading of this machine: host, kernel, uptime, CPU (over one second), load, memory, swap, disks, network rates and the top processes.", inputSchema: { processes: z.number().int().min(0).max(50).default(8).describe("How many processes to return.") }, annotations: { readOnlyHint: true } }, async ({ processes }) => {
+  server.registerTool("machine", { title: "Machine", description: "One reading of this machine: host, kernel, uptime, CPU (over one second), load, memory, swap, disks, network rates and the top processes.", inputSchema: { edition: editionInput, processes: z.number().int().min(0).max(50).default(8).describe("How many processes to return.") }, annotations: { readOnlyHint: true } }, async ({ edition, processes }) => read(edition, async () => {
     const sampler = new LiveSampler();
     // CPU and rates are deltas: wait a second between the two readings.
     await Bun.sleep(1000);
@@ -225,12 +278,12 @@ export function registerSetupVibeTools({ server, catalog }: Registrar, runCli: (
     const live = sampler.tick(processes);
     const { cpuHistory: _c, memHistory: _m, ...reading } = live;
     return json({ ok: true, info: machineInfo(), live: reading } as Record<string, unknown>);
-  });
+  }));
 
   const scheme = manifest.bin;
   catalog.resources.push({ uri: `${scheme}://inventory`, name: "inventory", description: "The edition inventory (items, versions, install methods) as JSON." });
   server.registerResource("inventory", `${scheme}://inventory`, { title: "Inventory", description: "The edition inventory as JSON.", mimeType: "application/json" }, async (uri) => ({
-    contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify(edition().inventory, null, 2) }],
+    contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify(edition(mcpEdition(undefined, defaultEdition)).inventory, null, 2) }],
   }));
   catalog.resources.push({ uri: `${scheme}://selection`, name: "selection", description: "Items this machine selected, with the installed version and status, as JSON." });
   server.registerResource("selection", `${scheme}://selection`, { title: "Selection", description: "selection.json of this machine.", mimeType: "application/json" }, async (uri) => ({

@@ -19,7 +19,7 @@ import { findInChecksumList, verify } from "../state/checksum.ts";
 import { downloadCacheDir } from "../exec/network.ts";
 
 const DEBIAN_FAMILY: System[] = ["ubuntu", "debian", "mint", "zorin", "wsl"];
-const ARCH_FAMILY: System[] = ["arch", "omarchy"];
+const ARCH_FAMILY: System[] = ["omarchy"];
 
 /** Expands `~/` inside an argument such as `--install-dir=~/.local/bin`. */
 export function expandArg(arg: string, home = homedir()): string {
@@ -39,7 +39,6 @@ export function nativeInstallCmd(system: System, packages: string[]): Cmd[] {
     return [{ argv: ["apt-get", "install", "-y", "-o", "DPkg::Lock::Timeout=600", "-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold", ...packages], sudo: true, retries: 3 }];
   }
   if (system === "omarchy") return [{ argv: ["omarchy", "pkg", "add", ...packages] }];
-  if (system === "arch") return [{ argv: ["pacman", "-S", "--noconfirm", "--needed", ...packages], sudo: true, retries: 3 }];
   if (system === "macos") return [{ argv: ["brew", "install", ...packages], env: { HOMEBREW_NO_AUTO_UPDATE: "1" }, retries: 3 }];
   throw new Error(`No native package manager for ${system}.`);
 }
@@ -47,7 +46,6 @@ export function nativeInstallCmd(system: System, packages: string[]): Cmd[] {
 /** Refreshes the package index once before native installs. */
 export function nativeRefreshCmd(system: System): Cmd | undefined {
   if (DEBIAN_FAMILY.includes(system)) return { argv: ["apt-get", "-o", "DPkg::Lock::Timeout=600", "update"], sudo: true, retries: 3 };
-  if (system === "arch") return { argv: ["pacman", "-Sy", "--noconfirm"], sudo: true };
   return undefined;
 }
 
@@ -201,8 +199,14 @@ export function miseSteps(item: Item, system: System, arch: string, home = homed
 
 /** Path of the mise binary SetupVibe installs: ~/.local/bin/mise, with .exe on Windows. */
 export function miseCmd(home: string, system: System | "auto" = "auto"): string {
+  if (system === "omarchy") return "mise";
   const windows = system === "windows" || (system === "auto" && process.platform === "win32");
   return join(home, ".local", "bin", windows ? "mise.exe" : "mise");
+}
+
+/** Omarchy's PHP uses a separate mise data directory and an explicit version. */
+export function omarchyMiseEnv(home: string): Record<string, string> {
+  return { MISE_DATA_DIR: join(home, ".setupvibe", "omarchy", "mise"), MISE_LOCKFILE: "false" };
 }
 
 /**
@@ -289,6 +293,9 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
     case "mise": {
       const tool = withVersion(entry.tool ?? id, item);
       const spec = tool.includes("@v") || /@[\w.]+$/.test(tool.split(":").pop() ?? "") ? tool : `${tool}@${v}`;
+      if (system === "omarchy") {
+        return [{ id, description: `Install ${spec} with mise in SetupVibe's directory`, commands: [{ argv: ["mise", "install", "--yes", spec], env: omarchyMiseEnv(home), retries: 3 }] }];
+      }
       // MISE_LOCKFILE=false: an older lockfile that lists other platforms makes
       // mise resolve every tool for each of them, and tools built from source
       // (PHP) refuse Windows. The mise-lock step writes the lockfile at the end.
@@ -410,7 +417,8 @@ export function registryPath(): string {
 export function verifyCmd(item: Item, home = homedir(), windows = process.platform === "win32"): Cmd {
   const sep = windows ? ";" : ":";
   const path = [join(home, ".local", "bin"), miseShims(home, windows), process.env.PATH ?? process.env.Path ?? "", ...(windows ? [registryPath()] : [])].filter(Boolean).join(sep);
-  return windows ? { argv: ["cmd", "/d", "/s", "/c", item.verify.command], env: { PATH: path, Path: path } } : { argv: ["sh", "-c", item.verify.command], env: { PATH: path } };
+  const command = withVersion(item.verify.command, item);
+  return windows ? { argv: ["cmd", "/d", "/s", "/c", command], env: { PATH: path, Path: path } } : { argv: ["sh", "-c", command], env: { PATH: path } };
 }
 
 /** True when an item's verify output satisfies `verify.expect`. */

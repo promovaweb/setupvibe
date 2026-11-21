@@ -24,6 +24,7 @@ export function systemSummary(): string {
 export function aboutData() {
   return {
     bin: manifest.bin,
+    edition: manifest.edition,
     title: manifest.title,
     version: manifest.version,
     description: manifest.description,

@@ -6,16 +6,19 @@
 
 | Mode | How to enter | For |
 | --- | --- | --- |
-| TUI | `{{bin}}` without arguments in an interactive terminal | people |
+| TUI | `setupvibe` without arguments in an interactive terminal | people |
 | CLI | `{{bin}} <command> [options]`, with text or `--json` output | people, scripts and agents |
 | MCP | `{{bin}} mcp`, a Model Context Protocol server over stdio | AI agents |
 
 The three modes share the same identity, the same configuration
 (`~/.setupvibe/settings.json`), the same credential vault
 (`~/.setupvibe/credentials.json`, encrypted) and the same exit code table.
-`setupvibe` and `setupvibe-server` share the `~/.setupvibe/` folder and the
-`SETUPVIBE_` variable prefix, because only one of them is installed on a
-machine.
+Use `setupvibe <edition> <command>` to choose the edition for that
+invocation. Without an explicit edition, the CLI uses the saved edition
+and reports it on stderr. Edition commands exit with code 15
+(`EDITION_REQUIRED`) if neither is available. Run
+`setupvibe edition set <edition>` to save a choice. In the TUI, press `E` to
+open the edition menu.
 
 ## Automatic installation
 
@@ -41,6 +44,11 @@ After `init`, `{{bin}} list` shows each item and its status on this system,
 updates the items whose pinned version changed. `{{bin}} install --external
 <tool>` installs a tool outside the inventory through mise, with a pinned
 version.
+
+On a machine with a graphical session, Server asks before applying UFW,
+fail2ban and SSH hardening. Scripted runs require `--confirm-security`.
+
+Use `setupvibe-server` as a compatibility link for existing Server scripts.
 
 ## Docker Swarm
 

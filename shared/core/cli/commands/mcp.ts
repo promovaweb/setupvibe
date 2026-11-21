@@ -24,7 +24,7 @@ export const mcpCommand: Command = {
   run: async (ctx) => {
     const { describeServer, startStdioServer } = await import("../../mcp/server.ts");
     if (ctx.options.list === true) {
-      const d = describeServer();
+      const d = describeServer(ctx.mcpEdition);
       return {
         data: d,
         text: () =>
@@ -42,7 +42,7 @@ export const mcpCommand: Command = {
           ].join("\n"),
       };
     }
-    await startStdioServer();
+    await startStdioServer(ctx.mcpEdition);
     return { data: { closed: true }, text: "" };
   },
 };

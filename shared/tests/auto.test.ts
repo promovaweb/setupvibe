@@ -1,3 +1,4 @@
+import omarchyJson from "../../omarchy/inventory.json";
 /** setupvibe auto: answers, selection, plan, lock and command (spec section 9). */
 import "../../desktop/src/edition.ts";
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
@@ -72,7 +73,7 @@ describe("selection", () => {
   });
 
   test("Omarchy skips what it already ships", () => {
-    const s = selectItems({ inventory: desktop, system: "omarchy", headless: false });
+    const s = selectItems({ inventory: omarchyJson as Inventory, system: "omarchy", headless: false });
     for (const id of ["herdr", "starship", "bat", "docker"]) expect(ids(s.items)).not.toContain(id);
     expect(s.skipped.find((x) => x.id === "herdr")?.reason).toBe("already part of omarchy");
   });

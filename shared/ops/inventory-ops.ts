@@ -21,7 +21,7 @@ import { join } from "node:path";
 import type { Inventory, Item, System } from "../inventory.ts";
 import { resolveInstall, withVersion } from "../inventory.ts";
 import type { Cmd, Step } from "../exec/runner.ts";
-import { expandHome, miseCmd, usesApt } from "../install/methods.ts";
+import { omarchyMiseEnv, expandHome, miseCmd, usesApt } from "../install/methods.ts";
 
 /** One entry of selection.json. */
 export interface SelectedItem {
@@ -97,6 +97,11 @@ export function removePlan(items: Item[], system: System, options: { includeNati
         refused.push({ id: item.id, reason: `part of ${system}; SetupVibe does not remove it` });
         break;
       case "mise": {
+        if (system === "omarchy") {
+          const spec = withVersion(entry.tool ?? item.id, item);
+          steps.push({ id: item.id, description: `Remove ${spec} from SetupVibe’s mise directory`, commands: [{ argv: ["mise", "uninstall", spec], env: omarchyMiseEnv(home) }] });
+          break;
+        }
         const tool = withVersion(entry.tool ?? item.id, item).replace(/@[^@/]+$/, "");
         steps.push({ id: item.id, description: `Remove ${tool} from mise`, commands: [{ argv: [mise(home), "unuse", "--global", "--yes", tool] }] });
         break;
@@ -116,6 +121,10 @@ export function removePlan(items: Item[], system: System, options: { includeNati
       case "native":
       case "brew":
       case "winget": {
+        if (system === "omarchy") {
+          refused.push({ id: item.id, reason: "Omarchy owns system packages." });
+          break;
+        }
         if (!options.includeNative) {
           refused.push({ id: item.id, reason: "installed by the system package manager; pass --include-native to remove it" });
           break;
@@ -141,7 +150,6 @@ function nativeRemoveCmds(entry: NonNullable<ReturnType<typeof resolveInstall>>,
     return ids.map((id) => ({ argv: ["winget", "uninstall", "--exact", "--id", id, "--silent", "--disable-interactivity"] }));
   }
   if (usesApt(system)) return [{ argv: ["apt-get", "remove", "-y", ...packages], sudo: true }];
-  if (system === "arch" || system === "omarchy") return [{ argv: ["pacman", "-Rns", "--noconfirm", ...packages], sudo: true }];
   if (system === "macos") return [{ argv: ["brew", "uninstall", ...packages] }];
   return [];
 }
