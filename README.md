@@ -8,14 +8,14 @@
 <h1 align="center">SetupVibe</h1>
 
 <p align="center">
-  Sets up a complete development machine in one command, with editions for macOS, Linux, Windows 11 and Omarchy 4.
+  Prepare sua máquina para desenvolvimento com um comando. Escolha a edição para macOS, Linux, Windows 11 ou Omarchy 4.
 </p>
 
-<p align="center">A <a href="https://promovaweb.com">Promovaweb</a> project</p>
+<p align="center">Um projeto da <a href="https://promovaweb.com">Promovaweb</a></p>
 
 <p align="center">
-  <a href="https://github.com/promovaweb/setupvibe/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/promovaweb/setupvibe"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/promovaweb/setupvibe"></a>
+  <a href="https://github.com/promovaweb/setupvibe/releases/latest"><img alt="Versão publicada no GitHub" src="https://img.shields.io/github/v/release/promovaweb/setupvibe"></a>
+  <a href="LICENSE"><img alt="Licença" src="https://img.shields.io/github/license/promovaweb/setupvibe"></a>
 </p>
 
 <p align="center">
@@ -23,28 +23,26 @@
 </p>
 
 <p align="center">
-  <a href="docs/README.md">V1 documentation</a> ·
+  <a href="docs/README.md">Documentação da V1</a> ·
   <a href="https://promovaweb.com/discord">Discord</a> ·
-  <a href="https://promovaweb.com/planos?utm_source=github&utm_medium=readme&utm_campaign=setupvibe">Promovaweb Plans</a> ·
+  <a href="https://promovaweb.com/planos?utm_source=github&utm_medium=readme&utm_campaign=setupvibe">Planos da Promovaweb</a> ·
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
-## What it is
+<p align="center"><a href="README.md">Português do Brasil</a> · <a href="README.en.md">English</a></p>
 
-SetupVibe turns a fresh machine into a development environment ready for work. The installer detects the system, runs numbered steps that verify each tool, and places user tools in `$HOME/.local/bin`. It uses `sudo` only where the system requires it.
+## O que é o SetupVibe
 
-Each edition targets one kind of machine:
+O SetupVibe prepara uma máquina para desenvolvimento. O instalador detecta o sistema e verifica as ferramentas a cada etapa. Nas edições Unix, os utilitários do usuário ficam em `$HOME/.local/bin`. O script pede `sudo` nas etapas que exigem privilégios de administrador.
 
-| Edition | Script | Platforms | What it delivers |
+| Edição | Script | Sistemas compatíveis | O que instala |
 | --- | --- | --- | --- |
-| Desktop | `desktop.sh` | macOS 12+, Ubuntu 24.04+, Debian 12+, Zorin OS 18+, Linux Mint 21+ and WSL | 14 steps with PHP, Ruby, Go, Rust, Python, Node.js, Bun, Docker, shell, Tmux and AI CLIs |
-| Windows (Beta) | `desktop.ps1` | Windows 11 22H2+ (build 22621+), x64 | native utilities, Python 3.14, Node.js 24 LTS, selected AI CLIs and the WSL 2 base |
-| Server | `server.sh` | Ubuntu 24.04+, Debian 12+ and Zorin OS 18+ | 9 steps focused on operations, Docker, Ansible, shell, monitoring and AI CLIs |
-| Omarchy 4 | `omarchy.sh` | Omarchy 4 on Arch Linux x86_64 | only the layer Omarchy does not already provide, preserving the system |
+| Desktop | `desktop.sh` | macOS 12+, Ubuntu 24.04+, Debian 12+, Zorin OS 18+, Linux Mint 21+ e WSL | 14 etapas com PHP, Ruby, Go, Rust, Python, Node.js, Bun, Docker, shell, Tmux e ferramentas de IA para o terminal |
+| Windows (Beta) | `desktop.ps1` | Windows 11 22H2 ou posterior (build 22621+), x64 | Utilitários nativos, Python 3.14, Node.js 24 LTS, ferramentas de IA e a base do WSL 2 |
+| Server | `server.sh` | Ubuntu 24.04+, Debian 12+ e Zorin OS 18+ | 9 etapas para configurar Docker, Ansible, shell, monitoramento e ferramentas de IA |
+| Omarchy 4 | `omarchy.sh` | Omarchy 4 sobre Arch Linux x86_64 | Ferramentas complementares à instalação do Omarchy, preservando os pacotes e as configurações do sistema |
 
-You can run the installer again on the same machine. Each step checks what already exists before installing or configuring anything.
-
-## Installation
+## Instalação
 
 ### Desktop
 
@@ -52,9 +50,9 @@ You can run the installer again on the same machine. Each step checks what alrea
 curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.sh | bash
 ```
 
-On macOS, run it without `sudo`: Homebrew refuses to install as root. The script asks for your password when it needs privileges and shows a roadmap before it starts.
+No macOS, execute o comando com sua conta de usuário. O Homebrew recusa a instalação como root. O script apresenta as etapas antes de começar e pede sua senha quando precisa de privilégios.
 
-To run a local copy of the repository:
+Se você já clonou o repositório, execute o script na pasta do projeto.
 
 ```bash
 bash desktop.sh
@@ -62,17 +60,19 @@ bash desktop.sh
 
 ### Windows (Beta)
 
+No PowerShell, execute o comando abaixo e confirme a solicitação de administrador do Windows. O instalador preserva a política de UAC.
+
 ```powershell
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.ps1 | iex
 ```
 
-The installer requests elevation through the standard UAC prompt and does not change the UAC policy. To run a local copy:
+Para executar uma cópia local, abra o PowerShell na pasta do repositório.
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\desktop.ps1
 ```
 
-To remove the managed utilities and configuration, use `-Uninstall`. The [Windows guide](docs/windows/en/README.md) covers logs, restarts and verification.
+Use `-Uninstall` para remover os utilitários e as configurações gerenciados pelo instalador. O guia explica como consultar os logs, verificar a instalação e reiniciar a máquina. [Guia do Windows](docs/windows/pt-br/README.md)
 
 ### Server
 
@@ -80,7 +80,7 @@ To remove the managed utilities and configuration, use `-Uninstall`. The [Window
 curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/server.sh | bash
 ```
 
-Available options: `--manager` initializes Docker Swarm, `--advertise-addr ADDRESS` chooses the Swarm address or interface, `--yes` skips the initial confirmation, `--help` shows the help and `--version` shows the version.
+Use `--manager` para inicializar o Docker Swarm ou `--advertise-addr ADDRESS` para escolher também o endereço ou a interface anunciada. A opção `--yes` dispensa a confirmação inicial. Consulte as opções com `--help` e a versão com `--version`.
 
 ### Omarchy 4
 
@@ -88,66 +88,64 @@ Available options: `--manager` initializes Docker Swarm, `--advertise-addr ADDRE
 curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/omarchy.sh | bash
 ```
 
-Use `bash omarchy.sh --yes` for an unattended run. The edition requires an existing Omarchy 4 installation and does not remove system packages.
+A edição exige o Omarchy 4 já instalado e preserva seus pacotes. Para executar a cópia local sem a confirmação inicial, use `bash omarchy.sh --yes`.
 
-### Requirements
+### Requisitos
 
-- Desktop: macOS 12 or later, or one of the supported Linux distributions, on x86_64 or ARM64.
-- Windows: Windows 11 22H2 build 22621 or later, x64. Windows Server, 32-bit Windows and Windows on ARM are rejected.
-- Server: one of the supported Linux distributions, on x86_64 or ARM64.
-- Omarchy: Omarchy 4 on Arch Linux x86_64.
+- **Desktop.** macOS 12 ou posterior, ou uma das distribuições Linux da tabela, em x86_64 ou ARM64.
+- **Windows.** Windows 11 x64 a partir da versão 22H2, build 22621. Windows Server, Windows de 32 bits e Windows em ARM ficam fora do suporte.
+- **Server.** Uma das distribuições Linux da tabela, em x86_64 ou ARM64.
+- **Omarchy.** Omarchy 4 sobre Arch Linux x86_64.
 
-### Updating
+### Atualização
 
-Run the edition installer again. The steps detect what is already installed, upgrade the managed packages and keep your personal files.
+Execute novamente o instalador da sua edição. Cada etapa confere o que já existe, atualiza os pacotes gerenciados e preserva seus arquivos pessoais.
 
-## Getting started
+## Primeiros passos
 
-1. Reopen the terminal to load the new `PATH` and the configured shell.
-1. Check the installer's final summary, with every step marked `OK`.
-1. Verify the main tools:
+Confira o resumo final do instalador e procure as etapas marcadas como `OK`. Reabra o terminal para carregar o novo `PATH` e as configurações do shell. Verifique a versão das ferramentas incluídas na sua edição.
 
 ```bash
 node --version
 docker --version
-php --version   # Desktop edition only
+php --version   # Apenas na edição Desktop
 ```
 
-1. On Desktop and Server, open the agent multiplexer with `herdr`.
+No Desktop e no Server, execute `herdr` para abrir o multiplexador de agentes.
 
-## Usage
+## Exemplos de uso
 
-### Docker Swarm on Server
+### Inicializar o Docker Swarm no servidor
 
 ```bash
 curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/server.sh | bash -s -- --manager
 ```
 
-Replace `--manager` with `--advertise-addr ADDRESS` when you need to choose the advertised interface.
+Se o servidor tiver mais de uma interface de rede, substitua `--manager` por `--advertise-addr ADDRESS` e informe o endereço que os demais nós devem usar.
 
-### Copy an SSH key to a server
+### Copiar uma chave SSH para o servidor
 
-The `ssh_copy_id` helper sends your local public key and avoids duplicate entries in `authorized_keys`:
+O `ssh_copy_id` envia sua chave pública local e evita duplicatas no arquivo `authorized_keys` do servidor.
 
 ```bash
 ssh_copy_id --host 192.0.2.10 --user root
 ```
 
-The command lives in `~/.setupvibe/bin/ssh_copy_id`, asks for the remote password in a hidden prompt and accepts `--pass`, `--key` and `--port`.
+O utilitário fica em `~/.setupvibe/bin/ssh_copy_id`, pede a senha remota sem exibi-la no terminal e aceita as opções `--pass`, `--key` e `--port`.
 
-### Shell, Tmux and PM2
+### Usar shell, Tmux e PM2
 
-The Desktop edition installs ZSH, Oh My Zsh, Starship and Tmux with TPM. PM2 starts the applications listed in `~/ecosystem.config.js` and restarts them on boot.
+A edição Desktop instala Zsh, Oh My Zsh, Starship e Tmux com TPM. O PM2 inicia os aplicativos listados em `~/ecosystem.config.js` e volta a executá-los quando a máquina reinicia.
 
-- [Tmux guide](docs/desktop/en/tmux.md) for shortcuts, plugins and configuration.
-- [PM2 guide](docs/desktop/en/pm2.md) for processes, logs and auto-startup.
-- [Executables guide](docs/en/EXECUTABLES.md) for the helpers installed in `~/.setupvibe/bin`.
+- Atalhos, plugins e configuração de sessões. [Guia do Tmux](docs/desktop/pt-br/tmux.md)
+- Processos, logs e inicialização automática. [Guia do PM2](docs/desktop/pt-br/pm2.md)
+- Utilitários instalados em `~/.setupvibe/bin`. [Guia de executáveis](docs/pt-br/EXECUTABLES.md)
 
-## Using it with agents
+## Uso com agentes
 
-The editions install AI CLIs. Authentication, permissions and project instructions stay with each tool:
+Cada ferramenta tem seu próprio processo de autenticação, suas permissões e suas instruções de projeto.
 
-| Tool | Command | Editions |
+| Ferramenta | Comando | Edições |
 | --- | --- | --- |
 | [Claude Code](https://github.com/anthropics/claude-code) | `claude` | Desktop, Windows, Server |
 | [Codex CLI](https://github.com/openai/codex) | `codex` | Desktop, Windows, Server |
@@ -157,72 +155,70 @@ The editions install AI CLIs. Authentication, permissions and project instructio
 | [Vercel Labs Skills CLI](https://github.com/vercel-labs/skills) | `skills` | Desktop, Windows, Server, Omarchy |
 | [Hermes Agent](https://github.com/NousResearch/hermes-agent) | `hermes` | Desktop, Omarchy |
 
-Herdr organizes agents in persistent workspaces. Open the project folder and start the multiplexer:
+O Herdr organiza os agentes em espaços de trabalho persistentes. Abra a pasta do seu projeto e inicie o Herdr.
 
 ```bash
 cd ~/projects/my-project
 herdr
 ```
 
-Inside a pane, start the agent with its usual command:
+Dentro de um painel, inicie o agente pelo comando habitual.
 
 ```bash
 claude
 ```
 
-The [Herdr guide](docs/en/HERDR.md) lists the workspace, tab and pane shortcuts. Hermes is installed without running `hermes setup`, so the provider, model and keys stay with you.
+Consulte os atalhos de espaços de trabalho, abas e painéis no [guia do Herdr](docs/pt-br/HERDR.md). O instalador deixa a configuração do Hermes Agent para você. Ao executar `hermes setup`, você escolhe o provedor, o modelo e as credenciais.
 
-## Documentation
+## Documentação
 
-The guides below cover the V1 installers on this branch. The [V2 manual](https://promovaweb.com/docs/setupvibe/) covers the separate CLI.
+Os guias desta tabela acompanham os instaladores da V1 na branch `main`. Os guias de Desktop, Windows e Server também estão disponíveis em inglês, espanhol e francês pelo índice de edições.
 
-| Topic | Link |
+| Assunto | Guia |
 | --- | --- |
-| Editions overview | [docs/README.md](docs/README.md) |
-| Desktop | [docs/desktop/en/README.md](docs/desktop/en/README.md) |
-| Windows (Beta) | [docs/windows/en/README.md](docs/windows/en/README.md) |
-| Server | [docs/server/en/README.md](docs/server/en/README.md) |
-| Omarchy 4 | [docs/omarchy/README.md](docs/omarchy/README.md) |
-| Herdr | [docs/en/HERDR.md](docs/en/HERDR.md) |
-| Linux context and Debian tests | [DEBIAN.md](DEBIAN.md) |
+| Todas as edições e idiomas | [Índice da documentação](docs/README.md) |
+| Desktop | [Instalação em macOS, Linux e WSL](docs/desktop/pt-br/README.md) |
+| Windows (Beta) | [Instalação no Windows 11](docs/windows/pt-br/README.md) |
+| Server | [Instalação em servidores Linux](docs/server/pt-br/README.md) |
+| Omarchy 4 | [Instalação no Omarchy](docs/omarchy/README.md) |
+| Herdr | [Espaços de trabalho, abas e painéis](docs/pt-br/HERDR.md) |
+| Linux e testes em Debian | [Notas técnicas do Debian](DEBIAN.md) |
 
-The project page is at [promovaweb.com/setupvibe](https://promovaweb.com/setupvibe/).
+No site da Promovaweb, você encontra a apresentação das quatro edições da V1 e, em uma área própria, o manual do CLI da V2. [Portal do SetupVibe](https://promovaweb.com/setupvibe/) · [Manual da V2](https://promovaweb.com/docs/setupvibe/)
 
-## Built with
+## Projetos utilizados
 
-| Project | Used for |
+| Projeto | Uso no SetupVibe |
 | --- | --- |
-| [Homebrew](https://github.com/Homebrew/brew) | package manager on macOS and Linux desktops |
-| [Node.js](https://github.com/nodejs/node) | runtime for the AI CLIs and JavaScript tools |
-| [Bun](https://github.com/oven-sh/bun) | JavaScript runtime on Desktop and Omarchy |
-| [Docker](https://github.com/moby/moby) | containers, Portainer and Docker Swarm |
-| [Ansible](https://github.com/ansible/ansible) | configuration automation on Desktop and Server |
-| [GitHub CLI](https://github.com/cli/cli) | repository operations from the terminal |
-| [Zsh](https://github.com/zsh-users/zsh) and [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh) | default shell on the Unix editions |
-| [Starship](https://github.com/starship/starship) | shell prompt |
-| [Tmux](https://github.com/tmux/tmux) and [TPM](https://github.com/tmux-plugins/tpm) | persistent sessions and plugins |
-| [PM2](https://github.com/Unitech/pm2) | process management and application auto-startup |
-| [Herdr](https://github.com/herdrdev/herdr) | agent multiplexer |
-| [Vercel Labs Skills CLI](https://github.com/vercel-labs/skills) | skill installation for agents |
+| [Homebrew](https://github.com/Homebrew/brew) | Gerenciamento de pacotes no macOS e no Linux Desktop |
+| [Node.js](https://github.com/nodejs/node) | Execução de ferramentas JavaScript e CLIs de IA |
+| [Bun](https://github.com/oven-sh/bun) | Execução de JavaScript no Desktop e no Omarchy |
+| [Docker](https://github.com/moby/moby) | Containers, Portainer e Docker Swarm |
+| [Ansible](https://github.com/ansible/ansible) | Automação de configurações no Desktop e no Server |
+| [GitHub CLI](https://github.com/cli/cli) | Operações com repositórios pelo terminal |
+| [Zsh](https://github.com/zsh-users/zsh) e [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh) | Shell padrão nas edições Unix |
+| [Starship](https://github.com/starship/starship) | Prompt do shell |
+| [Tmux](https://github.com/tmux/tmux) e [TPM](https://github.com/tmux-plugins/tpm) | Sessões persistentes e gerenciamento de plugins |
+| [PM2](https://github.com/Unitech/pm2) | Gerenciamento de processos e inicialização automática de aplicativos |
+| [Herdr](https://github.com/herdrdev/herdr) | Multiplexador de agentes |
+| [Vercel Labs Skills CLI](https://github.com/vercel-labs/skills) | Instalação de skills para agentes |
 
-## Community and support
+## Comunidade e suporte
 
-- **Discord:** [get help and talk with the Community](https://promovaweb.com/discord) (in Portuguese).
-- **Bugs and requests:** open an [issue](https://github.com/promovaweb/setupvibe/issues) with the version, the operating system and the steps to reproduce.
-- **What's new:** follow the [CHANGELOG](CHANGELOG.md) and the [releases](https://github.com/promovaweb/setupvibe/releases).
+- Para tirar dúvidas em português e conversar com a comunidade, entre no [Discord da Promovaweb](https://promovaweb.com/discord).
+- Para relatar uma falha, informe a versão, o sistema operacional e os passos para reproduzir o problema. [Issues no GitHub](https://github.com/promovaweb/setupvibe/issues)
+- Para acompanhar as mudanças, consulte o [changelog](CHANGELOG.md) e as [releases](https://github.com/promovaweb/setupvibe/releases).
 
-## Contributing
+## Como contribuir
 
-The contribution guide covers the environment, the script layout, validation and the pull request flow. Start with [CONTRIBUTING.md](CONTRIBUTING.md).
+O guia de contribuição descreve o ambiente de desenvolvimento, a organização dos scripts, as validações e o envio de pull requests. [Guia de contribuição](CONTRIBUTING.md)
 
 ## Promovaweb
 
-SetupVibe is maintained by [Promovaweb](https://promovaweb.com), a digital co-working community where professionals learn to build, automate and run technology and AI businesses through live classes, Co-works and reviews of real projects.
+A Promovaweb mantém o SetupVibe. Na comunidade de coworking digital, profissionais aprendem a criar, automatizar e operar negócios de tecnologia e IA em aulas ao vivo, sessões de coworking e revisões de projetos reais. [Conheça a Promovaweb](https://promovaweb.com)
 
-Want to use SetupVibe in real projects, with guidance? See the [Promovaweb plans](https://promovaweb.com/planos?utm_source=github&utm_medium=readme&utm_campaign=setupvibe).
+Para usar o SetupVibe nos seus projetos com acompanhamento da comunidade, consulte os [planos da Promovaweb](https://promovaweb.com/planos?utm_source=github&utm_medium=readme&utm_campaign=setupvibe).
 
-## License
+## Licença
 
-Distributed under the [GNU AGPL 3.0](LICENSE). The license does not grant the
-use of the SetupVibe name and logo or the Promovaweb brand (AGPL 3.0,
-section 7, item e).
+O SetupVibe é distribuído sob a GNU AGPL 3.0. A seção 7, item e, reserva os direitos de uso do nome e do logo do SetupVibe e da marca Promovaweb. [Texto da licença](LICENSE)

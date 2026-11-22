@@ -4,6 +4,10 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.42.6] - 2026-11-22
+
+- O README principal da V1 abre em português do Brasil e aponta para os guias traduzidos. A edição em inglês continua acessível no seletor de idioma.
+
 ## [v0.42.5] - 2026-11-22
 
 - The README, translated installation guides and reinstall aliases now use the public V1 scripts on the main branch. The README links directly to the V1 guides and identifies the V2 manual.
