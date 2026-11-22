@@ -1,8 +1,8 @@
 # SetupVibe — Édition Bureau
 
-> Configuration de l'environnement de développement multiplateforme — v0.42.6
+> Configuration de l'environnement de développement multiplateforme — v0.42.7
 
-Installe et configure un stack complet de développeur en une seule commande. Supporte macOS et les principales distributions Linux.
+Préparez l’ordinateur ou le VPS sur lequel vous développez. Desktop configure le terminal et installe Git, Docker et les environnements d’exécution pour que vous puissiez cloner un projet et démarrer ses services.
 
 ## Configuration Requise
 
@@ -97,9 +97,7 @@ Le script affiche une feuille de route interactive et demande confirmation avant
 | PM2        | `npm install -g pm2`      | identique               |
 | Bun        | via script d'installation  | identique               |
 
-Sous Linux, les paquets npm globaux utilisent le préfixe accessible en écriture
-`~/.npm-global` de l'utilisateur cible, même lorsque l'installateur est lancé
-via `sudo`. PNPM, PM2 et Bun sont validés après l'installation.
+Sous Linux, les paquets npm globaux utilisent le préfixe accessible en écriture `~/.npm-global` de l'utilisateur cible, même lorsque l'installateur est lancé via `sudo`. PNPM, PM2 et Bun sont validés après l'installation.
 
 ### Étape 7 — DevOps
 
@@ -167,8 +165,7 @@ Les plugins sont installés pendant la configuration ; appuyez sur `prefix + I` 
 
 ### Étape 13 — Outils d'IA (CLI)
 
-Installe les paquets npm globalement, ainsi que Herdr et Antigravity CLI
-depuis leurs manifestes officiels de releases :
+Installe les paquets npm globalement, ainsi que Herdr et Antigravity CLI depuis leurs manifestes officiels de releases :
 
 | Outil              | Installation                     |
 | ------------------ | -------------------------------- |
@@ -227,13 +224,7 @@ Chaque plateforme reçoit un `.zshrc` dédié :
 | `sku`      | `skills update`                                                                       |
 | `d`        | `docker`                                                                              |
 
-| `dc`       | `docker compose`                                                                         |
-| `art`      | `php artisan`                                                                            |
-| `syslog`   | `sudo journalctl -f` *(Linux uniquement)*                                                |
-| `ports`    | `ss -tulnp` *(Linux uniquement)*                                                         |
-| `meminfo`  | `free -h` *(Linux uniquement)*                                                           |
-| `diskinfo` | `df -h` *(Linux uniquement)*                                                             |
-| `cpuinfo`  | `lscpu` *(Linux uniquement)*                                                             |
+| `dc`       | `docker compose`                                                                         | | `art`      | `php artisan`                                                                            | | `syslog`   | `sudo journalctl -f` *(Linux uniquement)*                                                | | `ports`    | `ss -tulnp` *(Linux uniquement)*                                                         | | `meminfo`  | `free -h` *(Linux uniquement)*                                                           | | `diskinfo` | `df -h` *(Linux uniquement)*                                                             | | `cpuinfo`  | `lscpu` *(Linux uniquement)*                                                             |
 
 ### Plugins Oh My Zsh
 

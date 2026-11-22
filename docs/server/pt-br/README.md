@@ -1,8 +1,8 @@
 # SetupVibe — Edição Servidor
 
-> Configuração de servidor Linux — v0.42.6
+> Configuração de servidor Linux — v0.42.7
 
-Um script de configuração focado em servidores Linux. Sem Homebrew, ecossistemas de linguagens ou ferramentas de desktop, ele instala Docker, Ansible, recursos de rede, shell, tmux e ferramentas de CLI de IA.
+Prepare o servidor Linux que vai hospedar suas aplicações. A edição Server instala Docker e Ansible e configura o acesso por SSH. Se você usa a VPS para escrever e testar código, escolha a edição Desktop.
 
 ## Requisitos do Sistema
 
@@ -55,9 +55,7 @@ O script valida o sistema operacional, a versão, a arquitetura, o usuário de d
 
 ## Skill de setup
 
-Use `$setupvibe-setup` para escolher a edição Server, repetir a instalação ou
-conferir o ambiente. Depois do SetupVibe, instale as skills de cada projeto
-com `npx skills add <origem>`.
+Use `$setupvibe-setup` para escolher a edição Server, repetir a instalação ou conferir o ambiente. Depois do SetupVibe, instale as skills de cada projeto com `npx skills add <origem>`.
 
 ---
 
@@ -94,8 +92,7 @@ Instala via APT:
 
 ### Etapa 3 — Rede, Monitoramento e Tailscale
 
-Pacotes APT:
-`rsync`, `net-tools`, `dnsutils`, `mtr-tiny`, `nmap`, `tcpdump`, `iftop`, `nload`, `iotop`, `sysstat`, `whois`, `iputils-ping`, `speedtest-cli`, `glances`, `htop`, `btop`
+Pacotes APT: `rsync`, `net-tools`, `dnsutils`, `mtr-tiny`, `nmap`, `tcpdump`, `iftop`, `nload`, `iotop`, `sysstat`, `whois`, `iputils-ping`, `speedtest-cli`, `glances`, `htop`, `btop`
 
 - **ctop** — binário baixado em `~/.local/bin/ctop` (v0.7.7, detecta arquitetura, SHA-256 verificado)
 - **Tailscale** — via script oficial de instalação (`https://tailscale.com/install.sh`)

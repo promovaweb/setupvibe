@@ -1,8 +1,8 @@
 # SetupVibe Documentation
 
-> Automated development environment setup — v0.42.6
+> Automated development environment setup — v0.42.7
 
-SetupVibe transforms a machine into a configured development workspace in one command. It supports four editions depending on your target:
+Choose the machine you want to prepare. Use Desktop for the computer or VPS where you develop, Windows for native PowerShell, Omarchy for an existing Omarchy 4 installation, and Server for the Linux host that runs your applications. Each guide below includes the install command and the checks to run afterwards.
 
 | Edition            | Script        | Platforms                                            | Guides                                                                                                               |
 | ------------------ | ------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -41,11 +41,7 @@ Add `--yes` for unattended installation or `--advertise-addr ADDRESS` to choose 
 
 ## Omarchy 4
 
-The Omarchy edition is additive. It keeps the Omarchy shell, prompt, aliases,
-Tmux, Docker, mise, runtimes and tools that already ship with the operating
-system. It adds the SetupVibe layer, including PHP and Laravel, Composer,
-Rails tooling, PM2 and pnpm, selected runtimes and utilities, extra AI CLIs,
-the SSH helper, Portainer files and a separate Starship configuration.
+The Omarchy edition is additive. It keeps the Omarchy shell, prompt, aliases, Tmux, Docker, mise, runtimes and tools that already ship with the operating system. It adds the SetupVibe layer, including PHP and Laravel, Composer, Rails tooling, PM2 and pnpm, selected runtimes and utilities, extra AI CLIs, the SSH helper, Portainer files and a separate Starship configuration.
 
 Run it from the SetupVibe repository or through the raw script URL:
 
@@ -54,8 +50,7 @@ bash omarchy.sh
 curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/omarchy.sh | bash
 ```
 
-Use `--yes` for an unattended run. The script requires an existing Omarchy 4
-installation and never executes package-removal commands.
+Use `--yes` for an unattended run. The script requires an existing Omarchy 4 installation and never executes package-removal commands.
 
 ## Edition Comparison
 

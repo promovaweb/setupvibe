@@ -1,8 +1,8 @@
 # SetupVibe — Edición Servidor
 
-> Configuración de servidor Linux — v0.42.6
+> Configuración de servidor Linux — v0.42.7
 
-Un script de configuración ligero y enfocado para servidores Linux. Sin Homebrew, sin ecosistemas de lenguajes, sin herramientas de escritorio. Instala solo lo que un servidor de producción necesita: Docker, Ansible, redes, shell, tmux y herramientas AI CLI.
+Prepara el servidor Linux donde vas a alojar tus aplicaciones. Server instala Docker y Ansible y configura el acceso por SSH. Si usas el VPS para escribir y probar código, elige Desktop.
 
 ## Requisitos del Sistema
 
@@ -88,8 +88,7 @@ Instala mediante APT:
 
 ### Paso 3 — Red, Monitoreo y Tailscale
 
-Paquetes APT:
-`rsync`, `net-tools`, `dnsutils`, `mtr-tiny`, `nmap`, `tcpdump`, `iftop`, `nload`, `iotop`, `sysstat`, `whois`, `iputils-ping`, `speedtest-cli`, `glances`, `htop`, `btop`
+Paquetes APT: `rsync`, `net-tools`, `dnsutils`, `mtr-tiny`, `nmap`, `tcpdump`, `iftop`, `nload`, `iotop`, `sysstat`, `whois`, `iputils-ping`, `speedtest-cli`, `glances`, `htop`, `btop`
 
 - **ctop** — binario descargado en `~/.local/bin/ctop` (v0.7.7, detecta la arquitectura, SHA-256 verificado)
 - **Tailscale** — vía script oficial de instalación (`https://tailscale.com/install.sh`)

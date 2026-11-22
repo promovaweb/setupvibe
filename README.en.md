@@ -7,9 +7,7 @@
 
 <h1 align="center">SetupVibe</h1>
 
-<p align="center">
-  Sets up a complete development machine in one command, with editions for macOS, Linux, Windows 11 and Omarchy 4.
-</p>
+<p align="center">Get your machine ready for development with one command.</p>
 
 <p align="center">A <a href="https://promovaweb.com">Promovaweb</a> project</p>
 
@@ -23,6 +21,7 @@
 </p>
 
 <p align="center">
+  <a href="#where-will-you-work">Choose my edition</a> ·
   <a href="docs/README.md">V1 documentation</a> ·
   <a href="https://promovaweb.com/discord">Discord</a> ·
   <a href="https://promovaweb.com/planos?utm_source=github&utm_medium=readme&utm_campaign=setupvibe">Promovaweb Plans</a> ·
@@ -31,20 +30,16 @@
 
 <p align="center"><a href="README.md">Português do Brasil</a> · <a href="README.en.md">English</a></p>
 
-## What it is
+## Where will you work?
 
-SetupVibe turns a fresh machine into a development environment ready for work. The installer detects the system, runs numbered steps that verify each tool, and places user tools in `$HOME/.local/bin`. It uses `sudo` only where the system requires it.
+SetupVibe installs the tools you need to start a project. With Desktop, you can clone a repository with Git, run its services with Docker, and open Claude Code or Codex in your terminal.
 
-Each edition targets one kind of machine:
-
-| Edition | Script | Platforms | What it delivers |
-| --- | --- | --- | --- |
-| Desktop | `desktop.sh` | macOS 12+, Ubuntu 24.04+, Debian 12+, Zorin OS 18+, Linux Mint 21+ and WSL | 14 steps with PHP, Ruby, Go, Rust, Python, Node.js, Bun, Docker, shell, Tmux and AI CLIs |
-| Windows (Beta) | `desktop.ps1` | Windows 11 22H2+ (build 22621+), x64 | native utilities, Python 3.14, Node.js 24 LTS, selected AI CLIs and the WSL 2 base |
-| Server | `server.sh` | Ubuntu 24.04+, Debian 12+ and Zorin OS 18+ | 9 steps focused on operations, Docker, Ansible, shell, monitoring and AI CLIs |
-| Omarchy 4 | `omarchy.sh` | Omarchy 4 on Arch Linux x86_64 | only the layer Omarchy does not already provide, preserving the system |
-
-You can run the installer again on the same machine. Each step checks what already exists before installing or configuring anything.
+| What you want to do | Edition |
+| --- | --- |
+| I write code on macOS, Linux, WSL or a development VPS. | [Desktop](#desktop) |
+| I want to use Git, Python and Node.js in PowerShell on Windows 11. | [Windows (Beta)](#windows-beta) |
+| I want to add development tools to Omarchy and keep my shell and shortcuts. | [Omarchy 4](#omarchy-4) |
+| I want to run applications with Docker on a Linux server. | [Server](#server) |
 
 ## Installation
 
@@ -94,9 +89,9 @@ Use `bash omarchy.sh --yes` for an unattended run. The edition requires an exist
 
 ### Requirements
 
-- Desktop: macOS 12 or later, or one of the supported Linux distributions, on x86_64 or ARM64.
+- Desktop: macOS 12+, Ubuntu 24.04+, Debian 12+, Zorin OS 18+ or Linux Mint 21+, on x86_64 or ARM64.
 - Windows: Windows 11 22H2 build 22621 or later, x64. Windows Server, 32-bit Windows and Windows on ARM are rejected.
-- Server: one of the supported Linux distributions, on x86_64 or ARM64.
+- Server: Ubuntu 24.04+, Debian 12+ or Zorin OS 18+, on x86_64 or ARM64.
 - Omarchy: Omarchy 4 on Arch Linux x86_64.
 
 ### Updating
@@ -225,6 +220,4 @@ Want to use SetupVibe in real projects, with guidance? See the [Promovaweb plans
 
 ## License
 
-Distributed under the [GNU AGPL 3.0](LICENSE). The license does not grant the
-use of the SetupVibe name and logo or the Promovaweb brand (AGPL 3.0,
-section 7, item e).
+Distributed under the [GNU AGPL 3.0](LICENSE). The license does not grant the use of the SetupVibe name and logo or the Promovaweb brand (AGPL 3.0, section 7, item e).

@@ -7,9 +7,7 @@
 
 <h1 align="center">SetupVibe</h1>
 
-<p align="center">
-  Prepare sua máquina para desenvolvimento com um comando. Escolha a edição para macOS, Linux, Windows 11 ou Omarchy 4.
-</p>
+<p align="center">Deixe sua máquina pronta para desenvolver com um comando.</p>
 
 <p align="center">Um projeto da <a href="https://promovaweb.com">Promovaweb</a></p>
 
@@ -23,6 +21,7 @@
 </p>
 
 <p align="center">
+  <a href="#onde-você-vai-desenvolver">Escolher minha edição</a> ·
   <a href="docs/README.md">Documentação da V1</a> ·
   <a href="https://promovaweb.com/discord">Discord</a> ·
   <a href="https://promovaweb.com/planos?utm_source=github&utm_medium=readme&utm_campaign=setupvibe">Planos da Promovaweb</a> ·
@@ -31,16 +30,16 @@
 
 <p align="center"><a href="README.md">Português do Brasil</a> · <a href="README.en.md">English</a></p>
 
-## O que é o SetupVibe
+## Onde você vai desenvolver?
 
-O SetupVibe prepara uma máquina para desenvolvimento. O instalador detecta o sistema e verifica as ferramentas a cada etapa. Nas edições Unix, os utilitários do usuário ficam em `$HOME/.local/bin`. O script pede `sudo` nas etapas que exigem privilégios de administrador.
+O SetupVibe instala o que você precisa para começar um projeto. Na edição Desktop, você pode clonar um repositório com Git, subir os serviços com Docker e abrir o código no terminal. Claude Code e Codex também ficam instalados.
 
-| Edição | Script | Sistemas compatíveis | O que instala |
-| --- | --- | --- | --- |
-| Desktop | `desktop.sh` | macOS 12+, Ubuntu 24.04+, Debian 12+, Zorin OS 18+, Linux Mint 21+ e WSL | 14 etapas com PHP, Ruby, Go, Rust, Python, Node.js, Bun, Docker, shell, Tmux e ferramentas de IA para o terminal |
-| Windows (Beta) | `desktop.ps1` | Windows 11 22H2 ou posterior (build 22621+), x64 | Utilitários nativos, Python 3.14, Node.js 24 LTS, ferramentas de IA e a base do WSL 2 |
-| Server | `server.sh` | Ubuntu 24.04+, Debian 12+ e Zorin OS 18+ | 9 etapas para configurar Docker, Ansible, shell, monitoramento e ferramentas de IA |
-| Omarchy 4 | `omarchy.sh` | Omarchy 4 sobre Arch Linux x86_64 | Ferramentas complementares à instalação do Omarchy, preservando os pacotes e as configurações do sistema |
+| O que você quer fazer | Edição |
+| --- | --- |
+| Quero programar no macOS, no Linux, no WSL ou numa VPS de desenvolvimento. | [Desktop](#desktop) |
+| Quero usar Git, Python e Node.js diretamente no PowerShell do Windows 11. | [Windows (Beta)](#windows-beta) |
+| Quero acrescentar ferramentas ao meu Omarchy e preservar o shell e os atalhos que já uso. | [Omarchy 4](#omarchy-4) |
+| Quero preparar um servidor Linux para hospedar aplicações com Docker. | [Server](#server) |
 
 ## Instalação
 
@@ -92,9 +91,9 @@ A edição exige o Omarchy 4 já instalado e preserva seus pacotes. Para executa
 
 ### Requisitos
 
-- **Desktop.** macOS 12 ou posterior, ou uma das distribuições Linux da tabela, em x86_64 ou ARM64.
+- **Desktop.** macOS 12+, Ubuntu 24.04+, Debian 12+, Zorin OS 18+ ou Linux Mint 21+, em x86_64 ou ARM64.
 - **Windows.** Windows 11 x64 a partir da versão 22H2, build 22621. Windows Server, Windows de 32 bits e Windows em ARM ficam fora do suporte.
-- **Server.** Uma das distribuições Linux da tabela, em x86_64 ou ARM64.
+- **Server.** Ubuntu 24.04+, Debian 12+ ou Zorin OS 18+, em x86_64 ou ARM64.
 - **Omarchy.** Omarchy 4 sobre Arch Linux x86_64.
 
 ### Atualização

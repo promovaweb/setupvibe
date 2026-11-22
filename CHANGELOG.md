@@ -4,6 +4,10 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.42.7] - 2026-11-22
+
+- Os READMEs e os guias ajudam a escolher a edição pelo uso da máquina. Os parágrafos acompanham a largura da tela nos quatro idiomas.
+
 ## [v0.42.6] - 2026-11-22
 
 - O README principal da V1 abre em português do Brasil e aponta para os guias traduzidos. A edição em inglês continua acessível no seletor de idioma.

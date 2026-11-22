@@ -1,8 +1,8 @@
 # SetupVibe — Edição Desktop
 
-> Configuração de ambiente de desenvolvimento multiplataforma — v0.42.6
+> Configuração de ambiente de desenvolvimento multiplataforma — v0.42.7
 
-Instala e configura um stack de desenvolvedor completo em um comando. Suporta macOS e as principais distribuições Linux.
+Prepare o computador ou a VPS onde você escreve código. Em uma instalação, o Desktop configura o terminal, instala linguagens e deixa Git e Docker disponíveis para clonar o projeto e subir seus serviços.
 
 ## Requisitos do Sistema
 
@@ -45,9 +45,7 @@ O script exibe um roteiro interativo e solicita confirmação antes de iniciar. 
 
 ## Skill de setup
 
-Use `$setupvibe-setup` quando precisar escolher a edição, repetir a instalação
-ou conferir o ambiente. Depois que o SetupVibe terminar, instale as skills de
-cada projeto com `npx skills add <origem>`.
+Use `$setupvibe-setup` quando precisar escolher a edição, repetir a instalação ou conferir o ambiente. Depois que o SetupVibe terminar, instale as skills de cada projeto com `npx skills add <origem>`.
 
 ---
 
@@ -103,9 +101,7 @@ cada projeto com `npx skills add <origem>`.
 | PM2        | `npm install -g pm2`      | igual                   |
 | Bun        | via script de instalação  | igual                   |
 
-No Linux, os pacotes npm globais usam o prefixo gravável `~/.npm-global` do
-usuário-alvo, mesmo quando o instalador é executado por `sudo`. PNPM, PM2
-e Bun são validados após a instalação.
+No Linux, os pacotes npm globais usam o prefixo gravável `~/.npm-global` do usuário-alvo, mesmo quando o instalador é executado por `sudo`. PNPM, PM2 e Bun são validados após a instalação.
 
 ### Etapa 7 — DevOps
 
@@ -174,8 +170,7 @@ Os plugins são instalados durante a configuração; pressione `prefix + I` dent
 
 ### Passo 13 — Ferramentas de IA (CLI)
 
-Instala pacotes npm globalmente, além do Herdr e do Antigravity CLI pelos seus
-manifestos oficiais de releases:
+Instala pacotes npm globalmente, além do Herdr e do Antigravity CLI pelos seus manifestos oficiais de releases:
 
 | Ferramenta         | Instalação                       |
 | ------------------ | -------------------------------- |
@@ -234,13 +229,7 @@ Cada plataforma recebe um `.zshrc` dedicado:
 | `sku`      | `skills update`                                                                               |
 | `d`        | `docker`                                                                                      |
 
-| `dc`       | `docker compose`                                                                           |
-| `art`      | `php artisan`                                                                              |
-| `syslog`   | `sudo journalctl -f` *(somente Linux)*                                                     |
-| `ports`    | `ss -tulnp` *(somente Linux)*                                                              |
-| `meminfo`  | `free -h` *(somente Linux)*                                                                |
-| `diskinfo` | `df -h` *(somente Linux)*                                                                  |
-| `cpuinfo`  | `lscpu` *(somente Linux)*                                                                  |
+| `dc`       | `docker compose`                                                                           | | `art`      | `php artisan`                                                                              | | `syslog`   | `sudo journalctl -f` *(somente Linux)*                                                     | | `ports`    | `ss -tulnp` *(somente Linux)*                                                              | | `meminfo`  | `free -h` *(somente Linux)*                                                                | | `diskinfo` | `df -h` *(somente Linux)*                                                                  | | `cpuinfo`  | `lscpu` *(somente Linux)*                                                                  |
 
 ### Plugins Oh My Zsh
 

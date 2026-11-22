@@ -1,8 +1,8 @@
 # SetupVibe — Desktop Edition
 
-> Cross-platform development environment setup — v0.42.6
+> Cross-platform development environment setup — v0.42.7
 
-Installs and configures a complete developer stack in one command. Supports macOS and major Linux distributions.
+Set up the computer or VPS where you write code. Desktop configures your shell and installs Git, Docker and language runtimes so you can clone a project and start its services.
 
 ## System Requirements
 
@@ -97,9 +97,7 @@ The script shows an interactive roadmap and asks for confirmation before startin
 | PM2        | `npm install -g pm2`      | same                    |
 | Bun        | via install script        | same                    |
 
-On Linux, global npm packages use the target user's writable
-`~/.npm-global` prefix even when the installer runs through `sudo`. PNPM, PM2,
-and Bun are validated after installation.
+On Linux, global npm packages use the target user's writable `~/.npm-global` prefix even when the installer runs through `sudo`. PNPM, PM2, and Bun are validated after installation.
 
 ### Step 7 — DevOps
 

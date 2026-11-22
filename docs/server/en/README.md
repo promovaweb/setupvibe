@@ -1,8 +1,8 @@
 # SetupVibe — Server Edition
 
-> Linux server setup — v0.42.6
+> Linux server setup — v0.42.7
 
-A lean, focused setup script for Linux servers. No Homebrew, no language ecosystems, no desktop tools. Installs only what a production server needs: Docker, Ansible, networking, shell, tmux, and AI CLI tools.
+Prepare the Linux server that will host your applications. Server installs Docker and Ansible and configures SSH access. If you use your VPS to write and test code, choose Desktop.
 
 ## System Requirements
 
@@ -88,8 +88,7 @@ Installs via APT:
 
 ### Step 3 — Network, Monitoring & Tailscale
 
-APT packages:
-`rsync`, `net-tools`, `dnsutils`, `mtr-tiny`, `nmap`, `tcpdump`, `iftop`, `nload`, `iotop`, `sysstat`, `whois`, `iputils-ping`, `speedtest-cli`, `glances`, `htop`, `btop`
+APT packages: `rsync`, `net-tools`, `dnsutils`, `mtr-tiny`, `nmap`, `tcpdump`, `iftop`, `nload`, `iotop`, `sysstat`, `whois`, `iputils-ping`, `speedtest-cli`, `glances`, `htop`, `btop`
 
 - **ctop** — binary downloaded to `~/.local/bin/ctop` (v0.7.7, architecture-aware, SHA-256 verified)
 - **Tailscale** — via official install script (`https://tailscale.com/install.sh`)

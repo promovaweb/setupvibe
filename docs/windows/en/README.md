@@ -1,8 +1,8 @@
 # SetupVibe Windows Edition (Beta)
 
-> Native Windows utility setup — v0.42.6
+> Native Windows utility setup — v0.42.7
 
-The Windows Edition (Beta) configures native Windows utilities, Python, Node.js, and selected AI CLIs, with WinGet as the primary package source and Chocolatey for packages not available through WinGet.
+Work directly in PowerShell on Windows 11. Clone a project with Git, run a Python script or start a Node.js application. The Windows edition also installs AI CLIs you can sign in to with your own account.
 
 ## Requirements
 

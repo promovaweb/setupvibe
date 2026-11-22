@@ -1,8 +1,8 @@
 # Édition Windows de SetupVibe (Beta)
 
-> Configuration des utilitaires Windows natifs — v0.42.6
+> Configuration des utilitaires Windows natifs — v0.42.7
 
-L'Édition Windows (Beta) configure des utilitaires Windows natifs, Python, Node.js et une sélection de CLI d'IA, avec WinGet comme source principale et Chocolatey pour les paquets indisponibles via WinGet.
+Travaillez directement dans PowerShell sous Windows 11. Clonez un projet avec Git, exécutez un script Python ou démarrez une application Node.js. L’édition Windows installe aussi les outils d’IA auxquels vous pouvez vous connecter avec votre compte.
 
 ## Prérequis
 

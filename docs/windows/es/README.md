@@ -1,8 +1,8 @@
 # Edición Windows de SetupVibe (Beta)
 
-> Configuración de utilidades nativas de Windows — v0.42.6
+> Configuración de utilidades nativas de Windows — v0.42.7
 
-La Edición Windows (Beta) configura utilidades nativas de Windows, Python, Node.js y CLIs de IA seleccionadas, con WinGet como fuente principal y Chocolatey para los paquetes que no están disponibles mediante WinGet.
+Trabaja directamente en PowerShell en Windows 11. Clona un proyecto con Git, ejecuta un script de Python o inicia una aplicación de Node.js. La edición Windows también instala las herramientas de IA que puedes usar con tu cuenta.
 
 ## Requisitos
 
