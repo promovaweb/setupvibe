@@ -251,3 +251,7 @@ a default with `setupvibe edition set`. Every SetupVibe file URL in the v2
 code points at the `v2` branch through `shared/repo.ts`. On this branch,
 SetupVibe 1 and its `conf/`, `bin/`, `utils/` and `docs/` live in `legacy/`.
 The SetupVibe 1 paths above refer to `main`.
+
+## Status das tarefas no ClickUp
+
+Após cada commit bem-sucedido, marque como `pronto` a tarefa ou subtarefa vinculada à entrega. Após o push bem-sucedido desse commit, marque-a como `publicado`. Consulte os demais status no [AGENTS.md](AGENTS.md#status-das-tarefas-no-clickup).
