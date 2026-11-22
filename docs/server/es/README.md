@@ -1,6 +1,6 @@
 # SetupVibe — Edición Servidor
 
-> Configuración de servidor Linux — v0.42.4
+> Configuración de servidor Linux — v0.42.5
 
 Un script de configuración ligero y enfocado para servidores Linux. Sin Homebrew, sin ecosistemas de lenguajes, sin herramientas de escritorio. Instala solo lo que un servidor de producción necesita: Docker, Ansible, redes, shell, tmux y herramientas AI CLI.
 
@@ -30,7 +30,7 @@ sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapf
 ## Instalación
 
 ```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/server.sh | bash
 ```
 
 O localmente:
@@ -42,7 +42,7 @@ bash server.sh
 Para inicializar Docker Swarm automáticamente tras el setup, pasa `--manager`:
 
 ```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash -s -- --manager
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/server.sh | bash -s -- --manager
 ```
 
 ```bash

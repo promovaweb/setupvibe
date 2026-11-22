@@ -1,6 +1,6 @@
 # SetupVibe — Édition Bureau
 
-> Configuration de l'environnement de développement multiplateforme — v0.42.4
+> Configuration de l'environnement de développement multiplateforme — v0.42.5
 
 Installe et configure un stack complet de développeur en une seule commande. Supporte macOS et les principales distributions Linux.
 
@@ -32,7 +32,7 @@ sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapf
 ## Installation
 
 ```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.sh | bash
 ```
 
 Ou localement :

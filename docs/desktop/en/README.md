@@ -1,6 +1,6 @@
 # SetupVibe — Desktop Edition
 
-> Cross-platform development environment setup — v0.42.4
+> Cross-platform development environment setup — v0.42.5
 
 Installs and configures a complete developer stack in one command. Supports macOS and major Linux distributions.
 
@@ -32,7 +32,7 @@ sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapf
 ## Installation
 
 ```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.sh | bash
 ```
 
 Or locally:

@@ -1,6 +1,6 @@
 # SetupVibe Documentation
 
-> Automated development environment setup — v0.42.4
+> Automated development environment setup — v0.42.5
 
 SetupVibe transforms a machine into a configured development workspace in one command. It supports four editions depending on your target:
 
@@ -16,25 +16,25 @@ SetupVibe transforms a machine into a configured development workspace in one co
 ### Desktop (macOS, Linux & WSL)
 
 ```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.sh | bash
 ```
 
 ### Windows Desktop (Beta)
 
 ```powershell
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://windows.setupvibe.dev | iex
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.ps1 | iex
 ```
 
 ### Server (Linux only)
 
 ```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/server.sh | bash
 ```
 
 To initialize Docker Swarm automatically after setup:
 
 ```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash -s -- --manager
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/server.sh | bash -s -- --manager
 ```
 
 Add `--yes` for unattended installation or `--advertise-addr ADDRESS` to choose the Swarm address or interface explicitly.

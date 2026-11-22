@@ -1,6 +1,6 @@
 # Edición Windows de SetupVibe (Beta)
 
-> Configuración de utilidades nativas de Windows — v0.42.4
+> Configuración de utilidades nativas de Windows — v0.42.5
 
 La Edición Windows (Beta) configura utilidades nativas de Windows, Python, Node.js y CLIs de IA seleccionadas, con WinGet como fuente principal y Chocolatey para los paquetes que no están disponibles mediante WinGet.
 
@@ -41,9 +41,9 @@ Docker Desktop se excluye intencionalmente. SetupVibe prepara WSL 2, pero no ins
 
 ## Instalación Con Un Comando
 
-Este es el equivalente en Windows de `curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash`.
+Este es el equivalente en Windows de `curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.sh | bash`.
 
-La URL canónica del instalador de Windows es `https://windows.setupvibe.dev`.
+La URL canónica del instalador de Windows es `https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.ps1`.
 
 1. Abra el menú Inicio.
 2. Busque **Windows PowerShell** y ábralo. Ejecutarlo como administrador es opcional, ya que el script solicita elevación mediante UAC automáticamente.
@@ -51,7 +51,7 @@ La URL canónica del instalador de Windows es `https://windows.setupvibe.dev`.
 4. Pegue el siguiente comando y presione `Entrar`:
 
    ```powershell
-   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://windows.setupvibe.dev | iex
+   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.ps1 | iex
    ```
 
 5. Acepte la solicitud de UAC de Windows.
@@ -66,7 +66,7 @@ Para descargar el script antes de ejecutarlo:
 
 ```powershell
 $scriptPath = Join-Path $HOME 'Downloads\desktop.ps1'
-Invoke-WebRequest -UseBasicParsing -Uri https://windows.setupvibe.dev -OutFile $scriptPath
+Invoke-WebRequest -UseBasicParsing -Uri https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.ps1 -OutFile $scriptPath
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File $scriptPath
 ```
 
@@ -162,7 +162,7 @@ OpenSSH no utiliza Características bajo demanda de Windows ni la API de release
 Reinicie Windows automáticamente después de una instalación completamente exitosa cuando el sistema indique que se necesita un reinicio:
 
 ```powershell
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; & ([scriptblock]::Create((irm https://windows.setupvibe.dev))) -Restart
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; & ([scriptblock]::Create((irm https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.ps1))) -Restart
 ```
 
 Sin `-Restart`, el instalador nunca reinicia Windows automáticamente.
@@ -178,7 +178,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\desktop.ps1 -Uninstall
 O ejecute el desinstalador desde la URL canónica de SetupVibe para Windows:
 
 ```powershell
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; & ([scriptblock]::Create((irm https://windows.setupvibe.dev))) -Uninstall
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; & ([scriptblock]::Create((irm https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.ps1))) -Uninstall
 ```
 
 El modo de desinstalación elimina el Cliente y el Servidor OpenSSH, Python y Node.js mediante sus desinstaladores oficiales, Skills CLI, Claude Code, Codex CLI, Antigravity CLI, los archivos administrados por SetupVibe de `%USERPROFILE%\.setupvibe\bin` y sus entradas del `PATH` del usuario, restaura los estados anteriores de las características opcionales de WSL, el firewall de WSL y la regla de firewall de OpenSSH, elimina la configuración de WSL aplicada por SetupVibe, elimina todas las utilidades WinGet y Chocolatey administradas por SetupVibe y elimina las entradas de paquetes y runtimes agregadas por SetupVibe al `PATH` de la máquina y los bloques heredados reconocidos de SetupVibe para Starship y zoxide. Se conservan las skills de agentes instaladas. También elimina herramientas de frameworks, rutas ausentes de administradores de runtimes y paquetes npm heredados instalados por versiones Beta anteriores de Windows. Se conservan los directorios activos administrados por el usuario en el `PATH`, la configuración Starship, las distribuciones Linux, las configuraciones y credenciales de usuario de las CLIs de IA, WinGet, Chocolatey, los registros y los archivos no relacionados dentro de `%USERPROFILE%\.setupvibe`.

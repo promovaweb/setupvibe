@@ -1,6 +1,6 @@
 # SetupVibe Aliases
 
-> Shell environment aliases — v0.42.4
+> Shell environment aliases — v0.42.5
 
 This is the exhaustive list of all aliases configured by SetupVibe on all platforms.
 
@@ -16,7 +16,7 @@ This is the exhaustive list of all aliases configured by SetupVibe on all platfo
 
 - **`setupvibe`**
   - Availability: 🌐 Both
-  - Command: `curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash` (Desktop) / `curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash` (Server)
+  - Command: `curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.sh | bash` (Desktop) / `curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/server.sh | bash` (Server)
   - Description: Reinstalls or updates SetupVibe.
   - Example: `setupvibe`
 

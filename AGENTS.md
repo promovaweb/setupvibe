@@ -4,7 +4,7 @@ This file provides instructions and context for OpenAI Codex when working with t
 
 ## What This Project Is
 
-**SetupVibe** is a cross-platform automated development environment setup script (v0.42.4). It installs and configures a complete developer toolkit in one command, supporting Windows 11 22H2+, macOS 12+, Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+) and Omarchy 4 on Arch Linux x86_64.
+**SetupVibe** is a cross-platform automated development environment setup script (v0.42.5). It installs and configures a complete developer toolkit in one command, supporting Windows 11 22H2+, macOS 12+, Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+) and Omarchy 4 on Arch Linux x86_64.
 
 There are four editions:
 
@@ -24,12 +24,12 @@ bash server.sh
 bash omarchy.sh
 
 # Or via curl (canonical usage)
-curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.sh | bash
 ```
 
 ```powershell
 # Run from the canonical Windows setup URL; it requests standard UAC elevation without changing the UAC policy
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://windows.setupvibe.dev | iex
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.ps1 | iex
 
 # Or run a local copy
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\desktop.ps1

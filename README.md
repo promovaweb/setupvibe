@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <a href="https://promovaweb.com/docs/setupvibe/">Documentation</a> ·
+  <a href="docs/README.md">V1 documentation</a> ·
   <a href="https://promovaweb.com/discord">Discord</a> ·
   <a href="https://promovaweb.com/planos?utm_source=github&utm_medium=readme&utm_campaign=setupvibe">Promovaweb Plans</a> ·
   <a href="CHANGELOG.md">Changelog</a>
@@ -49,7 +49,7 @@ You can run the installer again on the same machine. Each step checks what alrea
 ### Desktop
 
 ```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.sh | bash
 ```
 
 On macOS, run it without `sudo`: Homebrew refuses to install as root. The script asks for your password when it needs privileges and shows a roadmap before it starts.
@@ -63,7 +63,7 @@ bash desktop.sh
 ### Windows (Beta)
 
 ```powershell
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://windows.setupvibe.dev | iex
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/promovaweb/setupvibe/main/desktop.ps1 | iex
 ```
 
 The installer requests elevation through the standard UAC prompt and does not change the UAC policy. To run a local copy:
@@ -77,7 +77,7 @@ To remove the managed utilities and configuration, use `-Uninstall`. The [Window
 ### Server
 
 ```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/server.sh | bash
 ```
 
 Available options: `--manager` initializes Docker Swarm, `--advertise-addr ADDRESS` chooses the Swarm address or interface, `--yes` skips the initial confirmation, `--help` shows the help and `--version` shows the version.
@@ -120,7 +120,7 @@ php --version   # Desktop edition only
 ### Docker Swarm on Server
 
 ```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash -s -- --manager
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/server.sh | bash -s -- --manager
 ```
 
 Replace `--manager` with `--advertise-addr ADDRESS` when you need to choose the advertised interface.
@@ -174,7 +174,7 @@ The [Herdr guide](docs/en/HERDR.md) lists the workspace, tab and pane shortcuts.
 
 ## Documentation
 
-The full manual lives at [promovaweb.com/docs/setupvibe](https://promovaweb.com/docs/setupvibe/). In this repository:
+The guides below cover the V1 installers on this branch. The [V2 manual](https://promovaweb.com/docs/setupvibe/) covers the separate CLI.
 
 | Topic | Link |
 | --- | --- |

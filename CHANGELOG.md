@@ -4,6 +4,10 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.42.5] - 2026-11-22
+
+- The README, translated installation guides and reinstall aliases now use the public V1 scripts on the main branch. The README links directly to the V1 guides and identifies the V2 manual.
+
 ## [v0.42.4] - 2026-11-20
 
 ### Added
