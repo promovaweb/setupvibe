@@ -1,12 +1,5 @@
 <svg width="1240" height="320" viewBox="0 0 1240 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
   <title id="title">Logo horizontal do SetupVibe para fundos escuros</title>
-  <g transform="translate(16 16) scale(.5625)">
-    <rect x="112" y="104" width="288" height="232" rx="32" fill="#2AD5BE"/>
-    <rect x="144" y="136" width="224" height="168" rx="16" fill="#021C26"/>
-    <path d="M214 184L174 220L214 256" stroke="#ECFDFB" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M298 184L338 220L298 256" stroke="#ECFDFB" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M274 170L238 270" stroke="#7DD3FC" stroke-width="18" stroke-linecap="round"/>
-    <path d="M80 336H432V356C432 384.719 408.719 408 380 408H132C103.281 408 80 384.719 80 356V336Z" fill="#7DD3FC"/>
-  </g>
+  <g transform="translate(16 16) scale(4.5)"><g fill="none" stroke-width="5.2" stroke-linecap="square"><path stroke="#E4F5F4" d="M22 13l-8 38m24-38-8 38M12 24h29M9 40h29"/><path stroke="#00B4FC" d="M55 13l-5.3 25.2"/><rect x="44" y="45" width="7" height="7" fill="#00B4FC"/></g></g>
   <text x="336" y="205" fill="#ECFDFB" font-family="Manrope, Inter, Arial, sans-serif" font-size="128" font-weight="750" letter-spacing="-5">Setup<tspan fill="#7DD3FC">Vibe</tspan></text>
 </svg>

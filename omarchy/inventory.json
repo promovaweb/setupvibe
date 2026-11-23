@@ -2,7 +2,7 @@
   "$schema": "../shared/inventory.schema.json",
   "schemaVersion": 1,
   "edition": "omarchy",
-  "updated": "2026-11-20",
+  "updated": "2026-11-22",
   "systems": [
     "omarchy"
   ],
@@ -84,6 +84,15 @@
         "starship",
         "tmux",
         "nerd-fonts",
+        "imagemagick",
+        "pandoc",
+        "weasyprint",
+        "poppler",
+        "xmllint",
+        "fontconfig",
+        "unzip",
+        "calibre",
+        "playwright-chromium",
         "gh",
         "claude-code",
         "codex",
@@ -586,6 +595,227 @@
       }
     },
     {
+      "id": "imagemagick",
+      "name": "ImageMagick",
+      "category": "terminal",
+      "description": {
+        "en": "Image cropping and conversion.",
+        "pt-BR": "Recorte e conversão de imagens."
+      },
+      "homepage": "https://imagemagick.org/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "requires": [
+        "mise"
+      ],
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "imagemagick"
+          ]
+        }
+      },
+      "verify": {
+        "command": "magick -version"
+      }
+    },
+    {
+      "id": "pandoc",
+      "name": "Pandoc",
+      "category": "terminal",
+      "description": {
+        "en": "Markdown conversion to HTML and EPUB.",
+        "pt-BR": "Conversão de Markdown para HTML e EPUB."
+      },
+      "homepage": "https://pandoc.org/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "pandoc-cli"
+          ]
+        }
+      },
+      "verify": {
+        "command": "pandoc --version"
+      }
+    },
+    {
+      "id": "weasyprint",
+      "name": "WeasyPrint",
+      "category": "terminal",
+      "description": {
+        "en": "PDF rendering from HTML and CSS.",
+        "pt-BR": "Geração de PDF a partir de HTML e CSS."
+      },
+      "homepage": "https://weasyprint.org/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "python-weasyprint"
+          ]
+        }
+      },
+      "verify": {
+        "command": "weasyprint --version"
+      }
+    },
+    {
+      "id": "poppler",
+      "name": "Poppler",
+      "category": "terminal",
+      "description": {
+        "en": "PDF text, fonts and page images.",
+        "pt-BR": "Extração de texto, fontes e imagens das páginas do PDF."
+      },
+      "homepage": "https://poppler.freedesktop.org/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "poppler"
+          ]
+        }
+      },
+      "verify": {
+        "command": "pdftoppm -v && pdftotext -v && pdffonts -v && pdftohtml -v"
+      }
+    },
+    {
+      "id": "xmllint",
+      "name": "xmllint",
+      "category": "terminal",
+      "description": {
+        "en": "XML validation for EPUB files.",
+        "pt-BR": "Validação dos arquivos XML do EPUB."
+      },
+      "homepage": "https://gitlab.gnome.org/GNOME/libxml2",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "libxml2"
+          ]
+        }
+      },
+      "verify": {
+        "command": "xmllint --version"
+      }
+    },
+    {
+      "id": "fontconfig",
+      "name": "Fontconfig",
+      "category": "terminal",
+      "description": {
+        "en": "Font lookup for ebook covers.",
+        "pt-BR": "Localização de fontes para as capas dos ebooks."
+      },
+      "homepage": "https://www.fontconfig.org/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "fontconfig"
+          ]
+        }
+      },
+      "verify": {
+        "command": "fc-match --version"
+      }
+    },
+    {
+      "id": "unzip",
+      "name": "UnZip",
+      "category": "terminal",
+      "description": {
+        "en": "EPUB archive inspection.",
+        "pt-BR": "Inspeção do conteúdo do EPUB."
+      },
+      "homepage": "https://infozip.sourceforge.net/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "unzip"
+          ]
+        }
+      },
+      "verify": {
+        "command": "unzip -v"
+      }
+    },
+    {
+      "id": "calibre",
+      "name": "Calibre",
+      "category": "terminal",
+      "description": {
+        "en": "Conversion to MOBI with ebook-convert.",
+        "pt-BR": "Conversão para MOBI com ebook-convert."
+      },
+      "homepage": "https://calibre-ebook.com/",
+      "version": "distro",
+      "versionPolicy": "distro",
+      "default": true,
+      "install": {
+        "omarchy": {
+          "method": "native",
+          "packages": [
+            "calibre"
+          ]
+        }
+      },
+      "verify": {
+        "command": "ebook-convert --version"
+      }
+    },
+    {
+      "id": "playwright-chromium",
+      "name": "Playwright Chromium",
+      "category": "terminal",
+      "description": {
+        "en": "Headless browser for ebook covers and PDF rendering.",
+        "pt-BR": "Navegador headless para capas e PDFs de ebooks."
+      },
+      "homepage": "https://playwright.dev/",
+      "version": "1.63.0",
+      "versionPolicy": "exact",
+      "default": true,
+      "requires": [
+        "node"
+      ],
+      "install": {
+        "all": {
+          "method": "config",
+          "action": "playwright-chromium"
+        }
+      },
+      "verify": {
+        "command": "node -e \"const p=require('path').join(require('os').homedir(),'.setupvibe','playwright','node_modules','playwright');require(p).chromium.launch().then(async b=>{try{await (await b.newPage()).pdf()}finally{await b.close()}}).then(()=>console.log(require(p+'/package.json').version)).catch(e=>{console.error(e);process.exit(1)})\"",
+        "expect": "1.63.0"
+      }
+    },
+    {
       "id": "media-tools",
       "name": "ffmpeg and ImageMagick",
       "category": "terminal",
@@ -601,14 +831,16 @@
         "omarchy": {
           "method": "native",
           "packages": [
-            "ffmpeg",
-            "imagemagick"
+            "ffmpeg"
           ]
         }
       },
       "verify": {
         "command": "ffmpeg -version"
-      }
+      },
+      "requires": [
+        "imagemagick"
+      ]
     },
     {
       "id": "docker",

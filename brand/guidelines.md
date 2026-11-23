@@ -1,6 +1,6 @@
 # Referência rápida do SetupVibe
 
-- Marca: notebook com terminal.
+- Marca: símbolo `#!` do shell Linux.
 - Cor de produto: azul-ciano.
 - Fonte de títulos: Manrope.
 - Fonte de interface: Inter.

@@ -1,13 +1,4 @@
-/**
- * `setupvibe auto` plan.
- *
- * Order: init (when not done), the selected items, the configuration items
- * (lingering, swap, Portainer), the security module, Git identity, Tailscale
- * login, Docker Swarm on the server, and finally the removal of the temporary
- * sudo rule. The check runs after the plan, in the command.
- *
- * Spec sections 9, 12 and 18.
- */
+/** Monta o plano de instalação automática, da seleção de pacotes à configuração do sistema. */
 import type { EditionId } from "../core/app/edition.ts";
 import { readFileSync } from "node:fs";
 import { homedir } from "../system/home.ts";
@@ -15,7 +6,7 @@ import { join } from "node:path";
 import type { Inventory, Item, System } from "../inventory.ts";
 import { resolveInstall } from "../inventory.ts";
 import type { Step } from "../exec/runner.ts";
-import { itemSteps, miseCmd, misePlatform, nativeRefreshCmd, type DistroInfo } from "../install/methods.ts";
+import { itemSteps, miseCmd, misePlatform, nativeInstallCmd, nativeRefreshCmd, usesApt, type DistroInfo } from "../install/methods.ts";
 import { initPlan } from "../init/plan.ts";
 import { securityPlan } from "../security/plan.ts";
 import { removeNopasswdStep } from "../users/create.ts";
@@ -75,6 +66,23 @@ function configSteps(item: Item, ctx: AutoContext): Step[] {
   const entry = resolveInstall(item, ctx.system);
   if (!entry) return [];
   const home = ctx.home ?? homedir();
+  if (entry.method === "config" && entry.action === "playwright-chromium") {
+    // O prefixo privado fixa a versão que escolhe a revisão do Chromium no cache do usuário.
+    const prefix = join(home, ".setupvibe", "playwright");
+    const mise = miseCmd(home, ctx.system);
+    const cli = join(prefix, "node_modules", "playwright", "cli.js");
+    const apt = usesApt(ctx.system);
+    return [{
+      id: item.id,
+      description: "Instalar o Chromium do Playwright para gerar capas e PDFs",
+      actionSudo: apt,
+      commands: [
+        ...(ctx.system === "omarchy" ? nativeInstallCmd("omarchy", ["chromium"]) : []),
+        { argv: [mise, "exec", "--", "npm", "install", "--prefix", prefix, "--no-audit", "--no-fund", "--no-save", "playwright@" + item.version], retries: 2 },
+        { argv: [mise, "exec", "--", "node", cli, "install", ...(apt ? ["--with-deps"] : []), "chromium"], retries: 2 },
+      ],
+    }];
+  }
   if (entry.method === "config" && entry.action === "loginctl enable-linger") {
     return [{ id: item.id, description: `Keep ${ctx.user}'s services running after logout`, commands: [{ argv: ["loginctl", "enable-linger", ctx.user], sudo: true }] }];
   }

@@ -4,6 +4,15 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.32] - 2026-11-22
+
+- Atualiza a identidade visual do SetupVibe.
+- Inclui ferramentas de produção de ebooks e recorte de fotos no perfil essencial de Desktop, Server e Omarchy.
+- Configura o MCP do ClickUpfy para a lista SetupVibe v2 em Claude Code, Codex e OpenCode e documenta o registro de trabalho.
+- Validações locais: build, suíte de testes, ebook em PDF e EPUB, geração de MOBI e recortes de 1200 × 800 e 1200 × 500.
+
+---
+
 ## [2.0.0-dev.31] - 2026-11-22
 
 - Documenta a atualização das tarefas do ClickUp para pronto após o commit e publicado após o push.

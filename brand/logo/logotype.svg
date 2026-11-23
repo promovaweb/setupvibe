@@ -1,12 +1,5 @@
 <svg width="1240" height="320" viewBox="0 0 1240 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
   <title id="title">Logotipo de compatibilidade do SetupVibe</title>
-  <g transform="translate(16 16) scale(.5625)">
-    <rect x="112" y="104" width="288" height="232" rx="32" fill="#021C26"/>
-    <rect x="144" y="136" width="224" height="168" rx="16" fill="#ECFDFB"/>
-    <path d="M214 184L174 220L214 256" stroke="#021C26" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M298 184L338 220L298 256" stroke="#021C26" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M274 170L238 270" stroke="#075985" stroke-width="18" stroke-linecap="round"/>
-    <path d="M80 336H432V356C432 384.719 408.719 408 380 408H132C103.281 408 80 384.719 80 356V336Z" fill="#075985"/>
-  </g>
+  <g transform="translate(16 16) scale(4.5)"><g fill="none" stroke-width="5.2" stroke-linecap="square"><path stroke="#123744" d="M22 13l-8 38m24-38-8 38M12 24h29M9 40h29"/><path stroke="#0077A5" d="M55 13l-5.3 25.2"/><rect x="44" y="45" width="7" height="7" fill="#0077A5"/></g></g>
   <text x="336" y="205" fill="#021C26" font-family="Manrope, Inter, Arial, sans-serif" font-size="128" font-weight="750" letter-spacing="-5">Setup<tspan fill="#075985">Vibe</tspan></text>
 </svg>

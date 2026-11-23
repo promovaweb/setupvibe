@@ -254,4 +254,12 @@ The SetupVibe 1 paths above refer to `main`.
 
 ## Status das tarefas no ClickUp
 
+Todo trabalho no SetupVibe v2 deve ser registrado pelo ClickUpfy na lista
+`SetupVibe v2` (ID `1400510000002240`) do espaço Promovaweb. Antes de começar,
+use o MCP `setupvibe` no Claude Code, Codex ou OpenCode para localizar a
+tarefa correspondente ou criar uma para o pedido. Registre o plano,
+os avanços, os resultados, as validações e as pendências na tarefa. A regra
+também cobre consultas técnicas, comparações entre versões e mudanças de
+contexto. Confira o registro no ClickUp e informe o link na entrega.
+
 Após cada commit bem-sucedido, marque como `pronto` a tarefa ou subtarefa vinculada à entrega. Após o push bem-sucedido desse commit, marque-a como `publicado`. Consulte os demais status no [AGENTS.md](AGENTS.md#status-das-tarefas-no-clickup).

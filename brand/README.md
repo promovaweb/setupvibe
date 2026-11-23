@@ -6,9 +6,7 @@ terminal, infraestrutura e configuração.
 
 ## Conceito visual
 
-O símbolo preserva o **notebook com terminal de código**. A tela representa o
-ambiente configurável; os sinais de código representam automação; a base azul
-representa o ambiente pronto para uso.
+Shebang de shell com cerquilha em branco-gelo e exclamação ciana de ponto quadrado. A cor de identificação é `#00B4FC`.
 
 ## Arquivos oficiais
 
@@ -38,6 +36,6 @@ o ícone e 150 px para a assinatura horizontal.
 
 1. Use azul-ciano para infraestrutura, comandos e estados de preparação.
 2. Use tokens semânticos e a variante correta para light ou dark mode.
-3. Não simplifique o notebook removendo tela, código ou base.
+3. Preserve a inclinação e a distância entre os sinais do shebang.
 4. Não aplique filtros, gradientes, sombras, rotações ou deformações.
 5. Preserve a linguagem direta e operacional descrita em `voice/voice.md`.

@@ -1,0 +1,3 @@
+[mcp_servers.setupvibe]
+command = "clickupfy"
+args = [ "mcp", "serve", "--account", "luiz-eduardo", "--workspace", "9007154145", "--space", "90070363783", "--list", "1400510000002240" ]

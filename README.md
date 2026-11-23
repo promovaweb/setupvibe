@@ -1,3 +1,19 @@
+<p align="center">
+  <a href="https://promovaweb.com/setupvibe/">
+    <picture>
+      <source type="image/svg+xml" srcset="brand/logo/icon.svg">
+      <img alt="SetupVibe" src="brand/logo/icon.png" width="112" height="112">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://promovaweb.com/setupvibe/">Project website</a> ·
+  <a href="https://promovaweb.com/docs/setupvibe/">Documentation</a> ·
+  <a href="https://promovaweb.com/harness/">Harness</a> ·
+  <a href="https://promovaweb.com/ferramentas/">Tools</a>
+</p>
+
 # SetupVibe
 
 > The ultimate cross-platform development environment setup script — v0.41.20

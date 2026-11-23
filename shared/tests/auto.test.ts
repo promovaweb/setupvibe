@@ -1,5 +1,5 @@
 import omarchyJson from "../../omarchy/inventory.json";
-/** setupvibe auto: answers, selection, plan, lock and command (spec section 9). */
+/** Testa respostas, seleção, plano, trava e execução de setupvibe auto (seção 9). */
 import "../../desktop/src/edition.ts";
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -125,6 +125,20 @@ function ctx(overrides: Partial<AutoContext> = {}): AutoContext {
 }
 
 describe("plan", () => {
+  test("o perfil essencial prepara o Chromium compatível com o Playwright em cada sistema", () => {
+    for (const inventory of [desktop, server, omarchyJson as Inventory]) {
+      const browser = inventory.items.find((item) => item.id === "playwright-chromium")!;
+      for (const system of inventory.systems) {
+        const plan = autoPlan(ctx({ inventory, edition: inventory.edition, system, initDone: true }));
+        const commands = plan.steps.find((step) => step.id === browser.id)?.commands;
+        expect(commands?.some((cmd) => cmd.argv.includes("playwright@" + browser.version))).toBe(true);
+        expect(commands?.at(-1)?.argv.at(-1)).toBe("chromium");
+        expect(commands?.at(-1)?.argv.includes("--with-deps")).toBe(!["macos", "windows", "omarchy"].includes(system));
+        expect(commands?.some((cmd) => cmd.argv[0] === "omarchy")).toBe(system === "omarchy");
+      }
+    }
+  });
+
   test("starts with init when it was not done, and refreshes the index otherwise", () => {
     expect(autoPlan(ctx()).steps.map((s) => s.id).slice(0, 3)).toEqual(["package-index", "build-deps", "mise"]);
     expect(autoPlan(ctx({ initDone: true })).steps.map((s) => s.id).slice(0, 2)).toEqual(["package-index", "sshpass"]);

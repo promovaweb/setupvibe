@@ -1,4 +1,9 @@
 {
+  "projectColor": {
+    "name": "Ciano de shell",
+    "hex": "#00B4FC",
+    "meaning": "O ciano funciona como realce de sintaxe no shebang de um script de configuração."
+  },
   "name": "SetupVibe",
   "families": {
     "primary": {
