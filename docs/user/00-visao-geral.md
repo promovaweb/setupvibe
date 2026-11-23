@@ -70,7 +70,8 @@ dependências do projeto pelo `composer.lock`, pelo `package-lock.json` e pelo
 Use `setupvibe edition set desktop` para salvar Desktop ou troque a edição
 pelo menu da TUI com `E`. O binário usa essa escolha quando o comando não
 traz a edição. Sem preferência salva, um comando de edição sem prefixo sai
-com 15 (`EDITION_REQUIRED`).
+com 15 (`EDITION_REQUIRED`) no Linux. No Windows e no macOS, onde só a
+Desktop roda, o comando sem prefixo usa a Desktop.
 
 ## O que o binário guarda
 

@@ -5,7 +5,7 @@ import { AppError } from "./app/errors.ts";
 import { edition, isEdition, selectEdition, type EditionId } from "./app/edition.ts";
 import { ExitCode } from "./app/exit-codes.ts";
 import { commandOf, HELP_VERSION_FLAGS, metadataOnly, startup } from "../startup.ts";
-import { EDITION_REQUIRED, savedEdition } from "../commands/edition.ts";
+import { EDITION_REQUIRED, platformEdition, savedEdition } from "../commands/edition.ts";
 
 /** Bun uses an internal script path in compiled binaries; argv0 keeps the invoked name. */
 export function legacyServerInvocation(argv0 = process.argv0): boolean {
@@ -40,7 +40,8 @@ export async function dispatch(argv: string[], sourceEdition?: EditionId): Promi
       return fail(argv, new AppError(ExitCode.CONFIG, `Cannot read the saved edition: ${(error as Error).message}`));
     }
   }
-  const selected = explicit ?? legacy ?? sourceEdition ?? saved;
+  const implicit = saved ? undefined : platformEdition();
+  const selected = explicit ?? legacy ?? sourceEdition ?? saved ?? (tui ? undefined : implicit);
   const chooseEdition = !selected && tui && !metadataOnly(argv);
   const common = command === "edition" || (command === "mcp" && !argv.includes("install")) || command === "completion"
     || (argv.length === 0 && !tty) || metadataOnly(argv, HELP_VERSION_FLAGS);

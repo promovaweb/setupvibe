@@ -400,7 +400,7 @@ agents:
 Use `setupvibe <edition> <command>` to choose the edition for that
 invocation. Without an explicit edition, the CLI uses the saved edition
 and reports it on stderr. Edition commands exit with code 15
-(`EDITION_REQUIRED`) if neither is available. Run
+(`EDITION_REQUIRED`) if neither is available. On Windows and macOS, where only Desktop runs, a command without an edition uses Desktop. Run
 `setupvibe edition set <edition>` to save a choice. In the TUI, press `E` to
 open the edition menu. Omarchy requires Omarchy and Server requires Linux.
 

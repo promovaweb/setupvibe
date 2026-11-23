@@ -20,7 +20,7 @@ must handle the code before interpreting the message.
 | 12 | `ROOT` | Desktop or Omarchy run as root | run as a regular user |
 | 13 | `SUDO_PASSWORD` | `auto` and `migrate` when `sudo` asks for a password and there is no terminal | run it in a terminal, or create the rule with `{{bin}} user nopasswd <name>` |
 | 14 | `DISK_SPACE` | `init` and `auto` when the user folder has less than 10 GB free on the desktop or 5 GB on the server | free space and run again |
-| 15 | `EDITION_REQUIRED` | no explicit or saved edition | pass `desktop`, `server`, or `omarchy`, or use `setupvibe edition set` |
+| 15 | `EDITION_REQUIRED` | no explicit or saved edition, on Linux | pass `desktop`, `server`, or `omarchy`, or use `setupvibe edition set` |
 | 20 | `REBOOT_PENDING` | `auto` when a restart is pending and `--reboot` was not passed | restart and run `auto` again, or pass `--reboot` |
 | 30 | `LOCKED` | `auto` when another run holds `~/.setupvibe/run.lock` | wait for the other run; check the PID in the lock |
 | 130 | `INTERRUPTED` | any command interrupted with Ctrl+C; `remove`, `self uninstall` and `credentials` when you refuse the confirmation | nothing was completed; run it again when you want |

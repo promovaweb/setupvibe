@@ -268,7 +268,14 @@ export function shellSteps(o: ShellOptions): Step[] {
           if (o.preset) renameSync(file, target);
           else {
             try { linkSync(file, target); }
-            catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error; }
+            catch (error) {
+              const code = (error as NodeJS.ErrnoException).code;
+              if (code === "EEXIST") return;
+              // Sistemas de arquivos sem hard link (alguns FUSE e montagens de rede): criação exclusiva.
+              if (code !== "EPERM" && code !== "ENOTSUP" && code !== "EXDEV" && code !== "ENOSYS") throw error;
+              try { writeFileSync(target, content, { flag: "wx" }); }
+              catch (fallback) { if ((fallback as NodeJS.ErrnoException).code !== "EEXIST") throw fallback; }
+            }
           }
         } finally { rmSync(temp, { recursive: true, force: true }); }
       },

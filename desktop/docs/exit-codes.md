@@ -20,7 +20,7 @@ devem tratar o code antes de interpretar a mensagem.
 | 12 | `ROOT` | Desktop ou Omarchy executado como root | rode como usuário comum |
 | 13 | `SUDO_PASSWORD` | `auto` e `migrate` quando o `sudo` pede senha e não há terminal | rode no terminal, ou crie a regra com `{{bin}} user nopasswd <nome>` |
 | 14 | `DISK_SPACE` | `init` e `auto` quando a pasta do usuário tem menos de 10 GB livres no desktop ou 5 GB no servidor | libere espaço e rode de novo |
-| 15 | `EDITION_REQUIRED` | edição ausente no comando e no estado | passe `desktop`, `server` ou `omarchy`, ou use `setupvibe edition set` |
+| 15 | `EDITION_REQUIRED` | edição ausente no comando e no estado, em Linux | passe `desktop`, `server` ou `omarchy`, ou use `setupvibe edition set` |
 | 20 | `REBOOT_PENDING` | `auto` quando existe reinício pendente e `--reboot` não foi passado | reinicie e rode `auto` de novo, ou passe `--reboot` |
 | 30 | `LOCKED` | `auto` quando outra execução segura `~/.setupvibe/run.lock` | espere a outra execução terminar; confira o PID do lock |
 | 130 | `INTERRUPTED` | qualquer command interrompido com Ctrl+C; `remove`, `self uninstall` e `credentials` quando você recusa a confirmação | nada foi concluído; rode de novo quando quiser |

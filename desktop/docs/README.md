@@ -16,7 +16,7 @@ Os três modos compartilham a mesma identidade, a mesma configuração
 Execute `setupvibe <edition> <command>` para escolher a edição naquela
 execução. Sem o prefixo, o CLI usa a edição salva e a informa em stderr.
 Sem edição explícita ou salva, os comandos da edição saem com código 15
-(`EDITION_REQUIRED`). Rode `setupvibe edition set <edition>` para gravar a
+(`EDITION_REQUIRED`). No Windows e no macOS, onde só a Desktop roda, o comando sem edição usa a Desktop. Rode `setupvibe edition set <edition>` para gravar a
 escolha. Na TUI, use `E` para abrir o menu de edições.
 
 ## Instalação automática

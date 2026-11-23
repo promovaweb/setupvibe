@@ -34,7 +34,7 @@ que resolve. Quando o achado é de nível `fail`, o comando termina com 3,
 | `settings.json` inválido | valor fora do schema | `setupvibe desktop config list` e corrigir |
 | `Run: setupvibe desktop upgrade` | arquivo de estado de versão mais nova | `setupvibe desktop upgrade` |
 | comando em pipe imprime a ajuda e sai com 2 | sem TTY | rodar no terminal ou usar o CLI |
-| edição ausente, código 15 | a conta ainda não salvou uma edição | passe a edição no comando ou use `setupvibe edition set` |
+| edição ausente, código 15 | no Linux, a conta ainda não salvou uma edição | passe a edição no comando ou use `setupvibe edition set` |
 
 ## Sudo sem senha
 

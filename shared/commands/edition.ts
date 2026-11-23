@@ -9,6 +9,14 @@ import { isRoot } from "../exec/runner.ts";
 
 export const EDITION_REQUIRED = "Choose an edition: setupvibe <desktop|server|omarchy> <command>, or run setupvibe edition set <edition>.";
 
+/**
+ * Edição implícita do sistema: Windows e macOS só aceitam a Desktop, então um
+ * comando sem edição, como o `auto` repassado pelo install.ps1, não para no código 15. Vale para o CLI e o MCP.
+ */
+export function platformEdition(platform: NodeJS.Platform = process.platform): EditionId | undefined {
+  return platform === "win32" || platform === "darwin" ? "desktop" : undefined;
+}
+
 export function savedEdition(): EditionId | undefined {
   const { edition } = readState<Record<string, unknown>>("edition.json", {});
   return isEdition(edition) ? edition : undefined;

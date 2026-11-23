@@ -4,7 +4,8 @@ Pass `edition` to a tool as `desktop`, `server`, or `omarchy`.
 Tools default to the edition saved by the user. To set a default for one
 connection, launch `setupvibe server mcp` or use the desired edition prefix.
 Tools that require an inventory return exit code 15 when no edition is
-available. Inventory and documentation resources use the default edition.
+available. On Windows and macOS, Desktop is used. Inventory and documentation
+resources use the default edition.
 
 For a real Server `install` or `update` on a graphical Linux system, send
 `confirm_security: true` only after the user approves the security plan.

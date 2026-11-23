@@ -29,7 +29,7 @@ import { z } from "zod";
 import type { Registrar } from "../core/mcp/server.ts";
 import { manifest } from "../core/app/manifest.ts";
 import { edition, EDITIONS, withEdition, type EditionId } from "../core/app/edition.ts";
-import { EDITION_REQUIRED, editionRefusal, savedEdition } from "../commands/edition.ts";
+import { EDITION_REQUIRED, editionRefusal, platformEdition, savedEdition } from "../commands/edition.ts";
 import { ExitCode } from "../core/app/exit-codes.ts";
 import { AppError } from "../core/app/errors.ts";
 import { detectSystem } from "../system/detect.ts";
@@ -91,10 +91,10 @@ function json(data: Record<string, unknown>, isError = false) {
 // Inventory ids, or with external a mise tool such as terraform@1.13.4 or aqua:sst/opencode; the CLI validates both.
 const items = z.array(z.string().regex(/^[a-z0-9][a-z0-9:/._-]*(@[A-Za-z0-9._+-]+)?$/)).min(1).describe("Inventory item ids, as listed by the list tool; with external, one mise tool (tool or tool@version).");
 
-export const editionInput = z.enum(EDITIONS).optional().describe("Edition for this request. Defaults to the saved edition (or the edition chosen when starting MCP).");
+export const editionInput = z.enum(EDITIONS).optional().describe("Edition for this request. Defaults to the saved edition (or the edition chosen when starting MCP); Desktop on Windows and macOS.");
 
 export function mcpEdition(requested?: EditionId, fallback?: EditionId): EditionId {
-  const id = requested ?? fallback ?? savedEdition();
+  const id = requested ?? fallback ?? savedEdition() ?? platformEdition();
   if (!id) throw new AppError(ExitCode.EDITION_REQUIRED, EDITION_REQUIRED);
   return id;
 }

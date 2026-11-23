@@ -3,8 +3,8 @@
 O SetupVibe não instala o que estiver na versão mais nova do repositório de cada
 fornecedor. Ele instala o que está na lista embutida no binário, com a versão
 que aquela lista fixa e confere depois. A lista é o arquivo
-`desktop/inventory.json` na edição desktop e `server/inventory.json` na server,
-compilado dentro do executável.
+`desktop/inventory.json` na edição Desktop, `server/inventory.json` na Server e
+`omarchy/inventory.json` na Omarchy, compilado dentro do executável.
 
 Cada item dessa lista declara o id, o nome, a categoria, a versão, a política de
 versão, as dependências, o método de instalação por sistema e o comando que
@@ -150,6 +150,62 @@ use o mesmo caminho:
 
 ```bash
 setupvibe desktop remove --external terraform
+```
+
+## Ebooks, PDFs e imagens
+
+O perfil `essencial` das três edições instala as ferramentas que geram e
+conferem ebooks e recortam fotos. Com elas, você gera PDF, EPUB e MOBI a
+partir de Markdown e prepara capas sem instalar nada à parte.
+
+| Uso | Item | Comando conferido |
+| --- | --- | --- |
+| Markdown para HTML e EPUB | `pandoc` | `pandoc --version` |
+| HTML e CSS para PDF | `weasyprint` | `weasyprint --version` |
+| Capas e PDFs renderizados no navegador | `playwright-chromium` | abre o Chromium e gera um PDF de teste |
+| EPUB para MOBI | `calibre` | `ebook-convert --version` |
+| Texto, fontes e páginas do PDF | `poppler` | `pdftocairo`, `pdfunite`, `pdftoppm` e `pdffonts` |
+| Fontes instaladas | `fontconfig` | `fc-match --version` |
+| XML do EPUB | `xmllint` | `xmllint --version` |
+| Conteúdo do EPUB | `unzip` | `unzip -v` |
+| Recorte e conversão de imagens | `imagemagick` | `magick -version` |
+
+O método muda por sistema. Debian, Ubuntu, Mint e Zorin usam pacotes do APT, e
+o ImageMagick 7 vem pelo mise, porque o Ubuntu 24.04 e o Debian 12 ainda
+entregam o 6, sem o comando `magick`. No macOS, as ferramentas vêm pelo Homebrew, e o `xmllint` e o
+`unzip` já fazem parte do sistema. No Omarchy, tudo passa pelo gerenciador de
+pacotes da distribuição. No Windows, o WinGet instala Pandoc, Poppler,
+Calibre, ImageMagick e UnZip, e o mise instala WeasyPrint, Fontconfig e
+`xmllint`.
+
+O Playwright fica fixado na versão 1.63.0, numa pasta própria em
+`~/.setupvibe/playwright`. A versão do pacote escolhe a revisão do Chromium, e
+a pasta separada evita que um `npm install` de projeto troque essa revisão.
+No Debian e no Ubuntu, o SetupVibe instala também as bibliotecas de sistema
+que o Chromium precisa. Para usar o pacote num script Node:
+
+```js
+const { chromium } = require(`${require("os").homedir()}/.setupvibe/playwright/node_modules/playwright`);
+```
+
+Para recortar uma foto nos dois formatos de capa do blog:
+
+```bash
+magick foto.jpg -resize 1200x800^ -gravity center -extent 1200x800 capa.jpg
+magick foto.jpg -resize 1200x500^ -gravity center -extent 1200x500 miniatura.jpg
+```
+
+No Windows, o Git for Windows traz um `pdftotext` do Xpdf em
+`C:\Program Files\Git\mingw64\bin`. Quando essa pasta está no `PATH` antes do
+Poppler, o `pdftotext` que responde é o do Xpdf. O `check` confere o Poppler
+pelo `pdftocairo` e pelo `pdfunite`, que o Xpdf não tem. Se um script precisar
+do `pdftotext` do Poppler, rode `where pdftotext` e deixe a pasta do Poppler
+primeiro no `PATH`.
+
+Para conferir só esse grupo:
+
+```bash
+setupvibe desktop check pandoc weasyprint playwright-chromium calibre poppler fontconfig xmllint unzip imagemagick
 ```
 
 ## Flags que mudam o comportamento por máquina

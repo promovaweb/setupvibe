@@ -27,18 +27,57 @@ servidor MCP. O perfil `essencial` reúne os itens padrão de cada edição.
 | Server | Debian e Ubuntu |
 | Omarchy | Omarchy em Arch Linux x64 |
 
-## Instalação e primeiro uso
+## Instalação
 
-Siga o [guia de instalação](docs/user/01-instalacao-e-primeiro-uso.md) para
-o seu sistema ou consulte os binários nas [releases](https://github.com/promovaweb/setupvibe/releases).
-Com a v2 instalada, visualize o plano do Desktop:
+O instalador lê a versão publicada em `version.json`, baixa o binário do seu
+sistema na release e confere o `SHA256SUMS` antes de gravar. Com o `cosign`
+instalado, ele também confere a assinatura.
+
+No Linux, no macOS e no WSL:
+
+```bash
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh | sh
+```
+
+No Windows 11, em um PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.ps1 | iex
+```
+
+Num servidor Debian ou Ubuntu, já com a edição Server:
+
+```bash
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install-server.sh | sh
+```
+
+## Primeiro uso
+
+Confira o plano antes de alterar a máquina e depois aplique o perfil
+`essencial`:
 
 ```bash
 setupvibe desktop auto --profile essencial --dry-run
+setupvibe desktop auto --profile essencial
+setupvibe desktop check
 ```
 
-Use `server` ou `omarchy` no lugar de `desktop` para consultar outra edição.
-Abra `setupvibe` em um terminal interativo para usar a TUI.
+Use `server` ou `omarchy` no lugar de `desktop` para outra edição. No Windows e
+no macOS, um comando sem edição usa a Desktop. Abra `setupvibe` em um terminal
+interativo para usar a TUI. O [guia de instalação](docs/user/01-instalacao-e-primeiro-uso.md)
+detalha os requisitos de cada sistema.
+
+## O que o perfil essencial instala
+
+- Runtimes e gerenciadores: mise, Node, Python com uv, PHP com Composer e PNPM.
+- Ferramentas de terminal: bat, eza, zoxide, fzf, ripgrep, fd, lazygit, Neovim e jq.
+- Shell: Zsh, Oh My Zsh, Starship com presets, plugins por edição, tmux com TPM
+  e Nerd Fonts.
+- [Ebooks, PDFs e imagens](docs/user/03-itens-e-versoes.md#ebooks-pdfs-e-imagens):
+  Pandoc, WeasyPrint, Playwright com Chromium, Calibre, Poppler e ImageMagick 7.
+- Agentes de código: Claude Code, Codex e OpenCode.
+
+A lista completa por sistema sai de `setupvibe desktop list`.
 
 ## Documentação
 

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { editionRefusal, suggestedEdition } from "../commands/edition.ts";
+import { editionRefusal, platformEdition, suggestedEdition } from "../commands/edition.ts";
 import { dispatch, legacyServerInvocation } from "../core/run.ts";
 import { rootRefusal } from "../startup.ts";
 import { selectItems } from "../auto/selection.ts";
@@ -14,6 +14,12 @@ import type { Inventory } from "../inventory.ts";
 import type { DetectedSystem } from "../system/detect.ts";
 
 const fixture: DetectedSystem = { system: "debian", id: "debian", name: "Debian", version: "13", headless: true, variant: "remote-headless", arch: "x64", wsl: false, publicIp: false };
+
+test("Windows e macOS usam a Desktop quando nenhuma edição foi salva", () => {
+  expect(platformEdition("win32")).toBe("desktop");
+  expect(platformEdition("darwin")).toBe("desktop");
+  expect(platformEdition("linux")).toBeUndefined();
+});
 
 test("suggestions and platform and root guards", () => {
   expect(suggestedEdition(fixture, "linux")).toBe("server");

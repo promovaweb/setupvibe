@@ -5,7 +5,8 @@ Passe `edition` como parâmetro da ferramenta com o valor `desktop`,
 usuário. Para fixar a edição padrão da conexão, inicie com
 `setupvibe server mcp` ou com o prefixo da edição desejada. Ferramentas que
 precisam de um inventário retornam código 15 quando nenhuma edição foi
-selecionada. Os recursos de inventário e documentação usam a edição padrão.
+selecionada. No Windows e no macOS, a Desktop entra sem pedido. Os recursos de
+inventário e documentação usam a edição padrão.
 
 Para executar `install` ou `update` com Server em um Linux com sessão
 gráfica, envie `confirm_security: true` após a pessoa aprovar o plano.

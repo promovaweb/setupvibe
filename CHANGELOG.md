@@ -4,6 +4,16 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.34] - 2026-11-23
+
+- Corrige as duas verificações do perfil essencial que falhavam no Windows. O `cmd` recebe o comando de conferência literal, sem os escapes de aspas do Bun que quebravam o teste do Chromium do Playwright. O Poppler é conferido por `pdftocairo` e `pdfunite`, que o `pdftotext` do Xpdf trazido pelo Git for Windows não substitui.
+- Usa a Desktop quando um comando chega sem edição no Windows e no macOS, no CLI e no MCP. O `install.ps1 ... auto` de uma máquina nova terminava com o código 15.
+- Grava o preset padrão do Starship também em sistemas de arquivos sem hard link.
+- A GitHub Release só é publicada depois que os testes reais de macOS e Windows passam.
+- Documenta no guia, no README e no ebook as ferramentas de ebooks, PDFs e imagens do perfil essencial, os comandos de instalação de cada sistema e a edição padrão no Windows e no macOS.
+
+---
+
 ## [v2.0.0-dev.33] - 2026-11-23
 
 - Permite escolher o preset do Starship com `shell apply --preset <nome>` e preservar o arquivo pessoal.

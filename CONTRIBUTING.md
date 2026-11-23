@@ -243,7 +243,11 @@ que ele compartilha.
 | `.github/workflows/v2-macos-arm64.yml` | tags `v2.*` e manual | Apple Silicon: build, `system`, `auto --profile essencial` e `check`; fica separado porque os runners arm64 hospedados têm capacidade limitada |
 
 Todos os workflows fixam Bun 1.4.4 e instalam com `--frozen-lockfile`. O job
-de release do `v2.yml` roda só em tags e depende de `validate` e `containers`.
+de release do `v2.yml` roda só em tags e depende de `validate`, `containers`,
+`macos` e `windows`. Os instaladores leem a versão do `version.json` na branch
+`v2`. Por isso, publique primeiro a tag (`git push origin v2.0.0-dev.N`),
+espere a GitHub Release ter os binários e só então envie a branch `v2`. Assim,
+nenhuma instalação busca uma versão sem binário.
 
 ## Tests and CI
 
@@ -376,5 +380,8 @@ shares.
 | `.github/workflows/v2-macos-arm64.yml` | tags `v2.*` and manual | Apple Silicon: build, `system`, `auto --profile essencial` and `check`; kept apart because the hosted arm64 runners are capacity constrained |
 
 All workflows pin Bun 1.4.4 and install with `--frozen-lockfile`. The
-`v2.yml` release job runs only on tags and needs both `validate` and
-`containers`.
+`v2.yml` release job runs only on tags and needs `validate`, `containers`,
+`macos` and `windows`. The installers read the version from `version.json` on
+the `v2` branch. Push the tag first (`git push origin v2.0.0-dev.N`), wait
+until the GitHub Release has the binaries, and only then push the `v2` branch,
+so no install looks for a version without binaries.
