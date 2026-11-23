@@ -398,7 +398,6 @@ export function itemSteps(item: Item, system: System, ctx: { arch: string; inven
   }
 }
 
-/** Command that checks an item, from `verify.command`, run through a shell. */
 /**
  * PATH saved in the Windows registry (user, then machine). Installers such as
  * Codex's add their folder there, and the running process does not see it
@@ -414,11 +413,16 @@ export function registryPath(): string {
   return [read("HKCU\\Environment"), read("HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment")].filter(Boolean).join(";");
 }
 
+/**
+ * Comando que confere um item a partir de `verify.command`, executado por um shell.
+ * No Windows, o comando vai entre aspas para `cmd /d /s /c` com argumentos literais:
+ * o `/s` remove só o primeiro e o último par, e as aspas internas chegam intactas.
+ */
 export function verifyCmd(item: Item, home = homedir(), windows = process.platform === "win32"): Cmd {
   const sep = windows ? ";" : ":";
   const path = [join(home, ".local", "bin"), miseShims(home, windows), process.env.PATH ?? process.env.Path ?? "", ...(windows ? [registryPath()] : [])].filter(Boolean).join(sep);
   const command = withVersion(item.verify.command, item);
-  return windows ? { argv: ["cmd", "/d", "/s", "/c", command], env: { PATH: path, Path: path } } : { argv: ["sh", "-c", command], env: { PATH: path } };
+  return windows ? { argv: ["cmd", "/d", "/s", "/c", `"${command}"`], verbatim: true, env: { PATH: path, Path: path } } : { argv: ["sh", "-c", command], env: { PATH: path } };
 }
 
 /** True when an item's verify output satisfies `verify.expect`. */

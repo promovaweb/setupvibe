@@ -1464,7 +1464,8 @@
         }
       },
       "verify": {
-        "command": "pdftoppm -v && pdftotext -v && pdffonts -v && pdftohtml -v"
+        "command": "pdftocairo -v && pdfunite -v && pdftoppm -v && pdffonts -v",
+        "expect": "^pdftocairo version"
       }
     },
     {

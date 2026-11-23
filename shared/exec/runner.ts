@@ -28,6 +28,11 @@ export interface Cmd {
   unsetEnv?: string[];
   /** Time limit in milliseconds; DEFAULT_TIMEOUT_MS when omitted. */
   timeoutMs?: number;
+  /**
+   * No Windows, envia o argv sem as aspas e os escapes do Bun. Necessário para
+   * `cmd /s /c`, que não entende `\"` e quebraria comandos com aspas internas.
+   */
+  verbatim?: boolean;
 }
 
 /** Environment of a command: the process environment, the defaults, the command's own, minus `unsetEnv`. */
@@ -115,6 +120,7 @@ export function realRunner(options: { verbose?: boolean } = {}): Runner {
     async exec(cmd) {
       const proc = Bun.spawn(finalArgv(cmd, root), {
         env: commandEnv(cmd),
+        windowsVerbatimArguments: cmd.verbatim === true,
         stdin: cmd.input === undefined ? "ignore" : new Response(cmd.input),
         stdout: "pipe",
         stderr: "pipe",

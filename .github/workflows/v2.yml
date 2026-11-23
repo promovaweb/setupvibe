@@ -118,7 +118,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/v2.')
-    needs: [validate, containers]
+    needs: [validate, containers, macos, windows]
     runs-on: ubuntu-24.04
     permissions:
       contents: write

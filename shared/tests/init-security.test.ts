@@ -350,6 +350,15 @@ describe("windows paths", () => {
     expect(verifyCmd(item(desktop, "node"), "/home/u", false).argv[0]).toBe("sh");
   });
 
+  test("no Windows, a conferência com aspas internas segue literal para o cmd", async () => {
+    const { verifyCmd } = await import("../install/methods");
+    const playwright = item(desktop, "playwright-chromium");
+    const cmd = verifyCmd(playwright, "C:/Users/u", true);
+    expect(cmd.verbatim).toBe(true);
+    expect(cmd.argv[4]).toBe(`"${playwright.verify.command}"`);
+    expect(verifyCmd(playwright, "/home/u", false).verbatim).toBeUndefined();
+  });
+
   test("the wsl item installs the WSL base", () => {
     const sel = { items: [item(desktop, "wsl")], skipped: [] };
     const plan = autoPlan({ inventory: desktop, edition: "desktop", system: "windows", arch: "x64", variant: "local", user: "u", userHasKey: false, initDone: true, memoryGb: 8, answers: resolveAnswers({}, {}), selection: sel, createdNopasswd: false, home: "C:/Users/u" });
@@ -375,7 +384,7 @@ describe("windows fixes from the first real run", () => {
   test("single-package WinGet items skip when their check passes", () => {
     const steps = itemSteps(item(desktop, "build-deps"), "windows", { arch: "x64", inventory: desktop, home: "C:/Users/u" });
     expect(steps[0]!.skipIf!.argv.slice(0, 4)).toEqual(["cmd", "/d", "/s", "/c"]);
-    expect(steps[0]!.skipIf!.argv.at(-1)).toBe("git --version");
+    expect(steps[0]!.skipIf!.argv.at(-1)).toBe("\"git --version\"");
   });
 });
 
