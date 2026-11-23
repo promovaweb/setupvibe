@@ -2,7 +2,9 @@
 
 Thank you for your interest in contributing to SetupVibe! To ensure a consistent and high-quality experience for all users, we have established specific standards for code, documentation, and versioning.
 
-Please select your preferred language to read the full contribution guide:
+For the v2 branch, start with [V2.md](V2.md), run `bun install --frozen-lockfile`
+and `bun run validate`, then use the development and CI sections below.
+The following guides cover the legacy v1 scripts:
 
 | Language | Guide |
 | --- | --- |

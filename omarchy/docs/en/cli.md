@@ -966,13 +966,12 @@ file goes to `~/.setupvibe/backups/` before the first change.
 
 ### `{{bin}} shell apply`
 
-Writes the SetupVibe block into the shell, the aliases, the Starship preset
-and the tmux settings. It also converts SetupVibe 1 files when it finds them.
+Adds the SetupVibe block to Bash and optionally selects a Starship preset.
 
 #### Syntax
 
 ```bash
-{{bin}} shell apply [--dry-run]
+{{bin}} shell apply [--preset <name>] [--dry-run]
 ```
 
 #### Arguments and options
@@ -980,6 +979,7 @@ and the tmux settings. It also converts SetupVibe 1 files when it finds them.
 | Name | Type | Required | Default | Accepted values |
 | --- | --- | --- | --- | --- |
 | `--dry-run` | flag | no | absent | present or absent |
+| `--preset` | string | no | absent | name from `starship preset --list` |
 
 #### Output
 
@@ -988,29 +988,19 @@ Text: each step with the result and the log path. `data` carries
 
 #### Persistent effects
 
-Writes the block between `# >>> setupvibe >>>` and
-`# <<< setupvibe <<<`, the aliases in `~/.setupvibe/shell/aliases.sh` and
-`aliases-agents.sh`, the `gruvbox-rainbow` preset when no Starship
-configuration exists, `~/.setupvibe/shell/tmux.conf` and the empty `.local`
-files. Backs up the files before the first change. On Linux, it changes the
-login shell to ZSH with `chsh`.
+Writes the managed block to `~/.bashrc`, the aliases and the local Bash settings file. The login shell and distribution tmux settings are preserved. A named preset is written to `~/.setupvibe/shell/starship.toml`. Bash uses it when `STARSHIP_CONFIG` is unset or empty.
 
 #### Permissions
 
-Uses sudo for `chsh` when needed. Does not require a TTY.
+Runs as the current user.
 
 #### Refusals and exit codes
 
-Unsupported system: `UNSUPPORTED_SYSTEM` (11). A
-step failed: `PARTIAL` (10). sudo asks for a password: `SUDO_PASSWORD` (13).
+An unsupported system returns 11. A failed step returns 10.
 
 #### Limits
 
-The block is replaced as a whole on every run. Your lines go to
-`~/.zshrc.local`, `~/.bashrc.local` and `~/.tmux.conf.local`, which are never
-overwritten. An alias that collides with an existing program, function or
-alias is skipped; `doctor` lists the skipped ones. On Omarchy, the system
-files stay untouched.
+Keep personal Bash settings in `~/.bashrc.local`.
 
 #### Examples
 
@@ -1031,7 +1021,7 @@ files stay untouched.
 ```
 
 ```bash
-{{bin}} shell apply && exec $SHELL -l   # applies and reloads the shell in this session
+{{bin}} shell apply && exec "$SHELL" -l   # applies and reloads the shell in this session
 ```
 
 ### `{{bin}} shell remove`

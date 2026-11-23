@@ -58,6 +58,31 @@ O arquivo usa o formato do `.zshrc` e é carregado no fim do bloco. Para
 tmux, `~/.tmux.conf.local` é carregado antes do TPM, o que permite trocar teclas
 e tema sem alterar o arquivo gerenciado.
 
+## Presets do Starship e plugins do Zsh
+
+No Desktop e no Server, a primeira instalação aplica o Gruvbox Rainbow com
+os separadores do SetupVibe quando ainda não existe `~/.config/starship.toml`.
+Para consultar os presets da sua versão do Starship e experimentar outro tema:
+
+```bash
+starship preset --list
+setupvibe desktop shell apply --preset tokyo-night
+```
+
+No Server e no Omarchy, troque `desktop` pelo nome da edição. Abra um novo
+terminal para carregar o tema. O comando grava a escolha em
+`~/.setupvibe/shell/starship.toml`. Seu arquivo pessoal permanece no lugar.
+Uma variável `STARSHIP_CONFIG` definida por você tem prioridade. Para voltar
+ao tema anterior, remova o arquivo do preset em `~/.setupvibe/shell/` e abra
+um terminal novo.
+
+No Zsh, o bloco carrega os plugins instalados do Oh My Zsh. O Desktop inclui
+plugins de linguagens e ferramentas como Git, Docker e Composer. O Server
+usa a seleção de administração, com Ansible, nmap e tmux. Plugins pessoais
+declarados antes do bloco entram na mesma lista, sem duplicatas. O plugin
+`zsh-syntax-highlighting` carrega por último. No Omarchy, o Bash continua
+usando o prompt da distribuição até você escolher um preset.
+
 ## Aliases
 
 Os aliases passam por um guarda que só define o nome quando nada responde por

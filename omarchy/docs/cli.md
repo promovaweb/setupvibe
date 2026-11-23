@@ -960,14 +960,12 @@ arquivo original fica em `~/.setupvibe/backups/` antes da primeira mudança.
 
 ### `{{bin}} shell apply`
 
-Escreve o bloco do SetupVibe no shell, os aliases, o preset do Starship e as
-configurações do tmux. Também converte arquivos do SetupVibe 1 quando
-encontra.
+Acrescenta o bloco do SetupVibe ao Bash e permite escolher um preset do Starship.
 
 #### Sintaxe
 
 ```bash
-{{bin}} shell apply [--dry-run]
+{{bin}} shell apply [--preset <name>] [--dry-run]
 ```
 
 #### Argumentos e options
@@ -975,6 +973,7 @@ encontra.
 | Nome | Tipo | Obrigatório | Padrão | Valores |
 | --- | --- | --- | --- | --- |
 | `--dry-run` | flag | não | ausente | presente ou ausente |
+| `--preset` | texto | não | ausente | nome listado por `starship preset --list` |
 
 #### Saída
 
@@ -983,29 +982,19 @@ Texto: cada etapa com o resultado e o caminho do log. `data` traz
 
 #### Efeitos persistentes
 
-Grava o bloco entre `# >>> setupvibe >>>` e
-`# <<< setupvibe <<<`, os aliases em `~/.setupvibe/shell/aliases.sh` e
-`aliases-agents.sh`, o preset `gruvbox-rainbow` quando não existe configuração
-do Starship, o `~/.setupvibe/shell/tmux.conf` e os arquivos `.local` vazios.
-Faz backup dos arquivos antes da primeira mudança. No Linux, troca o shell de
-login para ZSH com `chsh`.
+Grava o bloco em `~/.bashrc`, os aliases e o arquivo local do Bash. Preserva o shell de login e o tmux da distribuição. O preset escolhido vai para `~/.setupvibe/shell/starship.toml`. O Bash usa esse arquivo quando `STARSHIP_CONFIG` está ausente ou vazia.
 
 #### Permissões
 
-Usa sudo no `chsh` quando necessário. Não exige TTY.
+Executa como o usuário atual.
 
 #### Recusas e exit codes
 
-Sistema sem suporte: `UNSUPPORTED_SYSTEM` (11).
-Etapa com falha: `PARTIAL` (10). Sudo com senha: `SUDO_PASSWORD` (13).
+Sistema sem suporte retorna 11. Uma etapa com falha retorna 10.
 
 #### Limites
 
-O bloco é substituído por inteiro a cada execução. Suas linhas
-vão para `~/.zshrc.local`, `~/.bashrc.local` e `~/.tmux.conf.local`, que nunca
-são sobrescritos. Alias que colide com programa, função ou alias existente é
-pulado; `doctor` lista os pulados. No Omarchy, os arquivos do sistema ficam
-intactos.
+Guarde ajustes pessoais do Bash em `~/.bashrc.local`.
 
 #### Exemplos
 
@@ -1026,7 +1015,7 @@ intactos.
 ```
 
 ```bash
-{{bin}} shell apply && exec $SHELL -l   # aplica e recarrega o shell na sessão atual
+{{bin}} shell apply && exec "$SHELL" -l   # aplica e recarrega o shell na sessão atual
 ```
 
 ### `{{bin}} shell remove`

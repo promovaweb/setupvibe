@@ -37,5 +37,12 @@
 | Omarchy | `~/.bashrc` | PATH, SetupVibe aliases and completion, `~/.bashrc.local` |
 | All with tmux (not Omarchy) | `~/.tmux.conf` | loads `~/.setupvibe/shell/tmux.conf` (plugins, theme, keys), which loads `~/.tmux.conf.local` before TPM |
 
-Starship gets the gruvbox-rainbow preset when no config exists. On Linux, ZSH
-becomes the login shell with `chsh`.
+On Unix Desktop and Server, the default Gruvbox Rainbow preset is created
+when `~/.config/starship.toml` is absent. On Linux with Zsh selected, the
+plan sets the login shell with `chsh`. Omarchy retains its Bash login shell
+and distribution prompt by default.
+
+Use `setupvibe <edition> shell apply --preset <name>` on Unix to write a
+Starship preset to `~/.setupvibe/shell/starship.toml`. The managed shell
+block uses this file when `STARSHIP_CONFIG` is unset or empty. List the names
+with `starship preset --list`. Native Windows keeps its PowerShell profile.

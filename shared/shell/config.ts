@@ -1,5 +1,5 @@
 /**
- * Environment configuration (spec section 7).
+ * Integração do shell e do Starship por edição (seção 7).
  *
  * SetupVibe edits user files only between markers:
  *
@@ -21,7 +21,7 @@
  * - tmux: the SetupVibe settings and TPM, then ~/.tmux.conf.local.
  */
 import type { EditionId } from "../core/app/edition.ts";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "../system/home.ts";
 import { dirname, join, basename } from "node:path";
 import type { System } from "../inventory.ts";
@@ -36,7 +36,9 @@ export const BLOCK_START = "# >>> setupvibe >>>";
 export const BLOCK_END = "# <<< setupvibe <<<";
 
 /** Oh My Zsh plugins loaded by the SetupVibe block. */
-export const ZSH_PLUGINS = ["git", "rsync", "cp", "extract", "zoxide", "fzf", "zsh-autosuggestions", "zsh-syntax-highlighting", "tmux", "gh", "docker", "docker-compose"];
+export const ZSH_PLUGINS = ["git", "rsync", "cp", "extract", "zoxide", "fzf", "zsh-autosuggestions", "gh", "ansible", "docker", "docker-compose"];
+const desktopPlugins = ["brew", "laravel", "composer", "rails", "ruby", "python", "pip", "node", "npm", "bun", "golang", "rust"];
+const presetEnv = 'if [ -z "${STARSHIP_CONFIG:-}" ] && [ -s "$HOME/.setupvibe/shell/starship.toml" ]; then export STARSHIP_CONFIG="$HOME/.setupvibe/shell/starship.toml"; fi';
 
 /** Replaces the SetupVibe block in `text`, or appends it. */
 export function upsertBlock(text: string, body: string): string {
@@ -58,7 +60,8 @@ export function removeBlock(text: string): string {
 }
 
 /** Body of the ZSH block. */
-export function zshBlock(home: string, bin = "setupvibe"): string {
+export function zshBlock(home: string, bin = "setupvibe", edition: EditionId = "desktop", macos = process.platform === "darwin"): string {
+  const plugins = [...ZSH_PLUGINS, ...(macos ? ["macos", "tmux"] : ["nmap", "tmux"]), ...(edition === "desktop" ? desktopPlugins : [])];
   return [
     "# Managed by SetupVibe. Personal settings go in ~/.zshrc.local.",
     'export PATH="$HOME/.local/bin:$PATH"',
@@ -66,10 +69,16 @@ export function zshBlock(home: string, bin = "setupvibe"): string {
     'if [ -d "$HOME/.oh-my-zsh" ]; then',
     '  export ZSH="$HOME/.oh-my-zsh"',
     '  ZSH_THEME=""',
-    `  plugins=(${ZSH_PLUGINS.join(" ")})`,
+    "  typeset -Ua plugins",
+    '  plugins=("${(@)plugins:#zsh-syntax-highlighting}")',
+    `  for sv_plugin in ${plugins.join(" ")} zsh-syntax-highlighting; do`,
+    '    if [[ -d "${ZSH_CUSTOM:-$ZSH/custom}/plugins/$sv_plugin" || -d "$ZSH/plugins/$sv_plugin" ]]; then plugins+=("$sv_plugin"); fi',
+    "  done",
+    "  unset sv_plugin",
     '  source "$ZSH/oh-my-zsh.sh"',
     "fi",
     'command -v zoxide >/dev/null && eval "$(zoxide init zsh)"',
+    presetEnv,
     'command -v starship >/dev/null && eval "$(starship init zsh)"',
     `command -v ${bin} >/dev/null && source <(${bin} completion zsh)`,
     `[ -f "${join(home, ".setupvibe", "shell", "aliases.sh")}" ] && source "${join(home, ".setupvibe", "shell", "aliases.sh")}"`,
@@ -83,6 +92,7 @@ export function bashBlock(home: string, bin = "setupvibe"): string {
   return [
     "# Managed by SetupVibe. Personal settings go in ~/.bashrc.local.",
     'export PATH="$HOME/.local/bin:$PATH"',
+    presetEnv,
     `command -v ${bin} >/dev/null && source <(${bin} completion bash)`,
     `[ -f "${join(home, ".setupvibe", "shell", "aliases.sh")}" ] && source "${join(home, ".setupvibe", "shell", "aliases.sh")}"`,
     `[ -f "${join(home, ".setupvibe", "shell", "aliases-agents.sh")}" ] && source "${join(home, ".setupvibe", "shell", "aliases-agents.sh")}"`,
@@ -204,6 +214,8 @@ export interface ShellOptions {
   zsh: boolean;
   tmux: boolean;
   starship: boolean;
+  /** Preset escolhido no shell apply e salvo fora do arquivo pessoal. */
+  preset?: string;
 }
 
 /** Steps that configure the shell environment. */
@@ -230,16 +242,36 @@ export function shellSteps(o: ShellOptions): Step[] {
       }
     },
   });
-  if (o.starship && !omarchy) {
-    const target = join(home, ".config", "starship.toml");
+  if (o.starship && (!omarchy || o.preset)) {
+    const preset = o.preset ?? "gruvbox-rainbow";
+    const target = o.preset ? join(home, ".setupvibe", "shell", "starship.toml") : join(home, ".config", "starship.toml");
     steps.push({
       id: "starship-preset",
-      description: `Starship gruvbox-rainbow preset in ${target}`,
-      skipIf: { argv: ["test", "-s", target] },
-      commands: [
-        { argv: ["mkdir", "-p", dirname(target)] },
-        { argv: ["sh", "-c", 'PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$PATH" starship preset gruvbox-rainbow -o "$1"', "sh", target] },
-      ],
+      description: `Starship ${preset} preset in ${target}`,
+      ...(!o.preset ? { skipIf: { argv: ["test", "-e", target] } } : {}),
+      commands: [],
+      actionDescription: `starship preset ${preset} → ${target}`,
+      action: async (runner) => {
+        const result = await runner.exec({ argv: ["starship", "preset", preset], env: { PATH: [join(home, ".local", "share", "mise", "shims"), join(home, ".local", "bin"), process.env.PATH].join(":") } });
+        if (result.code !== 0 || !result.stdout.trim()) throw new Error(result.stderr.trim() || "Starship não gerou o preset.");
+        let content = result.stdout;
+        if (preset === "gruvbox-rainbow") {
+          content = content.replaceAll("╭", "┌").replaceAll("╰", "└");
+          if (o.edition !== "server") content = content.replaceAll("", omarchy ? "" : "").replaceAll("", omarchy ? "" : "");
+        }
+        mkdirSync(dirname(target), { recursive: true });
+        const temp = mkdtempSync(join(dirname(target), ".setupvibe-preset-"));
+        try {
+          const file = join(temp, "starship.toml");
+          writeFileSync(file, content);
+          // O link só publica o padrão se outro processo ainda não criou o arquivo pessoal.
+          if (o.preset) renameSync(file, target);
+          else {
+            try { linkSync(file, target); }
+            catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error; }
+          }
+        } finally { rmSync(temp, { recursive: true, force: true }); }
+      },
     });
   }
   const rc = join(home, omarchy ? ".bashrc" : ".zshrc");
@@ -249,7 +281,7 @@ export function shellSteps(o: ShellOptions): Step[] {
       description: `SetupVibe block in ${rc}`,
       commands: [],
       actionDescription: `back up ${rc} once, then write the block between "${BLOCK_START}" and "${BLOCK_END}"`,
-      action: async () => applyBlock(rc, omarchy ? bashBlock(home, o.bin) : zshBlock(home, o.bin), home),
+      action: async () => applyBlock(rc, omarchy ? bashBlock(home, o.bin) : zshBlock(home, o.bin, o.edition, o.system === "macos"), home),
     });
   }
   if (o.tmux && !omarchy) {

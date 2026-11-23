@@ -4,6 +4,15 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v2.0.0-dev.33] - 2026-11-23
+
+- Permite escolher o preset do Starship com `shell apply --preset <nome>` e preservar o arquivo pessoal.
+- Ajusta os separadores do Gruvbox Rainbow por edição, recupera os plugins de Zsh por plataforma e carrega o destaque de sintaxe por último.
+- Direciona o README e as instruções de contribuição para a v2 e corrige a descrição do shell da edição Omarchy.
+- Atualiza o guia em PDF e EPUB e os manuais das três edições. Validação com `bun run validate` e `bun run ebook:verify`.
+
+---
+
 ## [v2.0.0-dev.32] - 2026-11-22
 
 - Atualiza a identidade visual do SetupVibe.

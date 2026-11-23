@@ -2,7 +2,13 @@
 
 This file provides instructions and context for OpenAI Codex when working with the **SetupVibe** repository.
 
-## What This Project Is
+## Branch v2
+
+Start with [V2.md](V2.md) for the three editions, the unified binary and
+`bun run validate`. The following shell-script instructions describe the
+[v1 sources](legacy/README.md).
+
+## SetupVibe 1 (legacy)
 
 **SetupVibe** is a cross-platform automated development environment setup script (v0.41.20). It installs and configures a complete developer toolkit in one command, supporting Windows 11 22H2+, macOS 12+, Linux (Ubuntu 24.04+, Debian 12+, Zorin OS 18+) and Omarchy 4 on Arch Linux x86_64.
 

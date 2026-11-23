@@ -64,7 +64,8 @@ correspondente ao sistema e confere o `SHA256SUMS` antes de gravar.
 curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/v2/install.sh | sh
 ```
 
-Num Linux x64 com `cosign` instalado, a saída termina assim:
+O exemplo abaixo mostra uma instalação da pré-release dev.25 no Linux x64
+com `cosign`. A versão exibida acompanha o canal escolhido.
 
 ```text
 Downloading setupvibe 2.0.0-dev.25 for linux-x64...

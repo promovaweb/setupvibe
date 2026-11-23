@@ -60,7 +60,16 @@ describe("contents", () => {
   });
 
   test("Omarchy Bash block keeps Omarchy's Starship config", () => {
-    expect(bashBlock("/home/u")).not.toContain("STARSHIP_CONFIG");
+    expect(bashBlock("/home/u")).toContain('[ -z "${STARSHIP_CONFIG:-}" ] && [ -s "$HOME/.setupvibe/shell/starship.toml" ]');
+    expect(bashBlock("/home/u")).not.toContain("starship init bash");
+  });
+
+  test("plugins de linguagem e de plataforma seguem a edição", () => {
+    expect(zshBlock("/h", "setupvibe", "desktop", false)).toContain("nmap tmux brew laravel");
+    expect(zshBlock("/h", "setupvibe", "desktop", true)).toContain("macos tmux brew laravel");
+    const server = zshBlock("/h", "setupvibe", "server", false);
+    expect(server).toContain("nmap tmux zsh-syntax-highlighting; do");
+    expect(server).not.toContain("laravel");
   });
 
   test("tmux settings load .local before TPM", () => {
@@ -87,6 +96,26 @@ describe("contents", () => {
 });
 
 describe("steps", () => {
+  test("a troca explícita de preset preserva o TOML pessoal e o último tema válido", async () => {
+    const home = mkdtempSync(join(tmpdir(), "sv-preset-"));
+    const options = { system: "debian", edition: "desktop", user: "u", home, zsh: true, tmux: false, starship: true } as const;
+    const step = (preset?: string) => shellSteps({ ...options, preset }).find((s) => s.id === "starship-preset")!;
+    const render = { dryRun: false, exec: async () => ({ code: 0, stdout: "╭╰", stderr: "" }) };
+    try {
+      await step().action!(render);
+      const personal = join(home, ".config", "starship.toml");
+      expect(readFileSync(personal, "utf8")).toBe("┌└");
+      writeFileSync(personal, "# personalizado");
+      await step().action!(render);
+      await step("tokyo-night").action!(render);
+      await expect(step("inexistente").action!({ dryRun: false, exec: async () => ({ code: 1, stdout: "", stderr: "preset desconhecido" }) })).rejects.toThrow("preset desconhecido");
+      expect(readFileSync(join(home, ".setupvibe", "shell", "starship.toml"), "utf8")).toBe("╭╰");
+      expect(readFileSync(personal, "utf8")).toBe("# personalizado");
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
+
   test("a real apply writes the files, the blocks and the .local files", async () => {
     const home = mkdtempSync(join(tmpdir(), "sv-shell-apply-"));
     const steps = shellSteps({ system: "debian", edition: "desktop", user: "u", home, zsh: true, tmux: true, starship: false });

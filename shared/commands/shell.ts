@@ -18,13 +18,17 @@ import { DRY_RUN_OPTION, executePlan } from "./execute.ts";
 const applyCommand: Command = {
   name: "apply",
   description: "Write the SetupVibe shell block, aliases, Starship preset and tmux settings.",
-  options: [DRY_RUN_OPTION],
+  options: [DRY_RUN_OPTION, { name: "--preset", argument: { name: "name" }, description: "Apply a preset from starship preset --list." }],
   exitCodes: [ExitCode.PARTIAL, ExitCode.UNSUPPORTED_SYSTEM],
   examples: [`${manifest.bin} shell apply --dry-run`],
   run: (ctx) => {
     const inventory = edition().inventory as Inventory;
     const detected = detectSystem(inventory.systems);
     if (!detected.system || detected.unsupportedReason) return { code: ExitCode.UNSUPPORTED_SYSTEM, data: {}, text: `✗ ${detected.unsupportedReason}` };
+    const preset = ctx.options.preset as string | undefined;
+    if (preset !== undefined && (detected.system === "windows" || !/^[a-z0-9][a-z0-9-]*$/.test(preset))) {
+      return { code: ExitCode.USAGE, data: {}, text: "Use um preset de starship preset --list no Linux, WSL ou macOS." };
+    }
     const config = readState<Record<string, unknown>>("config.json", {});
     const legacy = detectV1Here(homedir());
     const steps = [...(manifest.edition !== "omarchy" && legacy.found ? migrateSteps({ home: homedir(), detection: { ...legacy, sshCopyId: false } }) : []), ...shellSteps({
@@ -36,6 +40,7 @@ const applyCommand: Command = {
       zsh: Boolean(Bun.which("zsh")),
       tmux: Boolean(Bun.which("tmux")),
       starship: true,
+      preset,
     })];
     return executePlan(ctx, "shell-apply", steps);
   },

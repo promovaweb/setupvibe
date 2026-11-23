@@ -220,7 +220,10 @@ export function migrateSteps(o: MigrateOptions): Step[] {
   const steps: Step[] = [];
   const zshrc = join(o.home, ".zshrc");
   const tmux = join(o.home, ".tmux.conf");
-  if (o.detection.zshrc) steps.push(convertStep("migrate-zshrc", "Move ~/.zshrc from SetupVibe 1 to the SetupVibe 2 block, keeping your lines in ~/.zshrc.local", zshrc, join(o.home, ".zshrc.local"), V1_ZSHRC, o.home, now, zshBlock(o.home)));
+  if (o.detection.zshrc) {
+    const edition = (o.edition ?? o.detection.edition) === "server" ? "server" : "desktop";
+    steps.push(convertStep("migrate-zshrc", "Move ~/.zshrc from SetupVibe 1 to the SetupVibe 2 block, keeping your lines in ~/.zshrc.local", zshrc, join(o.home, ".zshrc.local"), V1_ZSHRC, o.home, now, zshBlock(o.home, "setupvibe", edition)));
+  }
   if (o.detection.tmux) steps.push(convertStep("migrate-tmux", "Move ~/.tmux.conf from SetupVibe 1 to the SetupVibe 2 block, keeping your lines in ~/.tmux.conf.local", tmux, join(o.home, ".tmux.conf.local"), V1_TMUX, o.home, now, tmuxBlock(o.home)));
   if (o.detection.omarchyBlock) {
     const bashrc = join(o.home, ".bashrc");

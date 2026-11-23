@@ -965,7 +965,7 @@ encontra.
 #### Sintaxe
 
 ```bash
-{{bin}} shell apply [--dry-run]
+{{bin}} shell apply [--preset <name>] [--dry-run]
 ```
 
 #### Argumentos e options
@@ -973,6 +973,7 @@ encontra.
 | Nome | Tipo | Obrigatório | Padrão | Valores |
 | --- | --- | --- | --- | --- |
 | `--dry-run` | flag | não | ausente | presente ou ausente |
+| `--preset` | texto | não | ausente | nome listado por `starship preset --list` |
 
 #### Saída
 
@@ -987,6 +988,8 @@ Grava o bloco entre `# >>> setupvibe >>>` e
 do Starship, o `~/.setupvibe/shell/tmux.conf` e os arquivos `.local` vazios.
 Faz backup dos arquivos antes da primeira mudança. No Linux, troca o shell de
 login para ZSH com `chsh`.
+
+Com `--preset`, o arquivo gerado fica em `~/.setupvibe/shell/starship.toml`. Uma variável `STARSHIP_CONFIG` já definida tem prioridade.
 
 #### Permissões
 

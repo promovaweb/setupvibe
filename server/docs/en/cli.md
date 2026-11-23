@@ -970,7 +970,7 @@ and the tmux settings. It also converts SetupVibe 1 files when it finds them.
 #### Syntax
 
 ```bash
-{{bin}} shell apply [--dry-run]
+{{bin}} shell apply [--preset <name>] [--dry-run]
 ```
 
 #### Arguments and options
@@ -978,6 +978,7 @@ and the tmux settings. It also converts SetupVibe 1 files when it finds them.
 | Name | Type | Required | Default | Accepted values |
 | --- | --- | --- | --- | --- |
 | `--dry-run` | flag | no | absent | present or absent |
+| `--preset` | string | no | absent | name from `starship preset --list` |
 
 #### Output
 
@@ -992,6 +993,8 @@ Writes the block between `# >>> setupvibe >>>` and
 configuration exists, `~/.setupvibe/shell/tmux.conf` and the empty `.local`
 files. Backs up the files before the first change. On Linux, it changes the
 login shell to ZSH with `chsh`.
+
+An explicit `--preset` writes `~/.setupvibe/shell/starship.toml`. A preconfigured `STARSHIP_CONFIG` takes precedence.
 
 #### Permissions
 

@@ -14,107 +14,42 @@
   <a href="https://promovaweb.com/ferramentas/">Tools</a>
 </p>
 
-# SetupVibe
+# SetupVibe 2
 
-> The ultimate cross-platform development environment setup script — v0.41.20
+O SetupVibe prepara ambientes de desenvolvimento e servidores com um único
+executável. Esta branch distribui a v2 em pré-release. Você pode consultar o
+plano de instalação pelo CLI, selecionar ferramentas pela TUI ou usar o
+servidor MCP. O perfil `essencial` reúne os itens padrão de cada edição.
 
-**On the `v2` branch:** SetupVibe 2 is in development here (see [V2.md](V2.md)), and the SetupVibe 1 files below live in [legacy/](legacy/README.md). The public addresses keep serving SetupVibe 1 from `main` until the launch.
+| Edição | Sistemas |
+| --- | --- |
+| Desktop | macOS, Windows, WSL, Ubuntu, Debian, Mint e Zorin |
+| Server | Debian e Ubuntu |
+| Omarchy | Omarchy em Arch Linux x64 |
 
-Installs and configures a development environment in one command, supporting Windows 11, macOS, major Linux distributions and Omarchy 4. The Windows Edition focuses on native utilities, Python, Node.js, selected native AI CLIs, and the WSL 2 base system. The Unix Desktop Edition includes complete language ecosystems and a broader AI toolkit, the Server Edition remains focused on operations tooling, and the Omarchy edition adds only the SetupVibe layer that is not already present in the operating system.
+## Instalação e primeiro uso
 
-## Key Features
-
-- **Administrator Setup:** Requests standard UAC elevation on Windows without changing the UAC policy; uses `sudo` only where required on macOS and Linux.
-- **Safe Windows Servicing:** Asks before stopping competing installers, tries a normal stop before forcing remaining processes, runs `sfc.exe /scannow` afterward, rejects pending restarts, and validates the component store.
-- **Reliable OpenSSH Installation:** Resolves the latest official x64 Win32-OpenSSH MSI directly from its GitHub release page without the releases API, force-installs the client and server, and configures `sshd` and TCP/22 independently of DISM, Features on Demand, WSUS, or Windows Update.
-- **Native Package Management:** Uses WinGet and Chocolatey on Windows, with Homebrew or APT on Unix systems.
-- **Native Windows Shell:** Keeps Windows PowerShell and PowerShell 7 profiles unchanged, without Starship, ZSH, automatic zoxide initialization, or persistent execution-policy changes; Unix editions retain ZSH, Oh My Zsh, and Starship.
-- **Optimized Terminals:** Installs Windows Terminal on Windows and configures Tmux + TPM on Unix systems.
-- **Global Helper Scripts:** Installs Windows helper scripts in `%USERPROFILE%\.setupvibe\bin` and adds the directory to the user's `PATH`.
-- **AI Runtime Foundation:** Installs and validates Python 3.14 directly from `python.org` and Node.js 24 LTS from the official `latest-v24.x` channel on `nodejs.org`, automatically repairs missing runtime files, and exposes `python`, `pip`, `node`, `npm`, and `npx` in the Windows machine `PATH` for Claude and Codex.
-- **Native Windows AI CLIs:** Installs Claude Code through Anthropic's recommended native installer with its official npm package as a recovery path, Codex CLI through OpenAI's official standalone Windows installer, OpenCode CLI, and Google Antigravity CLI as `agy`, while preserving PowerShell profiles and restricted execution policies.
-- **Agent Skills:** Installs and validates the [Vercel Labs Skills CLI](https://github.com/vercel-labs/skills) on Desktop, Windows, and Server editions.
-- **Agent Multiplexer:** Installs and validates [Herdr](https://github.com/herdrdev/herdr) on the Unix Desktop and Server editions, with a dedicated [usage guide](legacy/docs/en/HERDR.md).
-- **Unix Antigravity CLI:** Installs Google's Antigravity CLI as `agy` on the Unix Desktop edition, resolving and SHA-512-verifying its versioned release manifest directly (the official Unix bootstrapper does not forward `--skip-aliases`/`--skip-path` to its own `agy install` step) and running `agy install --skip-aliases --skip-path` explicitly so shell profiles stay untouched.
-- **Hermes Agent:** Installs [Hermes Agent](https://github.com/NousResearch/hermes-agent) with the official Nous Research installer on the Unix Desktop and Omarchy editions, without running `hermes setup` or `hermes gateway install`, so provider, model, keys and gateway stay with the user.
-- **WSL 2 Ready:** Installs the WSL base without a Linux distribution and configures mirrored VPN/LAN networking and development optimizations on Windows 11.
-- **Smart Privilege Elevation:** Uses `sudo` only where strictly necessary on macOS and Linux; most tools are installed in `$HOME/.local/bin`.
-- **Global QR Code Generator:** Installs the PyPI `qrcode` package for the target user on macOS and Linux, exposing its `qr` command in the shell.
-- **Auto-Update:** Automatically upgrades existing Homebrew packages during setup.
-- **Modern Shell:** ZSH + Oh My Zsh + Starship with a curated set of plugins and aliases.
-- **Optimized Tmux:** Pre-configured with TPM, intuitive keybindings, and window/pane numbering starting at 1.
-- **Current Runtimes:** PHP 8.5, Ruby 3.4.12, Go 1.26.11, Python 3.14 on macOS, and Node.js 24 LTS.
-- **AI-Ready Unix Editions:** Includes the latest AI CLI tools for developers on macOS, Linux, and WSL.
-- **Omarchy 4 Edition:** Preserves Omarchy defaults and adds SetupVibe through `omarchy.sh`, without removing operating-system packages or replacing its shell configuration.
-
-## Documentation
-
-|                        | Link                                                       |
-| ---------------------- | ---------------------------------------------------------- |
-| Overview               | [docs/README.md](legacy/docs/README.md)                           |
-| Desktop Edition        | [docs/desktop/README.md](legacy/docs/desktop/README.md)           |
-| Windows Edition (Beta) | [docs/windows/README.md](legacy/docs/windows/README.md)           |
-| Server Edition         | [docs/server/README.md](legacy/docs/server/README.md)             |
-| Omarchy 4 Edition      | [docs/omarchy/README.md](legacy/docs/omarchy/README.md)           |
-| Debian Engineering     | [DEBIAN.md](DEBIAN.md)                                     |
-| Tmux Guide             | [docs/desktop/en/tmux.md](legacy/docs/desktop/en/tmux.md)         |
-| PM2 Guide              | [docs/desktop/en/pm2.md](legacy/docs/desktop/en/pm2.md)           |
-
-## Brand
-
-The official light and dark logos, color tokens, local webfonts, brand
-description, and voice guide live in [`brand/`](brand/). Use the SVG assets
-and semantic tokens by default, then follow the publication checklist before
-creating public material.
-
-## Quick Start
-
-### Desktop (macOS, Linux & WSL)
+Siga o [guia de instalação](docs/user/01-instalacao-e-primeiro-uso.md) para
+o seu sistema ou consulte os binários nas [releases](https://github.com/promovaweb/setupvibe/releases).
+Com a v2 instalada, visualize o plano do Desktop:
 
 ```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://desktop.setupvibe.dev | bash
+setupvibe desktop auto --profile essencial --dry-run
 ```
 
-### Windows Desktop (Beta)
+Use `server` ou `omarchy` no lugar de `desktop` para consultar outra edição.
+Abra `setupvibe` em um terminal interativo para usar a TUI.
 
-Run the Windows utility installer from the canonical SetupVibe URL. It requests administrator access through the standard UAC prompt without changing the UAC policy.
+## Documentação
 
-```powershell
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://windows.setupvibe.dev | iex
-```
+- [Guia do usuário](docs/user/README.md) e [edições do guia em PDF e EPUB](ebook/)
+- [Shell, presets do Starship e plugins](docs/user/05-shell-e-terminal.md)
+- Manuais do CLI para [Desktop](desktop/docs/cli.md), [Server](server/docs/cli.md) e [Omarchy](omarchy/docs/cli.md)
+- [Arquitetura da v2](V2.md), construída com [Termfy](https://github.com/promovaweb/termfy)
+- [Instaladores e documentação histórica da v1](legacy/README.md)
 
-See the [Windows installation guide](legacy/docs/windows/README.md) for local installation, verification, logs, restart options, and the `-Uninstall` mode.
+## Comunidade e contribuição
 
-### Server (Linux only)
-
-```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash
-```
-
-To initialize Docker Swarm automatically after setup:
-
-```bash
-curl --proto '=https' --tlsv1.2 -fsSL https://server.setupvibe.dev | bash -s -- --manager
-```
-
-Add `--yes` for unattended installation or `--advertise-addr ADDRESS` to choose the Swarm address or interface explicitly.
-
-### Omarchy 4
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/promovaweb/setupvibe/main/omarchy.sh | bash
-```
-
-Use `bash omarchy.sh --yes` for an unattended local run. See the [Omarchy
-installation guide](legacy/docs/omarchy/README.md) for the preserved components and
-the added layer.
-
-## Contributing
-
-We welcome contributions of all sizes! Please read our [Contribution Guide](CONTRIBUTING.md) to get started.
-
----
-
-Maintained by [promovaweb.com](https://promovaweb.com) · Licensed under [GPL-3.0](LICENSE)
-
----
+Consulte o [guia de contribuição](CONTRIBUTING.md), a [licença GPL-3.0](LICENSE)
+e o [guia de marca](brand/README.md). A Promovaweb mantém o
+[Discord](https://promovaweb.com/discord) e os [planos de formação](https://promovaweb.com/planos).
