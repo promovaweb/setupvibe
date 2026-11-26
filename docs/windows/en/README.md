@@ -1,6 +1,6 @@
 # SetupVibe Windows Edition (Beta)
 
-> Native Windows utility setup — v0.41.8
+> Native Windows utility setup — v0.41.9
 
 The Windows Edition (Beta) configures native Windows utilities, Python, Node.js, and selected AI CLIs, with WinGet as the primary package source and Chocolatey for packages not available through WinGet.
 
@@ -23,13 +23,18 @@ The Windows Edition (Beta) configures native Windows utilities, Python, Node.js,
 - WSL base without a Linux distribution, with WSL 2 as the default
 - Mirrored WSL networking with VPN/LAN access, DNS tunneling, Windows proxy integration, Hyper-V firewall inbound access, automatic memory reclaim, and sparse virtual disks
 - Git, 7-Zip, Wget, FFmpeg, ImageMagick, and GitHub CLI (`gh`)
-- bat, eza, zoxide, fzf, ripgrep, fd, lazygit, Neovim, Glow, tldr, Fastfetch, duf, and jq
+- bat, eza, zoxide, fzf, ripgrep, fd, Yazi, lazygit, Neovim, Glow, tldr, Fastfetch, duf, and jq
 - Nmap, Speedtest CLI, Tailscale, gping, btop4win, and trippy
 - PowerShell 7, Windows Terminal, FiraCode Nerd Font, and JetBrains Mono Nerd Font
 
 The installer is idempotent: installed WinGet packages are detected and skipped, Chocolatey safely ensures its packages are present, and the official Python and Node.js installers are reapplied safely. Failures are recorded per package so remaining installations can continue. A transcript is saved under `C:\ProgramData\SetupVibe\Logs`.
 
 Windows PowerShell and PowerShell 7 profiles remain original. Starship and ZSH are not installed, the execution policy is not changed, and zoxide remains an uninitialized CLI utility.
+
+Yazi uses the native `yazi` and `ya` commands without an alias or shell
+wrapper. SetupVibe points `YAZI_FILE_ONE` to Git for Windows' `file.exe` for
+reliable file type detection. See the [Yazi guide](../../desktop/en/yazi.md)
+for usage and essential keys.
 
 Python and Node.js are the only programming runtimes installed by this script. Claude Code, Codex CLI, and Antigravity CLI are its only AI CLIs. It does not install a Linux distribution, frameworks, runtime managers, other AI CLIs, or other language ecosystems. After installing a distribution separately, use `desktop.sh` inside it to configure a complete development environment.
 

@@ -1,6 +1,6 @@
 # SetupVibe — Edición Escritorio
 
-> Configuración de entorno de desarrollo multiplataforma — v0.41.8
+> Configuración de entorno de desarrollo multiplataforma — v0.41.9
 
 Instala y configura un stack de desarrollo completo en un solo comando. Soporta macOS y las principales distribuciones de Linux.
 
@@ -8,12 +8,12 @@ Instala y configura un stack de desarrollo completo en un solo comando. Soporta 
 
 |                   | Soportado                       |
 | ----------------- | ------------------------------- |
-| **macOS**          | 12 Monterey y más reciente      |
-| **Ubuntu**         | 24.04+                          |
-| **Debian**         | 12+                             |
-| **Zorin OS**       | 18+                             |
-| **Linux Mint**     | 21+                             |
-| **Arquitecturas**  | x86_64 (amd64), ARM64 (aarch64) |
+| **macOS**         | 12 Monterey y más reciente      |
+| **Ubuntu**        | 24.04+                          |
+| **Debian**        | 12+                             |
+| **Zorin OS**      | 18+                             |
+| **Linux Mint**    | 21+                             |
+| **Arquitecturas** | x86_64 (amd64), ARM64 (aarch64) |
 
 > **No** ejecutar con `sudo` en macOS — Homebrew rechazará la instalación como root. Ejecuta normalmente y el script solicitará tu contraseña cuando sea necesario.
 
@@ -52,19 +52,19 @@ El script muestra una hoja de ruta interactiva y solicita confirmación antes de
 
 | Componente         | macOS                                       | Linux                                                                                               |
 | ------------------ | ------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| PHP 8.5            | vía Homebrew                                | vía PPA ondrej/php (Ubuntu) o sury.org (Debian)                                                    |
+| PHP 8.5            | vía Homebrew                                | vía PPA ondrej/php (Ubuntu) o sury.org (Debian)                                                     |
 | Extensiones        | redis, xdebug, imagick vía PECL             | php8.5-{curl,mbstring,xml,zip,bcmath,intl,mysql,pgsql,sqlite3,gd,imagick,redis,mongodb,yaml,xdebug} |
-| Composer          | vía Homebrew                                | binario en `~/.local/bin/composer`                                                                 |
+| Composer           | vía Homebrew                                | binario en `~/.local/bin/composer`                                                                  |
 | Instalador Laravel | `composer global require laravel/installer` | igual                                                                                               |
 
 ### Paso 4 — Ecosistema Ruby
 
-| Componente      | macOS                       | Linux                                   |
-| --------------- | --------------------------- | --------------------------------------- |
-| rbenv           | vía Homebrew                | clonado de GitHub en `~/.rbenv`         |
+| Componente      | macOS                       | Linux                                    |
+| --------------- | --------------------------- | ---------------------------------------- |
+| rbenv           | vía Homebrew                | clonado de GitHub en `~/.rbenv`          |
 | ruby-build      | vía Homebrew                | clonado en `~/.rbenv/plugins/ruby-build` |
-| Ruby            | 3.4.10 compilado vía rbenv  | igual                                   |
-| Bundler + Rails | `gem install bundler rails` | igual                                   |
+| Ruby            | 3.4.10 compilado vía rbenv  | igual                                    |
+| Bundler + Rails | `gem install bundler rails` | igual                                    |
 
 ### Paso 5 — Lenguajes
 
@@ -78,13 +78,13 @@ El script muestra una hoja de ruta interactiva y solicita confirmación antes de
 
 ### Paso 6 — JavaScript
 
-| Herramienta | macOS                     | Linux                   |
-| ----------- | ------------------------- | ----------------------- |
+| Herramienta | macOS                     | Linux                          |
+| ----------- | ------------------------- | ------------------------------ |
 | Node.js 24  | `node@24` vía Homebrew    | vía repositorio APT NodeSource |
-| PNPM        | `npm install -g pnpm`     | igual                   |
-| PM2         | `npm install -g pm2`      | igual                   |
-| n8n         | `npm install -g n8n`       | igual                   |
-| Bun         | vía script de instalación | igual                   |
+| PNPM        | `npm install -g pnpm`     | igual                          |
+| PM2         | `npm install -g pm2`      | igual                          |
+| n8n         | `npm install -g n8n`      | igual                          |
+| Bun         | vía script de instalación | igual                          |
 
 En Linux, los paquetes npm globales usan el prefijo escribible
 `~/.npm-global` del usuario de destino incluso cuando el instalador se ejecuta
@@ -92,33 +92,39 @@ mediante `sudo`. PNPM, PM2, n8n y Bun se validan después de la instalación.
 
 ### Paso 7 — DevOps
 
-| Herramienta       | macOS                            | Linux                                                                        |
-| ----------------- | -------------------------------- | ---------------------------------------------------------------------------- |
+| Herramienta       | macOS                            | Linux                                                                                  |
+| ----------------- | -------------------------------- | -------------------------------------------------------------------------------------- |
 | Docker            | Docker Desktop vía Homebrew Cask | docker-ce + docker-compose-plugin + docker-buildx-plugin vía repositorio APT de Docker |
-| Ansible           | vía Homebrew                     | vía PPA ansible/ansible (Ubuntu) o ansible-core (Debian)                    |
-| GitHub CLI (`gh`) | vía Homebrew                     | vía repositorio APT de GitHub                                                |
+| Ansible           | vía Homebrew                     | vía PPA ansible/ansible (Ubuntu) o ansible-core (Debian)                               |
+| GitHub CLI (`gh`) | vía Homebrew                     | vía repositorio APT de GitHub                                                          |
 
 ### Paso 8 — Herramientas Unix Modernas
 
 Instaladas mediante Homebrew en ambas plataformas.
 
-| Herramienta  | Descripción                              |
-| ------------ | ---------------------------------------- |
-| `bat`        | `cat` con resaltado de sintaxis          |
-| `eza`        | Reemplazo moderno de `ls`                |
-| `zoxide`     | `cd` más inteligente                     |
-| `fzf`        | Buscador fuzzy (con atajos de shell)     |
-| `ripgrep`    | Reemplazo rápido de `grep`               |
-| `fd`         | Reemplazo rápido de `find`               |
-| `lazygit`    | Interfaz de terminal para git            |
-| `lazydocker` | Interfaz de terminal para Docker         |
-| `neovim`     | Vim moderno                              |
-| `glow`       | Renderizador de Markdown                 |
-| `jq`         | Procesador JSON                          |
-| `tldr`       | Páginas simplificadas mediante `tlrc`    |
-| `fastfetch`  | Herramienta de información del sistema   |
-| `duf`        | `df` moderno                             |
-| `mise`       | Administrador de versiones de runtime    |
+| Herramienta  | Descripción                                |
+| ------------ | ------------------------------------------ |
+| `bat`        | `cat` con resaltado de sintaxis            |
+| `eza`        | Reemplazo moderno de `ls`                  |
+| `zoxide`     | `cd` más inteligente                       |
+| `fzf`        | Buscador fuzzy (con atajos de shell)       |
+| `ripgrep`    | Reemplazo rápido de `grep`                 |
+| `fd`         | Reemplazo rápido de `find`                 |
+| `yazi`       | Gestor de archivos asíncrono para terminal |
+| `lazygit`    | Interfaz de terminal para git              |
+| `lazydocker` | Interfaz de terminal para Docker           |
+| `neovim`     | Vim moderno                                |
+| `glow`       | Renderizador de Markdown                   |
+| `jq`         | Procesador JSON                            |
+| `tldr`       | Páginas simplificadas mediante `tlrc`      |
+| `fastfetch`  | Herramienta de información del sistema     |
+| `duf`        | `df` moderno                               |
+| `mise`       | Administrador de versiones de runtime      |
+
+Yazi está disponible mediante los comandos nativos `yazi` y `ya`. SetupVibe
+no añade un alias ni un wrapper de shell; consulta la
+[guía de Yazi](yazi.md) para conocer las teclas esenciales, integraciones y
+ubicaciones de configuración.
 
 ### Paso 9 — Red, Monitoreo y Tailscale
 
@@ -157,13 +163,13 @@ Presiona `prefix + I` dentro de tmux para instalar todos los plugins. Consulta [
 
 Instaladas globalmente a través de `npm install -g`:
 
-| Herramienta        | Paquete                          |
-| ------------------ | -------------------------------- |
-| Agentlytics        | `agentlytics`                    |
-| Claude Code        | `@anthropic-ai/claude-code`      |
-| OpenAI Codex       | `@openai/codex`                  |
-| GitHub Copilot CLI | `@github/copilot`                |
-| Skills CLI         | `skills`                         |
+| Herramienta        | Paquete                     |
+| ------------------ | --------------------------- |
+| Agentlytics        | `agentlytics`               |
+| Claude Code        | `@anthropic-ai/claude-code` |
+| OpenAI Codex       | `@openai/codex`             |
+| GitHub Copilot CLI | `@github/copilot`           |
+| Skills CLI         | `skills`                    |
 
 Cada CLI de la lista se valida después de la instalación. **Spec-Kit** se instala a través de `uv tool install specify-cli`. Consulte [SPECKIT.md](SPECKIT.md) para obtener la guía completa de Spec-Driven Development y los aliases.
 
@@ -183,34 +189,34 @@ Consulta [pm2.md](pm2.md) para la referencia completa de PM2.
 
 Cada plataforma recibe un `.zshrc` dedicado:
 
-| Archivo                                               | Plataforma | Rutas clave                                  |
-| ----------------------------------------------------- | ---------- | -------------------------------------------- |
-| [`zshrc-macos.zsh`](../../../conf/zshrc-macos.zsh)    | macOS      | Homebrew, Cargo, Composer, Go, Bun           |
-| [`zshrc-linux.zsh`](../../../conf/zshrc-linux.zsh)    | Linux      | Linuxbrew, npm-global, Cargo, Go, Bun, rbenv |
+| Archivo                                            | Plataforma | Rutas clave                                  |
+| -------------------------------------------------- | ---------- | -------------------------------------------- |
+| [`zshrc-macos.zsh`](../../../conf/zshrc-macos.zsh) | macOS      | Homebrew, Cargo, Composer, Go, Bun           |
+| [`zshrc-linux.zsh`](../../../conf/zshrc-linux.zsh) | Linux      | Linuxbrew, npm-global, Cargo, Go, Bun, rbenv |
 
 ### Aliases
 
-| Alias      | Comando                                                                                   |
-| ---------- | ----------------------------------------------------------------------------------------- |
-| `reload`   | `source ~/.zshrc`                                                                         |
-| `zconfig`  | `nano ~/.zshrc`                                                                           |
-| `sshcopykey` | `sshcopykey --host HOST --user USUARIO [--pass PASS]`                                  |
-| `update`   | `brew update && brew upgrade` (macOS) / `sudo apt update && sudo apt upgrade` (Linux)      |
-| `brewup`   | `brew update && brew upgrade && brew cleanup`                                             |
-| `cc`       | `claude --permission-mode=auto --dangerously-skip-permissions`                        |
-| `skl`      | `skills list`                                                                         |
-| `skf`      | `skills find`                                                                         |
-| `ska`      | `skills add`                                                                          |
-| `sku`      | `skills update`                                                                       |
-| `d`        | `docker`                                                                              |
+| Alias        | Comando                                                                               |
+| ------------ | ------------------------------------------------------------------------------------- |
+| `reload`     | `source ~/.zshrc`                                                                     |
+| `zconfig`    | `nano ~/.zshrc`                                                                       |
+| `sshcopykey` | `sshcopykey --host HOST --user USUARIO [--pass PASS]`                                 |
+| `update`     | `brew update && brew upgrade` (macOS) / `sudo apt update && sudo apt upgrade` (Linux) |
+| `brewup`     | `brew update && brew upgrade && brew cleanup`                                         |
+| `cc`         | `claude --permission-mode=auto --dangerously-skip-permissions`                        |
+| `skl`        | `skills list`                                                                         |
+| `skf`        | `skills find`                                                                         |
+| `ska`        | `skills add`                                                                          |
+| `sku`        | `skills update`                                                                       |
+| `d`          | `docker`                                                                              |
 
-| `dc`       | `docker compose`                                                                          |
-| `art`      | `php artisan`                                                                             |
-| `syslog`   | `sudo journalctl -f` *(Solo Linux)*                                                       |
-| `ports`    | `ss -tulnp` *(Solo Linux)*                                                                |
-| `meminfo`  | `free -h` *(Solo Linux)*                                                                  |
-| `diskinfo` | `df -h` *(Solo Linux)*                                                                    |
-| `cpuinfo`  | `lscpu` *(Solo Linux)*                                                                    |
+| `dc`       | `docker compose`                    |
+| `art`      | `php artisan`                       |
+| `syslog`   | `sudo journalctl -f` *(Solo Linux)* |
+| `ports`    | `ss -tulnp` *(Solo Linux)*          |
+| `meminfo`  | `free -h` *(Solo Linux)*            |
+| `diskinfo` | `df -h` *(Solo Linux)*              |
+| `cpuinfo`  | `lscpu` *(Solo Linux)*              |
 
 ### Plugins Oh My Zsh
 

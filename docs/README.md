@@ -1,6 +1,6 @@
 # SetupVibe Documentation
 
-> Automated development environment setup — v0.41.8
+> Automated development environment setup — v0.41.9
 
 SetupVibe transforms any fresh machine into a fully configured development workspace in one command. It supports three editions depending on your target:
 
@@ -50,11 +50,11 @@ Add `--yes` for unattended installation or `--advertise-addr ADDRESS` to choose 
 | PHP 8.5 + Composer + Laravel          | ✔              | ✗               | ✗       |
 | Ruby + rbenv + Rails                  | ✔              | ✗               | ✗       |
 | Go, Rust, Python + uv + qrcode        | ✔              | ✗               | ✗       |
-| Node.js 24                            | ✔              | Node.js 24 LTS   | ✔ (APT) |
-| Bun + PNPM                            | ✔              | ✗                | ✗       |
+| Node.js 24                            | ✔              | Node.js 24 LTS  | ✔ (APT) |
+| Bun + PNPM                            | ✔              | ✗               | ✗       |
 | n8n                                   | ✔              | ✗               | ✗       |
 | Docker + Ansible + GitHub CLI         | ✔              | GitHub CLI only | ✔       |
-| Modern Unix tools (bat, eza, fzf…)    | ✔ via Homebrew | ✔               | ✗       |
+| Modern Unix tools (bat, eza, Yazi…)   | ✔ via Homebrew | ✔               | ✗       |
 | Network & monitoring tools            | ✔              | ✔               | ✔       |
 | Tailscale                             | ✔              | ✔               | ✔       |
 | SSH server                            | ✔ (Linux only) | ✔               | ✔       |
@@ -67,6 +67,13 @@ Add `--yes` for unattended installation or `--advertise-addr ADDRESS` to choose 
 | Docker Swarm Manager (`--manager`)    | ✗              | ✗               | ✔       |
 
 ## Specialized Guides
+
+### Yazi
+
+- [English](desktop/en/yazi.md)
+- [Portuguese](desktop/pt-br/yazi.md)
+- [French](desktop/fr/yazi.md)
+- [Spanish](desktop/es/yazi.md)
 
 ### Tmux
 

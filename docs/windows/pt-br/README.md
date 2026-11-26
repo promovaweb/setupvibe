@@ -1,6 +1,6 @@
 # Edição Windows do SetupVibe (Beta)
 
-> Configuração de utilitários nativos do Windows — v0.41.8
+> Configuração de utilitários nativos do Windows — v0.41.9
 
 A Edição Windows (Beta) configura utilitários nativos do Windows, Python, Node.js e CLIs de IA selecionadas, usando o WinGet como fonte principal e o Chocolatey para pacotes indisponíveis no WinGet.
 
@@ -23,13 +23,19 @@ A Edição Windows (Beta) configura utilitários nativos do Windows, Python, Nod
 - Sistema base do WSL sem uma distribuição Linux, com WSL 2 como padrão
 - Rede espelhada do WSL com acesso por VPN/LAN, tunelamento de DNS, integração com o proxy do Windows, entrada liberada no firewall Hyper-V, recuperação automática de memória e discos virtuais esparsos
 - Git, 7-Zip, Wget, FFmpeg, ImageMagick e GitHub CLI (`gh`)
-- bat, eza, zoxide, fzf, ripgrep, fd, lazygit, Neovim, Glow, tldr, Fastfetch, duf e jq
+- bat, eza, zoxide, fzf, ripgrep, fd, Yazi, lazygit, Neovim, Glow, tldr, Fastfetch, duf e jq
 - Nmap, Speedtest CLI, Tailscale, gping, btop4win e trippy
 - PowerShell 7, Windows Terminal, FiraCode Nerd Font e JetBrains Mono Nerd Font
 
 O instalador é idempotente: pacotes WinGet instalados são detectados e ignorados, o Chocolatey garante seus pacotes com segurança e os instaladores oficiais do Python e Node.js são reaplicados com segurança. Falhas são registradas por pacote para que as demais instalações continuem. Um log completo é salvo em `C:\ProgramData\SetupVibe\Logs`.
 
 Os perfis do Windows PowerShell e PowerShell 7 permanecem originais. Starship e ZSH não são instalados, a política de execução não é alterada e o zoxide permanece somente como utilitário CLI sem inicialização automática.
+
+O Yazi usa os comandos nativos `yazi` e `ya`, sem alias nem wrapper de shell.
+O SetupVibe aponta `YAZI_FILE_ONE` para o `file.exe` do Git for Windows, o que
+garante a detecção confiável dos tipos de arquivo. Consulte o
+[guia do Yazi](../../desktop/pt-br/yazi.md) para conhecer o uso e as teclas
+essenciais.
 
 Python e Node.js são os únicos runtimes de programação instalados por este script. Claude Code, Codex CLI e Antigravity CLI são suas únicas CLIs de IA. Ele não instala uma distribuição Linux, frameworks, gerenciadores de runtime, outras CLIs de IA nem outros ecossistemas de linguagens. Depois de instalar uma distribuição separadamente, use o `desktop.sh` dentro dela para configurar um ambiente completo de desenvolvimento.
 

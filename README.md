@@ -1,6 +1,6 @@
 # SetupVibe
 
-> The ultimate cross-platform development environment setup script — v0.41.8
+> The ultimate cross-platform development environment setup script — v0.41.9
 
 Installs and configures a development environment in one command, supporting Windows 11, macOS, and major Linux distributions. The Windows Edition focuses on native utilities, Python, Node.js, selected native AI CLIs, and the WSL 2 base system. The Unix Desktop Edition includes complete language ecosystems and a broader AI toolkit, while the Server Edition remains focused on operations tooling.
 
@@ -19,6 +19,7 @@ Installs and configures a development environment in one command, supporting Win
 - **WSL 2 Ready:** Installs the WSL base without a Linux distribution and configures mirrored VPN/LAN networking and development optimizations on Windows 11.
 - **Smart Privilege Elevation:** Uses `sudo` only where strictly necessary on macOS and Linux; most tools are installed in `$HOME/.local/bin`.
 - **Global QR Code Generator:** Installs the PyPI `qrcode` package for the target user on macOS and Linux, exposing its `qr` command in the shell.
+- **Terminal File Management:** Installs [Yazi](https://github.com/sxyazi/yazi) on Desktop and Windows with its native `yazi` and `ya` commands, without adding a shell alias.
 - **Auto-Update:** Automatically upgrades existing Homebrew packages during setup.
 - **Modern Shell:** ZSH + Oh My Zsh + Starship with a curated set of plugins and aliases.
 - **Optimized Tmux:** Pre-configured with TPM, intuitive keybindings, and window/pane numbering starting at 1.
@@ -27,15 +28,16 @@ Installs and configures a development environment in one command, supporting Win
 
 ## Documentation
 
-|                        | Link                                                       |
-| ---------------------- | ---------------------------------------------------------- |
-| Overview               | [docs/README.md](docs/README.md)                           |
-| Desktop Edition        | [docs/desktop/README.md](docs/desktop/README.md)           |
-| Windows Edition (Beta) | [docs/windows/README.md](docs/windows/README.md)           |
-| Server Edition         | [docs/server/README.md](docs/server/README.md)             |
-| Debian Engineering     | [DEBIAN.md](DEBIAN.md)                                     |
-| Tmux Guide             | [docs/desktop/en/tmux.md](docs/desktop/en/tmux.md)         |
-| PM2 Guide              | [docs/desktop/en/pm2.md](docs/desktop/en/pm2.md)           |
+|                        | Link                                               |
+| ---------------------- | -------------------------------------------------- |
+| Overview               | [docs/README.md](docs/README.md)                   |
+| Desktop Edition        | [docs/desktop/README.md](docs/desktop/README.md)   |
+| Windows Edition (Beta) | [docs/windows/README.md](docs/windows/README.md)   |
+| Server Edition         | [docs/server/README.md](docs/server/README.md)     |
+| Debian Engineering     | [DEBIAN.md](DEBIAN.md)                             |
+| Tmux Guide             | [docs/desktop/en/tmux.md](docs/desktop/en/tmux.md) |
+| PM2 Guide              | [docs/desktop/en/pm2.md](docs/desktop/en/pm2.md)   |
+| Yazi Guide             | [docs/desktop/en/yazi.md](docs/desktop/en/yazi.md) |
 
 ## Quick Start
 

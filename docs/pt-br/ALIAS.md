@@ -1,6 +1,6 @@
 # SetupVibe Aliases
 
-> Aliases do ambiente shell — v0.41.8
+> Aliases do ambiente shell — v0.41.9
 
 Esta é a lista exaustiva de todos os aliases configurados pelo SetupVibe em todas as plataformas.
 

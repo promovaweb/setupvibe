@@ -1,6 +1,6 @@
 # SetupVibe — Desktop Edition
 
-> Cross-platform development environment setup — v0.41.8
+> Cross-platform development environment setup — v0.41.9
 
 Installs and configures a complete developer stack in one command. Supports macOS and major Linux distributions.
 
@@ -78,13 +78,13 @@ The script shows an interactive roadmap and asks for confirmation before startin
 
 ### Step 6 — JavaScript
 
-| Tool       | macOS                     | Linux                   |
-| ---------- | ------------------------- | ----------------------- |
-| Node.js 24 | `node@24` via Homebrew    | via NodeSource APT repo |
-| PNPM       | `npm install -g pnpm`     | same                    |
-| PM2        | `npm install -g pm2`      | same                    |
-| n8n        | `npm install -g n8n`       | same                    |
-| Bun        | via install script        | same                    |
+| Tool       | macOS                  | Linux                   |
+| ---------- | ---------------------- | ----------------------- |
+| Node.js 24 | `node@24` via Homebrew | via NodeSource APT repo |
+| PNPM       | `npm install -g pnpm`  | same                    |
+| PM2        | `npm install -g pm2`   | same                    |
+| n8n        | `npm install -g n8n`   | same                    |
+| Bun        | via install script     | same                    |
 
 On Linux, global npm packages use the target user's writable
 `~/.npm-global` prefix even when the installer runs through `sudo`. PNPM, PM2,
@@ -92,12 +92,12 @@ n8n, and Bun are validated after installation.
 
 ### Step 7 — DevOps
 
-| Tool              | macOS                            | Linux                                                                        |
-| ----------------- | -------------------------------- | ---------------------------------------------------------------------------- |
-| Docker            | Docker Desktop via Homebrew Cask | docker-ce + docker-compose-plugin + docker-buildx-plugin via Docker APT repo |
-| Portainer         | via Docker Compose in `~/.setupvibe` | same |
-| Ansible           | via Homebrew                     | via ansible/ansible PPA (Ubuntu) or ansible-core (Debian)                    |
-| GitHub CLI (`gh`) | via Homebrew                     | via GitHub APT repo                                                          |
+| Tool              | macOS                                | Linux                                                                        |
+| ----------------- | ------------------------------------ | ---------------------------------------------------------------------------- |
+| Docker            | Docker Desktop via Homebrew Cask     | docker-ce + docker-compose-plugin + docker-buildx-plugin via Docker APT repo |
+| Portainer         | via Docker Compose in `~/.setupvibe` | same                                                                         |
+| Ansible           | via Homebrew                         | via ansible/ansible PPA (Ubuntu) or ansible-core (Debian)                    |
+| GitHub CLI (`gh`) | via Homebrew                         | via GitHub APT repo                                                          |
 
 ### Step 8 — Modern Unix Tools
 
@@ -111,6 +111,7 @@ Installed via Homebrew on both platforms.
 | `fzf`        | Fuzzy finder (with shell keybindings) |
 | `ripgrep`    | Fast `grep` replacement               |
 | `fd`         | Fast `find` replacement               |
+| `yazi`       | Asynchronous terminal file manager    |
 | `lazygit`    | Terminal UI for git                   |
 | `lazydocker` | Terminal UI for Docker                |
 | `neovim`     | Modern vim                            |
@@ -120,6 +121,10 @@ Installed via Homebrew on both platforms.
 | `fastfetch`  | System info tool                      |
 | `duf`        | Modern `df`                           |
 | `mise`       | Runtime version manager               |
+
+Yazi is available through its native `yazi` and `ya` commands. SetupVibe does
+not add a shell alias or wrapper; see the [Yazi guide](yazi.md) for essential
+keys, integrations, and configuration locations.
 
 ### Step 9 — Network, Monitoring & Tailscale
 
@@ -158,13 +163,13 @@ Press `prefix + I` inside tmux to install all plugins. See [tmux.md](tmux.md) fo
 
 Installed globally via `npm install -g`:
 
-| Tool               | Package                          |
-| ------------------ | -------------------------------- |
-| Agentlytics        | `agentlytics`                    |
-| Claude Code        | `@anthropic-ai/claude-code`      |
-| OpenAI Codex       | `@openai/codex`                  |
-| GitHub Copilot CLI | `@github/copilot`                |
-| Skills CLI         | `skills`                         |
+| Tool               | Package                     |
+| ------------------ | --------------------------- |
+| Agentlytics        | `agentlytics`               |
+| Claude Code        | `@anthropic-ai/claude-code` |
+| OpenAI Codex       | `@openai/codex`             |
+| GitHub Copilot CLI | `@github/copilot`           |
+| Skills CLI         | `skills`                    |
 
 Every listed CLI is validated after installation. **Spec-Kit** is installed via `uv tool install specify-cli`. See [SPECKIT.md](SPECKIT.md) for the full Spec-Driven Development guide and aliases.
 
@@ -191,26 +196,26 @@ Each platform gets a dedicated `.zshrc`:
 
 ### Aliases
 
-| Alias      | Command                                                                               |
-| ---------- | ------------------------------------------------------------------------------------- |
-| `reload`   | `source ~/.zshrc`                                                                     |
-| `zconfig`  | `nano ~/.zshrc`                                                                       |
-| `sshcopykey` | `sshcopykey --host HOST --user USER [--pass PASS]`                                 |
-| `update`   | `brew update && brew upgrade` (macOS) / `sudo apt update && sudo apt upgrade` (Linux) |
-| `brewup`   | `brew update && brew upgrade && brew cleanup`                                         |
-| `cc`       | `claude --permission-mode=auto --dangerously-skip-permissions`                        |
-| `skl`      | `skills list`                                                                         |
-| `skf`      | `skills find`                                                                         |
-| `ska`      | `skills add`                                                                          |
-| `sku`      | `skills update`                                                                       |
-| `d`        | `docker`                                                                              |
-| `dc`       | `docker compose`                                                                      |
-| `art`      | `php artisan`                                                                         |
-| `syslog`   | `sudo journalctl -f` *(Linux only)*                                                   |
-| `ports`    | `ss -tulnp` *(Linux only)*                                                            |
-| `meminfo`  | `free -h` *(Linux only)*                                                              |
-| `diskinfo` | `df -h` *(Linux only)*                                                                |
-| `cpuinfo`  | `lscpu` *(Linux only)*                                                                |
+| Alias        | Command                                                                               |
+| ------------ | ------------------------------------------------------------------------------------- |
+| `reload`     | `source ~/.zshrc`                                                                     |
+| `zconfig`    | `nano ~/.zshrc`                                                                       |
+| `sshcopykey` | `sshcopykey --host HOST --user USER [--pass PASS]`                                    |
+| `update`     | `brew update && brew upgrade` (macOS) / `sudo apt update && sudo apt upgrade` (Linux) |
+| `brewup`     | `brew update && brew upgrade && brew cleanup`                                         |
+| `cc`         | `claude --permission-mode=auto --dangerously-skip-permissions`                        |
+| `skl`        | `skills list`                                                                         |
+| `skf`        | `skills find`                                                                         |
+| `ska`        | `skills add`                                                                          |
+| `sku`        | `skills update`                                                                       |
+| `d`          | `docker`                                                                              |
+| `dc`         | `docker compose`                                                                      |
+| `art`        | `php artisan`                                                                         |
+| `syslog`     | `sudo journalctl -f` *(Linux only)*                                                   |
+| `ports`      | `ss -tulnp` *(Linux only)*                                                            |
+| `meminfo`    | `free -h` *(Linux only)*                                                              |
+| `diskinfo`   | `df -h` *(Linux only)*                                                                |
+| `cpuinfo`    | `lscpu` *(Linux only)*                                                                |
 
 ### Oh My Zsh Plugins
 

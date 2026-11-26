@@ -3,7 +3,7 @@
 # Nome: sshcopykey
 # Autor: Luiz Eduardo de Oliveira Fonseca <luizeof@gmail.com>
 # Organizacao: promovaweb.com <contato@promovaweb.com>
-# Versao: 0.41.8
+# Versao: 0.41.9
 # Descricao: Copia a chave publica SSH local para um servidor remoto usando
 #            autenticacao por senha. A senha pode ser informada com --pass ou
 #            digitada em um prompt oculto quando --pass nao for usado.

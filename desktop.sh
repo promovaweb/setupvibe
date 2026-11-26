@@ -27,7 +27,7 @@ NC='\033[0m' # No Color
 
 
 # --- VERSION ---
-VERSION="0.41.8"
+VERSION="0.41.9"
 PHP_VERSION="8.5"
 RUBY_VERSION="3.4.10"
 PYTHON_VERSION="3.14"
@@ -1181,7 +1181,7 @@ step_7() {
 
 step_8() {
     echo "Installing Modern Unix Tools via Homebrew..."
-    local -a tools=(bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow tlrc fastfetch duf jq mise)
+    local -a tools=(bat eza zoxide fzf ripgrep fd lazygit lazydocker neovim glow tlrc fastfetch duf jq mise yazi)
 
     if brew_cmd list --formula tldr &>/dev/null; then
         echo "Migrating the disabled tldr formula to tlrc..."
@@ -1212,6 +1212,9 @@ step_8() {
         fi
 
     fi
+
+    user_do "$BREW_PREFIX/bin/yazi" --version
+    user_do "$BREW_PREFIX/bin/ya" --version
 }
 
 

@@ -11,7 +11,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'Continue'
 
-$script:Version = '0.41.8'
+$script:Version = '0.41.9'
 $script:InstallUrl = 'https://windows.setupvibe.dev'
 $script:RestartRequired = $false
 $script:RestartBeforeRetryRequired = $false
@@ -28,6 +28,7 @@ $script:OpenSshFirewallStatePath = Join-Path $env:ProgramData 'SetupVibe\openssh
 $script:RuntimePathStatePath = Join-Path $env:ProgramData 'SetupVibe\windows-runtime-paths.json'
 $script:AiCliPathStatePath = Join-Path $env:ProgramData 'SetupVibe\windows-ai-cli-paths.json'
 $script:PackagePathStatePath = Join-Path $env:ProgramData 'SetupVibe\windows-package-paths.json'
+$script:YaziEnvironmentStatePath = Join-Path $env:ProgramData 'SetupVibe\yazi-environment.json'
 $script:SetupVibeUserDirectory = Join-Path $env:USERPROFILE '.setupvibe'
 $script:WindowsUtilitiesDirectory = Join-Path $script:SetupVibeUserDirectory 'bin'
 $script:WindowsUtilitiesStatePath = Join-Path $script:SetupVibeUserDirectory 'windows-utilities.json'
@@ -53,6 +54,7 @@ $script:WinGetPackages = @(
     @{ Id = 'junegunn.fzf'; Name = 'fzf' }
     @{ Id = 'BurntSushi.ripgrep.MSVC'; Name = 'ripgrep' }
     @{ Id = 'sharkdp.fd'; Name = 'fd' }
+    @{ Id = 'sxyazi.yazi'; Name = 'Yazi' }
     @{ Id = 'JesseDuffield.lazygit'; Name = 'lazygit' }
     @{ Id = 'Neovim.Neovim'; Name = 'Neovim' }
     @{ Id = 'charmbracelet.glow'; Name = 'Glow' }
@@ -87,6 +89,8 @@ $script:WinGetCommandChecks = @(
     @{ Name = 'fzf'; Command = 'fzf.exe'; Arguments = @('--version') }
     @{ Name = 'ripgrep'; Command = 'rg.exe'; Arguments = @('--version') }
     @{ Name = 'fd'; Command = 'fd.exe'; Arguments = @('--version') }
+    @{ Name = 'Yazi'; Command = 'yazi.exe'; Arguments = @('--version') }
+    @{ Name = 'Yazi package manager'; Command = 'ya.exe'; Arguments = @('--version') }
     @{ Name = 'lazygit'; Command = 'lazygit.exe'; Arguments = @('--version') }
     @{ Name = 'Neovim'; Command = 'nvim.exe'; Arguments = @('--version') }
     @{ Name = 'Glow'; Command = 'glow.exe'; Arguments = @('--version') }
@@ -1509,6 +1513,88 @@ function Uninstall-PackagePaths {
     Write-Success 'SetupVibe-managed package PATH entries were removed.'
 }
 
+function Install-YaziEnvironment {
+    foreach ($commandName in @('yazi.exe', 'ya.exe')) {
+        if (-not (Get-Command $commandName -ErrorAction SilentlyContinue)) {
+            throw "Yazi command '$commandName' is unavailable; the environment variable was not changed."
+        }
+    }
+
+    $gitCommand = Get-Command 'git.exe' -ErrorAction SilentlyContinue
+    $candidatePaths = New-Object System.Collections.Generic.List[string]
+    if ($gitCommand -and -not [string]::IsNullOrWhiteSpace([string]$gitCommand.Source)) {
+        $gitRoot = Split-Path -Parent (Split-Path -Parent $gitCommand.Source)
+        $candidatePaths.Add((Join-Path $gitRoot 'usr\bin\file.exe'))
+    }
+    $candidatePaths.Add((Join-Path (Get-NativeProgramFilesDirectory) 'Git\usr\bin\file.exe'))
+
+    $filePath = $candidatePaths |
+        Where-Object { Test-Path $_ -PathType Leaf } |
+        Select-Object -First 1
+    if ([string]::IsNullOrWhiteSpace([string]$filePath)) {
+        throw "Yazi requires Git for Windows file.exe, but it was not found. Checked: $($candidatePaths -join ', ')"
+    }
+
+    if (-not (Test-Path $script:YaziEnvironmentStatePath -PathType Leaf)) {
+        $previousValue = [Environment]::GetEnvironmentVariable('YAZI_FILE_ONE', 'User')
+        @{
+            HadPreviousValue = $null -ne $previousValue
+            PreviousValue = $previousValue
+            ManagedValue = $filePath
+        } | ConvertTo-Json | Set-Content -Path $script:YaziEnvironmentStatePath -Encoding ASCII
+    }
+    else {
+        try {
+            $state = Get-Content -Path $script:YaziEnvironmentStatePath -Raw | ConvertFrom-Json
+            if (-not $state.PSObject.Properties['ManagedValue']) {
+                throw "The 'ManagedValue' property is missing."
+            }
+            $state.ManagedValue = $filePath
+            $state | ConvertTo-Json | Set-Content -Path $script:YaziEnvironmentStatePath -Encoding ASCII
+        }
+        catch {
+            throw "The Yazi environment state is invalid and was preserved to prevent ownership data loss: $($_.Exception.Message)"
+        }
+    }
+
+    [Environment]::SetEnvironmentVariable('YAZI_FILE_ONE', $filePath, 'User')
+    [Environment]::SetEnvironmentVariable('YAZI_FILE_ONE', $filePath, 'Process')
+    Send-EnvironmentChangeNotification
+    Write-Success ("YAZI_FILE_ONE points to Git for Windows file.exe: {0}" -f $filePath)
+}
+
+function Uninstall-YaziEnvironment {
+    if (-not (Test-Path $script:YaziEnvironmentStatePath -PathType Leaf)) {
+        Write-Success 'No SetupVibe-managed Yazi environment variable was recorded.'
+        return
+    }
+
+    try {
+        $state = Get-Content -Path $script:YaziEnvironmentStatePath -Raw | ConvertFrom-Json
+        foreach ($requiredProperty in @('HadPreviousValue', 'ManagedValue')) {
+            if (-not $state.PSObject.Properties[$requiredProperty]) {
+                throw "The '$requiredProperty' property is missing."
+            }
+        }
+    }
+    catch {
+        throw "The Yazi environment state is invalid and was preserved for manual recovery: $($_.Exception.Message)"
+    }
+
+    $currentValue = [Environment]::GetEnvironmentVariable('YAZI_FILE_ONE', 'User')
+    if ($currentValue -eq [string]$state.ManagedValue) {
+        $restoredValue = if ([bool]$state.HadPreviousValue) { [string]$state.PreviousValue } else { $null }
+        [Environment]::SetEnvironmentVariable('YAZI_FILE_ONE', $restoredValue, 'User')
+        [Environment]::SetEnvironmentVariable('YAZI_FILE_ONE', $restoredValue, 'Process')
+        Send-EnvironmentChangeNotification
+        Write-Success 'The previous YAZI_FILE_ONE user environment value was restored.'
+    }
+    else {
+        Write-WarningMessage 'YAZI_FILE_ONE was changed after SetupVibe configured it, so the current user value was preserved.'
+    }
+    Remove-Item -Path $script:YaziEnvironmentStatePath -Force
+}
+
 function Uninstall-AiCliPaths {
     if (Test-Path $script:AiCliPathStatePath -PathType Leaf) {
         try {
@@ -2392,6 +2478,7 @@ if ($Uninstall) {
     Invoke-SetupStep -Name 'Python 3.14 official installer' -Action { Uninstall-Python }
     Invoke-SetupStep -Name 'Python and Node.js machine PATH' -Action { Uninstall-DevelopmentRuntimePaths }
     Invoke-SetupStep -Name 'Windows package PATH entries' -Action { Uninstall-PackagePaths }
+    Invoke-SetupStep -Name 'Yazi environment' -Action { Uninstall-YaziEnvironment }
 
     $script:WinGetPath = Find-WinGet
     if ($script:WinGetPath) {
@@ -2450,6 +2537,7 @@ else {
                 Test-InstalledCommand -Name $commandCheck.Name -Command $commandCheck.Command -Arguments $commandCheck.Arguments -PreferredPaths @($preferredPaths)
             }
         }
+        Invoke-SetupStep -Name 'Yazi file type detection' -Action { Install-YaziEnvironment }
         Invoke-SetupStep -Name 'GitHub CLI command (gh)' -Action { Test-GitHubCli }
         Invoke-SetupStep -Name 'Windows Terminal command (wt)' -Action { Test-WindowsTerminal }
     }

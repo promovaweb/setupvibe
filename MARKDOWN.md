@@ -394,7 +394,7 @@ Documentation files in `docs/` should begin with an H1 and a blockquote describi
 ```markdown
 # Guide Title
 
-> Short description — v0.41.8
+> Short description — v0.41.9
 ```
 
 ---

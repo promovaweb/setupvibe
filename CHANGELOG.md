@@ -4,6 +4,16 @@ All notable changes to **SetupVibe** are documented in this file.
 
 ---
 
+## [v0.41.9] - 2026-07-27
+
+### Added
+
+- Added [Yazi](https://github.com/sxyazi/yazi) to the Unix Desktop through Homebrew and to the Windows Edition through its official WinGet package, with validation of the native `yazi` and `ya` commands and no shell alias or wrapper.
+- Added localized Yazi guides covering startup commands, essential keybindings, existing SetupVibe integrations, user configuration locations, and official references.
+- Added managed Windows `YAZI_FILE_ONE` configuration pointing to Git for Windows' `file.exe`, with preservation and safe restoration of the previous user value during uninstall.
+
+---
+
 ## [v0.41.8] - 2026-07-21
 
 ### Added
